@@ -1,19 +1,19 @@
 # Unity generated directories
-/[Ll]ibrary/
-/[Tt]emp/
-/[Oo]bj/
-/[Ll]ogs/
-/[Uu]ser[Ss]ettings/
-/[Mm]emoryCaptures/
-/[Rr]ecordings/
+**/[Ll]ibrary/
+**/[Tt]emp/
+**/[Oo]bj/
+**/[Ll]ogs/
+**/[Uu]ser[Ss]ettings/
+**/[Mm]emoryCaptures/
+**/[Rr]ecordings/
 
 # Builds
-/[Bb]uild/
-/[Bb]uilds/
+**/[Bb]uild/
+**/[Bb]uilds/
 
 # IDE generated files
-/.vs/
-/.idea/
+**/.vs/
+**/.idea/
 *.csproj
 *.sln
 *.suo
