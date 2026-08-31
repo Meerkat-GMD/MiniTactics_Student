@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>미니 택틱스로 이해하는 Command 패턴</title>
+  <style>
+    :root {
+      --bg:#040a13; --slide:#091526; --panel:#10233a; --panel2:#142b45;
+      --text:#eef5ff; --muted:#afbed1; --teal:#55e4cf; --violet:#b8a4ff;
+      --amber:#ffd16f; --red:#ff8c99; --line:#2a405b; --green:#83e58f;
+    }
+    * { box-sizing:border-box; }
+    html, body { width:100%; height:100%; margin:0; overflow:hidden; }
+    body { background:var(--bg); color:var(--text); font-family:"Pretendard","Noto Sans KR",system-ui,sans-serif; word-break:keep-all; overflow-wrap:break-word; }
+    button, a { font:inherit; }
+    button { color:inherit; }
+    .app { min-height:100%; display:grid; grid-template-rows:1fr auto; }
+    .stage { min-height:0; display:grid; place-items:center; padding:14px 18px 6px; }
+    .deck { position:relative; width:min(100%,calc((100vh - 80px) * 16 / 9)); max-height:calc(100vh - 80px); aspect-ratio:16/9; overflow:hidden; border:1px solid #263b56; border-radius:18px; background:var(--slide); box-shadow:0 28px 88px #000a; container-type:inline-size; }
+    .slide { position:absolute; inset:0; display:none; overflow:auto; padding:clamp(28px,3.6cqw,56px) clamp(36px,5cqw,78px); background:radial-gradient(circle at 94% 7%,#253969 0,transparent 27%),linear-gradient(145deg,#0c1a2d 0%,#07121f 74%); }
+    .slide.is-active { display:grid; align-content:center; animation:reveal .24s ease-out; }
+    .slide::after { content:attr(data-slide); position:absolute; right:26px; top:20px; color:#7189a6; font-size:.76rem; font-weight:850; letter-spacing:.13em; }
+    @keyframes reveal { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:none; } }
+    h1,h2,h3,p { margin-top:0; }
+    h1 { max-width:78cqw; margin-bottom:20px; font-size:clamp(2.3rem,5.1cqw,4.9rem); line-height:1.08; letter-spacing:-.05em; }
+    h2 { max-width:82cqw; margin-bottom:clamp(16px,2.2cqw,30px); font-size:clamp(1.75rem,3.35cqw,3.15rem); line-height:1.17; letter-spacing:-.035em; }
+    h3 { margin-bottom:8px; color:var(--teal); font-size:clamp(.98rem,1.38cqw,1.3rem); }
+    p,li { font-size:clamp(.83rem,1.23cqw,1.13rem); line-height:1.53; }
+    p { margin-bottom:.72em; }
+    ul,ol { margin:.1em 0 0; padding-left:1.25em; }
+    li { margin:.38em 0; }
+    li::marker { color:var(--teal); font-weight:800; }
+    strong { color:#fff; }
+    .kicker { margin:0 0 7px; color:var(--teal); font-size:clamp(.68rem,1cqw,.9rem); font-weight:900; letter-spacing:.13em; text-transform:uppercase; }
+    .subtitle { max-width:72cqw; color:var(--muted); font-size:clamp(1rem,1.68cqw,1.5rem); line-height:1.5; }
+    .accent { color:var(--teal); } .violet { color:var(--violet); } .amber { color:var(--amber); } .red { color:var(--red); } .green { color:var(--green); }
+    .big { max-width:78cqw; font-size:clamp(1.28rem,2.3cqw,2.12rem); line-height:1.45; letter-spacing:-.02em; }
+    .quote { max-width:76cqw; margin:12px 0; padding-left:22px; border-left:5px solid var(--violet); font-size:clamp(1.2rem,2.25cqw,2rem); line-height:1.43; font-weight:760; }
+    .two { display:grid; grid-template-columns:1fr 1fr; gap:clamp(15px,2.2cqw,30px); align-items:stretch; }
+    .wide { display:grid; grid-template-columns:1.3fr .85fr; gap:clamp(18px,2.6cqw,36px); align-items:center; }
+    .panel { padding:clamp(14px,1.8cqw,23px); border:1px solid var(--line); border-radius:14px; background:#0f2138d9; }
+    .panel.teal { border-top:4px solid var(--teal); } .panel.violet { border-top:4px solid var(--violet); } .panel.amber { border-top:4px solid var(--amber); } .panel.redline { border-top:4px solid var(--red); }
+    .callout { margin-top:15px; padding:13px 18px; border-left:4px solid var(--teal); border-radius:8px; background:#10243c; }
+    .callout.warning { border-left-color:var(--amber); } .callout.danger { border-left-color:var(--red); }
+    .callout p:last-child,.panel p:last-child { margin-bottom:0; }
+    pre { margin:10px 0 0; padding:clamp(13px,1.65cqw,21px); overflow:auto; border:1px solid var(--line); border-radius:12px; background:#030a13; color:#dceafa; white-space:pre; font:clamp(.68rem,1.04cqw,.96rem)/1.58 Consolas,"D2Coding",monospace; }
+    p code,li code { padding:.08em .32em; border:1px solid #344d69; border-radius:5px; background:#081522; color:var(--amber); font-family:Consolas,"D2Coding",monospace; font-size:.92em; }
+    .code-focus { color:var(--amber); font-weight:800; }
+    .source { margin-top:10px; color:#7f94ad; font-size:clamp(.62rem,.82cqw,.76rem); }
+    .flow { display:grid; grid-template-columns:repeat(7,auto); align-items:center; justify-content:center; gap:9px; margin-top:22px; }
+    .node { min-width:9cqw; min-height:66px; display:grid; place-items:center; padding:10px 12px; border:1px solid #3b5575; border-radius:12px; background:var(--panel); text-align:center; font-size:clamp(.7rem,.95cqw,.9rem); font-weight:800; }
+    .arrow { color:var(--teal); font-size:1.35rem; font-weight:900; }
+    .state-board { display:grid; grid-template-columns:1fr auto 1fr; gap:18px; align-items:center; margin-top:14px; }
+    .coord { min-height:140px; display:grid; place-items:center; padding:22px; border:1px solid var(--line); border-radius:14px; background:#07111e; text-align:center; font:800 clamp(1rem,1.7cqw,1.55rem)/1.6 Consolas,monospace; }
+    .missing { color:var(--red); text-decoration:line-through; text-decoration-thickness:3px; }
+    .compare { width:100%; border-collapse:collapse; font-size:clamp(.72rem,1cqw,.94rem); line-height:1.42; }
+    .compare th,.compare td { padding:10px 13px; border:1px solid var(--line); vertical-align:top; text-align:left; }
+    .compare th { color:var(--teal); background:#071321; }
+    .stack { width:min(440px,70cqw); margin:14px auto 0; display:grid; gap:8px; }
+    .stack-item { padding:11px 16px; border:1px solid #405c7d; border-radius:9px; background:var(--panel); text-align:center; font-weight:800; }
+    .stack-item.top { border-color:var(--amber); color:var(--amber); }
+    .question { padding:clamp(20px,2.7cqw,38px); border:1px solid #5b4e25; border-radius:15px; background:linear-gradient(135deg,#221d10,#101c2d); }
+    .question .big { margin-bottom:0; }
+    .role-map { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:18px; }
+    .role { min-height:125px; padding:15px; border-top:4px solid var(--teal); border-radius:12px; background:var(--panel); }
+    .role:nth-child(2) { border-color:var(--violet); } .role:nth-child(3) { border-color:var(--amber); } .role:nth-child(4) { border-color:var(--red); }
+    .role b { display:block; margin-bottom:7px; font-size:clamp(.82rem,1.12cqw,1rem); }
+    .role span { color:var(--muted); font-size:clamp(.7rem,.92cqw,.86rem); line-height:1.45; }
+    .controls { min-height:60px; display:flex; align-items:center; justify-content:center; gap:9px; padding:7px 14px 10px; }
+    .control-btn { min-width:44px; min-height:40px; padding:7px 15px; border:1px solid #354c68; border-radius:10px; background:#0d1d30; cursor:pointer; }
+    .control-btn:hover:not(:disabled) { border-color:var(--teal); color:var(--teal); }
+    .control-btn:focus-visible,.toc-link:focus-visible { outline:3px solid var(--amber); outline-offset:2px; }
+    .control-btn:disabled { opacity:.35; cursor:not-allowed; }
+    #slideCounter { min-width:76px; color:var(--muted); text-align:center; font-weight:850; font-variant-numeric:tabular-nums; }
+    dialog { width:min(780px,calc(100% - 32px)); max-height:min(80vh,740px); padding:0; border:1px solid #405b7a; border-radius:18px; background:#091526; color:var(--text); box-shadow:0 30px 100px #000d; }
+    dialog::backdrop { background:#020710df; backdrop-filter:blur(4px); }
+    .toc-head { position:sticky; top:0; z-index:2; display:flex; align-items:center; justify-content:space-between; padding:18px 21px; border-bottom:1px solid var(--line); background:#091526; }
+    .toc-head h2 { margin:0; font-size:1.4rem; }
+    .toc-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; padding:16px; }
+    .toc-link { display:grid; grid-template-columns:34px 1fr; gap:8px; padding:9px 11px; border:1px solid transparent; border-radius:8px; color:var(--muted); text-decoration:none; font-size:.88rem; }
+    .toc-link:hover { color:var(--text); background:var(--panel); border-color:var(--line); }
+    .toc-link span { color:var(--teal); font-weight:900; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @media (max-height:650px) and (min-width:721px) {
+      .slide { padding:24px 40px; }
+      h1 { font-size:3rem; } h2 { font-size:1.72rem; margin-bottom:12px; } h3 { font-size:.91rem; }
+      p,li { font-size:.76rem; line-height:1.38; } li { margin:.25em 0; }
+      .panel { padding:10px 13px; } .callout { margin-top:8px; padding:8px 13px; }
+      pre { margin-top:6px; padding:9px 12px; font-size:.64rem; line-height:1.4; }
+      .node { min-height:48px; padding:6px 9px; font-size:.65rem; }
+      .role { min-height:90px; padding:10px; } .coord { min-height:105px; padding:14px; }
+    }
+    @media (max-width:720px) {
+      .stage { padding:0; }
+      .deck { width:100%; height:calc(100vh - 60px); max-height:none; aspect-ratio:auto; border:0; border-radius:0; }
+      .slide { padding:48px 21px 28px; }
+      .slide.is-active { align-content:start; }
+      .two,.wide,.state-board,.role-map { grid-template-columns:1fr; }
+      .flow { grid-template-columns:1fr; }
+      .flow .arrow { transform:rotate(90deg); }
+      .toc-grid { grid-template-columns:1fr; }
+      h1 { font-size:clamp(2.05rem,10.5cqw,3.25rem); }
+      h2 { font-size:clamp(1.6rem,7.2cqw,2.25rem); }
+      p,li { font-size:1rem; }
+      pre { font-size:.75rem; white-space:pre-wrap; overflow-wrap:anywhere; }
+    }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; } }
+    @media print {
+      html,body { height:auto; overflow:visible; background:#fff; color:#111; }
+      .app,.stage,.deck { display:block; width:auto; height:auto; max-height:none; padding:0; overflow:visible; border:0; box-shadow:none; }
+      .slide,.slide.is-active { position:relative; display:grid; width:100%; min-height:175mm; padding:15mm; break-after:page; overflow:hidden; background:#fff; color:#111; animation:none; }
+      .slide:last-child { break-after:auto; }
+      .controls,dialog { display:none !important; }
+      h1,h2,h3,p,li,strong,.subtitle,.kicker,.accent,.violet,.amber,.red,.green,.source { color:#111; }
+      .panel,.callout,pre,.node,.coord,.role,.stack-item,.question,.compare th,.compare td { background:#fff; color:#111; border-color:#777; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <main class="stage">
+      <div class="deck" id="deck">
+        <section class="slide is-active" id="slide-1" data-slide="01 / 31" aria-labelledby="title-1"><div><p class="kicker">Mini Tactics · Lesson 02</p><h1 id="title-1">미니 택틱스로 이해하는<br><span class="accent">Command 패턴</span></h1><p class="subtitle">잘못 이동한 유닛을 되돌리려면, 게임은 무엇을 기억해야 할까?</p></div></section>
+
+        <section class="slide" id="slide-2" data-slide="02 / 31" aria-labelledby="title-2"><div><p class="kicker">Yesterday's Success</p><h2 id="title-2">1차시 코드는 목표를 정확히 달성했다</h2><div class="two"><div><ul><li>이동 가능한 유닛을 마우스로 선택한다.</li><li>이동거리 2의 범위를 계산해 표시한다.</li><li>점유 셀은 빨간색으로 구분한다.</li><li>유효한 목적지를 클릭하면 셀 중심으로 이동한다.</li></ul></div><div class="panel teal"><h3>중요한 관점</h3><p class="big">Undo가 요구되지 않았던 1차시에는 <strong>직접 이동 호출이 단순하고 충분한 설계</strong>였다.</p></div></div><p class="source">근거: 교사용_1차시_진행안.md</p></div></section>
+
+        <section class="slide" id="slide-3" data-slide="03 / 31" aria-labelledby="title-3"><div><p class="kicker">New Requirement</p><h2 id="title-3">오늘, 요구가 하나 추가된다</h2><div class="question"><p class="big">“방금 이동은 실수였어요.<br><span class="amber">Undo 버튼으로 원래 자리로 돌려주세요.</span>”</p></div><div class="callout"><p>기능 하나가 추가되었을 뿐인데, 어제의 코드에서 새로운 설계 문제가 보이기 시작한다.</p></div></div></section>
+
+        <section class="slide" id="slide-4" data-slide="04 / 31" aria-labelledby="title-4"><div><p class="kicker">Call Flow</p><h2 id="title-4">현재 이동은 클릭한 프레임에 바로 끝난다</h2><div class="flow"><div class="node">마우스<br>클릭</div><div class="arrow">→</div><div class="node">목적지<br>셀 변환</div><div class="arrow">→</div><div class="node">이동 가능<br>검사</div><div class="arrow">→</div><div class="node">MoveTo()<br>즉시 호출</div></div><div class="callout"><p>입력과 실행 사이에 보관되는 <strong>이동 요청 객체</strong>는 없다.</p></div></div></section>
+
+        <section class="slide" id="slide-5" data-slide="05 / 31" aria-labelledby="title-5"><div><p class="kicker">Actual Code · BattleController</p><h2 id="title-5">이동 가능하면 MoveTo()를 직접 호출한다</h2><pre>public bool TryMoveSelectedUnit(Vector2Int targetCell)
+{
+    if (SelectedUnit == null || _board == null ||
+        !_board.CanMoveTo(SelectedUnit, targetCell))
+        return false;
+
+    <span class="code-focus">SelectedUnit.MoveTo(_board, targetCell);</span>
+    SelectedUnit = null;
+    _overlayPool?.Hide();
+    return true;
+}</pre><p class="source">실제 코드: BattleController.cs 74–84행</p></div></section>
+
+        <section class="slide" id="slide-6" data-slide="06 / 31" aria-labelledby="title-6"><div><p class="kicker">Observation</p><h2 id="title-6">직접 호출은 결과를 만들지만 요청을 남기지 않는다</h2><div class="two"><div class="panel teal"><h3>남는 것</h3><ul><li>유닛의 새로운 월드 위치</li><li>이동이 끝난 화면</li></ul></div><div class="panel redline"><h3>남지 않는 것</h3><ul><li>어떤 유닛이 이동했는가</li><li>어디에서 출발했는가</li><li>어디로 이동했는가</li><li>어떤 순서로 이동했는가</li></ul></div></div><p class="quote">실행된 행동과 행동의 기록은 서로 다른 문제다.</p></div></section>
+
+        <section class="slide" id="slide-7" data-slide="07 / 31" aria-labelledby="title-7"><div><p class="kicker">Actual Code · Unit</p><h2 id="title-7">MoveTo()는 현재 위치를 새 위치로 덮어쓴다</h2><pre>public void MoveTo(BoardView board, Vector2Int targetCell)
+{
+    if (board == null)
+        return;
+
+    <span class="code-focus">transform.position = board.CellToWorld(targetCell);</span>
+}</pre><div class="callout danger"><p>대입이 끝난 뒤 <code>transform.position</code>만 살펴보면 출발 위치를 복구할 수 없다.</p></div><p class="source">실제 코드: Unit.cs 13–20행</p></div></section>
+
+        <section class="slide" id="slide-8" data-slide="08 / 31" aria-labelledby="title-8"><div><p class="kicker">State Change</p><h2 id="title-8">이동 전후 상태를 비교하면 손실이 보인다</h2><div class="state-board"><div class="coord"><span class="green">이동 전</span><br>Unit A<br>cell (5, 4)</div><div class="arrow">→</div><div class="coord"><span class="amber">이동 후</span><br>Unit A<br>cell (5, 6)<br><span class="missing">from (5, 4)</span></div></div><div class="callout"><p>Undo는 단순히 “반대로 이동”하는 기능이 아니다. <strong>과거의 정확한 상태를 알아야 하는 기능</strong>이다.</p></div></div></section>
+
+        <section class="slide" id="slide-9" data-slide="09 / 31" aria-labelledby="title-9"><div><p class="kicker">Think · 60 Seconds</p><h2 id="title-9">Undo하려면 무엇을 기억해야 할까?</h2><div class="question"><p class="big">유닛 A가 <code>(5,4)</code>에서 <code>(5,6)</code>으로 이동했다.<br>원상 복구에 필요한 정보를 모두 말해 보자.</p></div><div class="two" style="margin-top:16px"><div><h3>누가?</h3><p>이동한 유닛</p></div><div><h3>어디에서 어디로?</h3><p>출발 셀과 도착 셀</p></div></div></div></section>
+
+        <section class="slide" id="slide-10" data-slide="10 / 31" aria-labelledby="title-10"><div><p class="kicker">First Attempt</p><h2 id="title-10">첫 생각: lastCell만 저장하자</h2><pre>private Vector2Int lastCell;
+
+lastCell = _board.WorldToCell(SelectedUnit.transform.position);
+SelectedUnit.MoveTo(_board, targetCell);</pre><div class="callout warning"><p>한 유닛의 마지막 이동 한 번만 취소한다면 작동할 수 있다. 아직 틀린 해결책은 아니다.</p></div></div></section>
+
+        <section class="slide" id="slide-11" data-slide="11 / 31" aria-labelledby="title-11"><div><p class="kicker">More State</p><h2 id="title-11">그런데 어떤 유닛인지도 기억해야 한다</h2><pre>private Unit lastUnit;
+private Vector2Int lastCell;
+
+lastUnit = SelectedUnit;
+lastCell = _board.WorldToCell(SelectedUnit.transform.position);</pre><div class="two" style="margin-top:14px"><div class="panel"><h3>현재 행동</h3><p><code>BattleController</code>가 이동을 검증하고 실행한다.</p></div><div class="panel amber"><h3>추가된 책임</h3><p>이제 과거 이동의 유닛과 위치까지 관리한다.</p></div></div></div></section>
+
+        <section class="slide" id="slide-12" data-slide="12 / 31" aria-labelledby="title-12"><div><p class="kicker">Overwrite Again</p><h2 id="title-12">두 번 이동하면 첫 번째 기록이 사라진다</h2><table class="compare"><thead><tr><th>순서</th><th>이동</th><th>lastUnit</th><th>lastCell</th></tr></thead><tbody><tr><td>1</td><td>A: (5,4) → (5,6)</td><td>A</td><td>(5,4)</td></tr><tr><td>2</td><td>B: (2,2) → (3,2)</td><td class="amber">B</td><td class="amber">(2,2)</td></tr></tbody></table><div class="callout danger"><p>두 번째 저장이 첫 번째 기록을 덮어쓴다. 이제 A의 이동은 취소할 수 없다.</p></div></div></section>
+
+        <section class="slide" id="slide-13" data-slide="13 / 31" aria-labelledby="title-13"><div><p class="kicker">Think · Predict</p><h2 id="title-13">Undo를 세 번 지원하려면 필드가 몇 개 필요할까?</h2><div class="two"><div class="question"><p class="big"><code>lastCell1</code>, <code>lastCell2</code>, <code>lastCell3</code>…<br>이 방향이 계속 가능할까?</p></div><div><ul><li>기록 개수만큼 필드가 늘어난다.</li><li>유닛과 위치의 짝을 맞춰야 한다.</li><li>실행 순서도 따로 관리해야 한다.</li><li>Redo가 추가되면 기록 이동도 필요하다.</li></ul></div></div><div class="callout"><p>우리는 이미 “이동 한 건”이라는 새로운 데이터 단위를 찾고 있다.</p></div></div></section>
+
+        <section class="slide" id="slide-14" data-slide="14 / 31" aria-labelledby="title-14"><div><p class="kicker">Data Boundary</p><h2 id="title-14">필요한 것은 위치 하나가 아니라 완전한 이동 기록이다</h2><div class="panel teal"><p class="big"><strong>이동 기록</strong> = 유닛 + 보드 + 출발 셀 + 도착 셀 + 실행/취소 방법</p></div><div class="callout"><p>서로 항상 함께 사용되는 정보와 행동을 하나의 객체로 묶으면 기록 한 건을 통째로 저장하고 꺼낼 수 있다.</p></div></div></section>
+
+        <section class="slide" id="slide-15" data-slide="15 / 31" aria-labelledby="title-15"><div><p class="kicker">Command Pattern</p><h2 id="title-15">Command는 요청을 객체로 만든다</h2><p class="quote">“이 유닛을 이 셀로 이동해라”라는 메서드 호출을, 저장하고 전달할 수 있는 객체로 바꾼다.</p><div class="two"><div><h3>직접 호출</h3><pre>unit.MoveTo(board, to);</pre></div><div><h3>명령 객체</h3><pre>ICommand command =
+    new MoveUnitCommand(...);</pre></div></div><p class="source">참고: Game Programming Patterns, Command — 메서드 호출을 객체로 다루는 설명</p></div></section>
+
+        <section class="slide" id="slide-16" data-slide="16 / 31" aria-labelledby="title-16"><div><p class="kicker">What Changes?</p><h2 id="title-16">호출을 객체로 만들면 시간에서 분리할 수 있다</h2><table class="compare"><thead><tr><th>직접 호출</th><th>명령 객체</th></tr></thead><tbody><tr><td>호출하는 순간 실행된다.</td><td>지금 만들고 나중에 실행할 수 있다.</td></tr><tr><td>실행이 끝나면 호출 자체는 사라진다.</td><td>실행 후에도 객체를 기록으로 보관할 수 있다.</td></tr><tr><td>과거 상태는 호출자가 따로 저장한다.</td><td>명령이 실행과 취소에 필요한 상태를 가진다.</td></tr></tbody></table><div class="callout"><p>핵심은 간접 호출 자체가 아니라, <strong>요청이 데이터가 되었다는 점</strong>이다.</p></div></div></section>
+
+        <section class="slide" id="slide-17" data-slide="17 / 31" aria-labelledby="title-17"><div><p class="kicker">Roles</p><h2 id="title-17">Command 패턴은 네 역할을 분리한다</h2><div class="role-map"><div class="role"><b>Client</b><span>필요한 정보를 모아 명령을 만든다.</span></div><div class="role"><b>Command</b><span>실행할 요청과 관련 상태를 표현한다.</span></div><div class="role"><b>Invoker</b><span>명령을 실행하고 순서를 관리한다.</span></div><div class="role"><b>Receiver</b><span>실제 작업을 수행하는 객체다.</span></div></div><div class="callout"><p>역할 이름보다 중요한 질문은 “누가 만들고, 누가 보관하고, 누가 실제로 움직이는가?”이다.</p></div></div></section>
+
+        <section class="slide" id="slide-18" data-slide="18 / 31" aria-labelledby="title-18"><div><p class="kicker">Mini Tactics Mapping</p><h2 id="title-18">미니 택틱스에서는 이렇게 대응된다</h2><div class="role-map"><div class="role"><b>BattleController</b><span>목적지를 검증하고 MoveUnitCommand를 만든다.</span></div><div class="role"><b>MoveUnitCommand</b><span>이동 한 건을 표현한다.</span></div><div class="role"><b>CommandHistory</b><span>명령을 실행하고 스택에 기록한다.</span></div><div class="role"><b>Unit</b><span>MoveTo()로 실제 위치를 바꾼다.</span></div></div><p class="source">Undo UI 버튼은 CommandHistory에 최근 명령 취소를 요청하는 입력 수단이다.</p></div></section>
+
+        <section class="slide" id="slide-19" data-slide="19 / 31" aria-labelledby="title-19"><div><p class="kicker">Execution Contract</p><h2 id="title-19">ICommand는 실행할 수 있다는 약속이다</h2><pre>public interface ICommand
+{
+    void Execute();
+}</pre><div class="two" style="margin-top:14px"><div><h3>호출자는</h3><p>구체적인 이동 방법을 몰라도 <code>Execute()</code>를 호출한다.</p></div><div><h3>명령은</h3><p>자신이 가진 정보로 Receiver에게 실제 작업을 요청한다.</p></div></div></div></section>
+
+        <section class="slide" id="slide-20" data-slide="20 / 31" aria-labelledby="title-20"><div><p class="kicker">Undo Contract</p><h2 id="title-20">IUndoableCommand는 되돌릴 수 있다는 약속을 더한다</h2><pre>public interface IUndoableCommand : ICommand
+{
+    void Undo();
+}</pre><div class="callout"><p><code>Execute()</code>와 <code>Undo()</code>가 한 객체 안에 있으므로 실행할 때 사용한 상태와 되돌릴 때 사용할 상태가 분리되지 않는다.</p></div></div></section>
+
+        <section class="slide" id="slide-21" data-slide="21 / 31" aria-labelledby="title-21"><div><p class="kicker">Concrete Command</p><h2 id="title-21">MoveUnitCommand는 이동 한 건의 상태를 가진다</h2><pre>public sealed class MoveUnitCommand : IUndoableCommand
+{
+    private readonly Unit _unit;
+    private readonly BoardView _board;
+    private readonly Vector2Int _fromCell;
+    private readonly Vector2Int _toCell;
+}</pre><div class="callout"><p>이 네 값이 하나의 객체에 묶이면서 여러 이동 기록을 같은 형태로 보관할 수 있다.</p></div></div></section>
+
+        <section class="slide" id="slide-22" data-slide="22 / 31" aria-labelledby="title-22"><div><p class="kicker">Capture Timing</p><h2 id="title-22">출발 셀은 명령을 만들 때 확정한다</h2><div class="wide"><div><pre>Vector2Int fromCell =
+    board.WorldToCell(unit.transform.position);
+
+var command = new MoveUnitCommand(
+    unit, board, fromCell, targetCell);</pre></div><div class="panel amber"><h3>왜 지금인가?</h3><p>실행한 뒤에는 유닛의 현재 위치가 도착 셀로 바뀐다. 과거 상태는 바뀌기 전에 캡처해야 한다.</p></div></div></div></section>
+
+        <section class="slide" id="slide-23" data-slide="23 / 31" aria-labelledby="title-23"><div><p class="kicker">Execute</p><h2 id="title-23">Execute()는 저장된 도착 셀을 사용한다</h2><pre>public void Execute()
+{
+    _unit.MoveTo(_board, _toCell);
+}</pre><div class="flow"><div class="node">History</div><div class="arrow">→</div><div class="node">Command<br>Execute()</div><div class="arrow">→</div><div class="node">Unit<br>MoveTo()</div><div class="arrow">→</div><div class="node">도착 셀</div></div></div></section>
+
+        <section class="slide" id="slide-24" data-slide="24 / 31" aria-labelledby="title-24"><div><p class="kicker">Record Rule</p><h2 id="title-24">성공한 명령만 History에 기록한다</h2><div class="two"><div><h3>실행 가능</h3><ol><li>명령을 실행한다.</li><li>Undo 스택에 Push한다.</li><li>Redo 스택은 비운다.</li></ol></div><div class="panel redline"><h3>기록하지 않는 경우</h3><ul><li>점유된 목적지</li><li>이동 범위 밖</li><li>선택된 유닛 없음</li><li>제자리 이동</li></ul></div></div><div class="callout"><p>History는 “시도한 입력”이 아니라 <strong>실제로 일어난 상태 변화</strong>를 기록한다.</p></div></div></section>
+
+        <section class="slide" id="slide-25" data-slide="25 / 31" aria-labelledby="title-25"><div><p class="kicker">LIFO</p><h2 id="title-25">CommandHistory는 스택으로 최근 이동을 찾는다</h2><div class="stack"><div class="stack-item top">TOP · C: (8,7) → (9,7)</div><div class="stack-item">B: (3,2) → (3,4)</div><div class="stack-item">A: (5,4) → (5,6)</div></div><div class="callout"><p>가장 나중에 실행한 행동부터 되돌려야 상태가 자연스럽게 이전 단계로 돌아간다.</p></div></div></section>
+
+        <section class="slide" id="slide-26" data-slide="26 / 31" aria-labelledby="title-26"><div><p class="kicker">Undo Flow</p><h2 id="title-26">Undo는 최근 명령을 꺼내 출발 셀로 복원한다</h2><pre>public void Undo()
+{
+    _unit.MoveTo(_board, _fromCell);
+}</pre><div class="flow"><div class="node">Undo<br>버튼</div><div class="arrow">→</div><div class="node">History<br>Pop()</div><div class="arrow">→</div><div class="node">Command<br>Undo()</div><div class="arrow">→</div><div class="node">출발 셀<br>복원</div></div></div></section>
+
+        <section class="slide" id="slide-27" data-slide="27 / 31" aria-labelledby="title-27"><div><p class="kicker">Think · Trace the Stack</p><h2 id="title-27">Undo를 두 번 누르면 어떤 이동이 취소될까?</h2><div class="two"><div class="stack"><div class="stack-item top">C 이동</div><div class="stack-item">B 이동</div><div class="stack-item">A 이동</div></div><div class="question"><p class="big">1회: <span class="amber">C 이동 취소</span><br>2회: <span class="violet">B 이동 취소</span><br><br>스택에는 A 이동만 남는다.</p></div></div></div></section>
+
+        <section class="slide" id="slide-28" data-slide="28 / 31" aria-labelledby="title-28"><div><p class="kicker">Beyond Undo</p><h2 id="title-28">기록이 생기면 Redo와 Replay도 같은 구조에서 나온다</h2><div class="two"><div class="panel violet"><h3>Redo</h3><p>Undo한 명령을 별도 스택에 보관했다가 다시 <code>Execute()</code>한다.</p></div><div class="panel teal"><h3>Replay</h3><p>저장된 명령 순서를 처음부터 실행해 같은 행동 흐름을 재현한다.</p></div></div><div class="callout"><p>새 기능의 기반은 좌표가 아니라 <strong>시간 순서가 있는 명령 기록</strong>이다.</p></div><p class="source">참고: Game Programming Patterns, Command — Undo/Redo와 이동 명령 기록</p></div></section>
+
+        <section class="slide" id="slide-29" data-slide="29 / 31" aria-labelledby="title-29"><div><p class="kicker">Shared Language</p><h2 id="title-29">사람 입력과 AI가 같은 명령을 사용할 수 있다</h2><div class="flow"><div class="node">마우스<br>입력</div><div class="arrow">↘</div><div class="node">MoveUnit<br>Command</div><div class="arrow">→</div><div class="node">Unit</div></div><div class="flow" style="margin-top:10px"><div class="node">적 AI<br>판단</div><div class="arrow">↗</div><div class="node">같은 실행<br>경로</div><div class="arrow">→</div><div class="node">같은 규칙</div></div><div class="callout"><p>누가 결정했는지와 실제 행동을 어떻게 실행하는지를 분리할 수 있다.</p></div></div></section>
+
+        <section class="slide" id="slide-30" data-slide="30 / 31" aria-labelledby="title-30"><div><p class="kicker">Judgment</p><h2 id="title-30">모든 호출을 Command로 만들 필요는 없다</h2><div class="two"><div class="panel teal"><h3>도입 가치가 큰 경우</h3><ul><li>Undo·Redo가 필요하다.</li><li>실행을 나중으로 미뤄야 한다.</li><li>행동을 기록·재생해야 한다.</li><li>입력과 실행 주체를 분리한다.</li></ul></div><div class="panel amber"><h3>비용</h3><ul><li>명령 클래스와 객체가 늘어난다.</li><li>어떤 상태를 언제 캡처할지 정해야 한다.</li><li>실패한 명령의 기록 규칙이 필요하다.</li></ul></div></div><div class="question" style="margin-top:14px"><p><strong>생각하기:</strong> 단순한 UI 패널 열기와 유닛 이동 중 어느 쪽에 기록 가치가 더 큰가?</p></div></div></section>
+
+        <section class="slide" id="slide-31" data-slide="31 / 31" aria-labelledby="title-31"><div><p class="kicker">Takeaway</p><h2 id="title-31">새 요구가 생기면 요청을 기억해야 할 때가 온다</h2><ol><li>1차시의 직접 호출은 이동을 잘 실행하지만 과거를 기록하지 않는다.</li><li>Undo에는 유닛·출발·도착·실행 순서가 필요하다.</li><li>Command는 요청과 필요한 상태를 객체로 묶는다.</li><li>History는 명령을 순서대로 보관하고 최근 행동부터 취소한다.</li></ol><p class="quote">Command 패턴의 핵심은 “실행할 행동”을 저장하고 다룰 수 있는 데이터로 만드는 것이다.</p><div class="callout"><p><strong>확인 질문:</strong> <code>MoveUnitCommand</code>가 출발 셀을 실행 후가 아니라 생성 시 저장해야 하는 이유는 무엇인가?</p></div></div></section>
+      </div>
+    </main>
+
+    <nav class="controls" aria-label="슬라이드 탐색">
+      <button class="control-btn" id="prevBtn" type="button" aria-label="이전 슬라이드">←</button>
+      <button class="control-btn" id="tocBtn" type="button">목차</button>
+      <span id="slideCounter" aria-live="polite">1 / 31</span>
+      <button class="control-btn" id="nextBtn" type="button" aria-label="다음 슬라이드">→</button>
+    </nav>
+  </div>
+
+  <dialog id="tocDialog" aria-labelledby="tocTitle">
+    <div class="toc-head"><h2 id="tocTitle">전체 목차</h2><button class="control-btn" id="tocCloseBtn" type="button">닫기</button></div>
+    <div class="toc-grid">
+      <a class="toc-link" href="#slide-1"><span>01</span>Command 패턴</a><a class="toc-link" href="#slide-2"><span>02</span>1차시 성공</a>
+      <a class="toc-link" href="#slide-3"><span>03</span>새 요구</a><a class="toc-link" href="#slide-4"><span>04</span>현재 호출 흐름</a>
+      <a class="toc-link" href="#slide-5"><span>05</span>직접 이동 코드</a><a class="toc-link" href="#slide-6"><span>06</span>요청이 남지 않음</a>
+      <a class="toc-link" href="#slide-7"><span>07</span>위치 덮어쓰기</a><a class="toc-link" href="#slide-8"><span>08</span>상태 비교</a>
+      <a class="toc-link" href="#slide-9"><span>09</span>필요 정보 찾기</a><a class="toc-link" href="#slide-10"><span>10</span>lastCell</a>
+      <a class="toc-link" href="#slide-11"><span>11</span>lastUnit</a><a class="toc-link" href="#slide-12"><span>12</span>기록 덮어쓰기</a>
+      <a class="toc-link" href="#slide-13"><span>13</span>다단계 Undo</a><a class="toc-link" href="#slide-14"><span>14</span>완전한 이동 기록</a>
+      <a class="toc-link" href="#slide-15"><span>15</span>요청의 객체화</a><a class="toc-link" href="#slide-16"><span>16</span>직접 호출과 비교</a>
+      <a class="toc-link" href="#slide-17"><span>17</span>네 역할</a><a class="toc-link" href="#slide-18"><span>18</span>미니 택틱스 대응</a>
+      <a class="toc-link" href="#slide-19"><span>19</span>ICommand</a><a class="toc-link" href="#slide-20"><span>20</span>IUndoableCommand</a>
+      <a class="toc-link" href="#slide-21"><span>21</span>MoveUnitCommand</a><a class="toc-link" href="#slide-22"><span>22</span>상태 캡처 시점</a>
+      <a class="toc-link" href="#slide-23"><span>23</span>Execute 흐름</a><a class="toc-link" href="#slide-24"><span>24</span>기록 규칙</a>
+      <a class="toc-link" href="#slide-25"><span>25</span>History 스택</a><a class="toc-link" href="#slide-26"><span>26</span>Undo 흐름</a>
+      <a class="toc-link" href="#slide-27"><span>27</span>스택 추적</a><a class="toc-link" href="#slide-28"><span>28</span>Redo와 Replay</a>
+      <a class="toc-link" href="#slide-29"><span>29</span>사람과 AI</a><a class="toc-link" href="#slide-30"><span>30</span>적용 기준</a>
+      <a class="toc-link" href="#slide-31"><span>31</span>핵심 정리</a>
+    </div>
+  </dialog>
+
+  <script>
+    const slides = [...document.querySelectorAll('.slide')];
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const tocBtn = document.getElementById('tocBtn');
+    const tocDialog = document.getElementById('tocDialog');
+    const tocCloseBtn = document.getElementById('tocCloseBtn');
+    const slideCounter = document.getElementById('slideCounter');
+    let current = 0;
+
+    function showSlide(index, updateHash = true) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      slides.forEach((slide, slideIndex) => slide.classList.toggle('is-active', slideIndex === current));
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current === slides.length - 1;
+      slideCounter.textContent = `${current + 1} / ${slides.length}`;
+      if (updateHash) history.replaceState(null, '', `#slide-${current + 1}`);
+    }
+
+    function indexFromHash() {
+      const match = location.hash.match(/^#slide-(\d+)$/);
+      const index = match ? Number(match[1]) - 1 : -1;
+      if (index >= 0 && index < slides.length) return index;
+      history.replaceState(null, '', '#slide-1');
+      return 0;
+    }
+
+    function openToc() { if (!tocDialog.open) tocDialog.showModal(); }
+    function closeToc() { if (tocDialog.open) tocDialog.close(); }
+
+    prevBtn.addEventListener('click', () => showSlide(current - 1));
+    nextBtn.addEventListener('click', () => showSlide(current + 1));
+    tocBtn.addEventListener('click', openToc);
+    tocCloseBtn.addEventListener('click', closeToc);
+    tocDialog.addEventListener('click', (event) => { if (event.target === tocDialog) closeToc(); });
+    tocDialog.querySelectorAll('.toc-link').forEach((link) => link.addEventListener('click', (event) => {
+      event.preventDefault();
+      const index = Number(link.hash.replace('#slide-', '')) - 1;
+      closeToc();
+      showSlide(index);
+    }));
+    window.addEventListener('hashchange', () => showSlide(indexFromHash(), false));
+    window.addEventListener('keydown', (event) => {
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (event.key === 'ArrowRight' || event.key === 'PageDown') showSlide(current + 1);
+      else if (event.key === 'ArrowLeft' || event.key === 'PageUp') showSlide(current - 1);
+      else if (event.key === 'Home') showSlide(0);
+      else if (event.key === 'End') showSlide(slides.length - 1);
+    });
+
+    const initialIndex = indexFromHash();
+    showSlide(initialIndex);
+  </script>
+</body>
+</html>
