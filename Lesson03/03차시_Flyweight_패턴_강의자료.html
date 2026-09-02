@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>3차시 교과서 — Flyweight 패턴과 비용 기반 이동</title>
+<style>
+:root{--paper:#f6f3ea;--ink:#17231e;--muted:#5d6c64;--green:#176b50;--mint:#d9f4e8;--line:#cbd8d1;--code:#10201a;--amber:#8a5a00}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font-family:Pretendard,"Noto Sans KR",system-ui,sans-serif;line-height:1.78;word-break:keep-all}.layout{display:grid;grid-template-columns:270px minmax(0,820px);gap:52px;max-width:1190px;margin:auto;padding:32px 28px 90px}aside{position:sticky;top:24px;align-self:start;max-height:calc(100vh - 48px);overflow:auto;padding:22px;border:1px solid var(--line);border-radius:16px;background:#fffaf0}aside strong{display:block;color:var(--green);margin-bottom:12px}aside a{display:block;padding:6px 8px;color:var(--muted);text-decoration:none;border-radius:7px;font-size:.94rem}aside a:hover{background:var(--mint);color:var(--green)}main{min-width:0}.hero{padding:48px;border-radius:22px;background:linear-gradient(135deg,#0e2e24,#185842);color:white;margin-bottom:42px}.eyebrow{font-weight:900;letter-spacing:.13em;text-transform:uppercase;color:#91e8c5}.hero h1{font-size:clamp(2.3rem,5vw,4.4rem);line-height:1.08;letter-spacing:-.055em;margin:.3em 0}.hero p{font-size:1.2rem;color:#d9f4e8;max-width:650px}section{margin:0 0 56px;scroll-margin-top:28px}h2{font-size:2rem;line-height:1.25;letter-spacing:-.035em;border-bottom:2px solid var(--green);padding-bottom:10px}h3{font-size:1.32rem;color:var(--green);margin-top:2em}p,li{font-size:1.04rem}code{font-family:Consolas,"D2Coding",monospace;color:var(--green)}pre{overflow:auto;padding:20px 22px;border-radius:13px;background:var(--code);color:#e4fff4;font:14px/1.65 Consolas,"D2Coding",monospace;white-space:pre-wrap;tab-size:4}.note,.warning,.definition{margin:22px 0;padding:17px 20px;border-left:5px solid var(--green);border-radius:8px;background:white}.warning{border-color:#d08b00;background:#fff5d8}.definition{background:var(--mint)}.grid2,.grid3{display:grid;grid-template-columns:repeat(2,1fr);gap:15px}.grid3{grid-template-columns:repeat(3,1fr)}.card{padding:18px;border:1px solid var(--line);border-radius:12px;background:#fffdf7}.card h3{margin-top:0}table{width:100%;border-collapse:collapse;margin:20px 0;background:white}th,td{padding:12px 14px;border:1px solid var(--line);text-align:left;vertical-align:top}th{background:var(--mint);color:var(--green)}.flow{display:flex;gap:9px;align-items:center;justify-content:center;flex-wrap:wrap;margin:24px 0}.node{padding:12px 15px;border:1px solid var(--line);border-radius:9px;background:white;font-weight:800}.arrow{color:var(--green);font-size:1.4rem}details{margin:12px 0;border:1px solid var(--line);border-radius:10px;background:white;padding:12px 16px}summary{cursor:pointer;font-weight:800;color:var(--green)}.terms dt{font-weight:900;color:var(--green);margin-top:13px}.terms dd{margin-left:0;color:var(--muted)}.chapter{color:var(--green);font-weight:900;font-size:.85rem;letter-spacing:.12em;text-transform:uppercase}@media(max-width:900px){.layout{display:block;padding:16px}aside{position:relative;top:0;max-height:none;margin-bottom:22px}.hero{padding:30px 24px}.grid2,.grid3{grid-template-columns:1fr}}@media print{body{background:white}.layout{display:block;max-width:none;padding:0}aside{display:none}.hero{color:#111;background:white;border:2px solid #111;padding:20mm 16mm;break-after:page}.hero p,.eyebrow{color:#111}section{break-before:page;margin:0;padding:12mm 16mm}pre{white-space:pre-wrap;break-inside:avoid}.card,table,details{break-inside:avoid}a{color:#111;text-decoration:none}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside aria-label="문서 목차"><strong>3차시 교과서</strong><a href="#goals">1. 학습 목표</a><a href="#problem">2. 중복의 문제</a><a href="#flyweight">3. Flyweight</a><a href="#model">4. 지형 모델</a><a href="#map">5. 텍스트 맵</a><a href="#search">6. 비용 탐색</a><a href="#path">7. 경로 복원</a><a href="#integration">8. 게임 연결</a><a href="#tradeoff">9. 적용 기준</a><a href="#review">10. 복습</a></aside>
+<main>
+<header class="hero"><p class="eyebrow">Mini Tactics · Lesson 03</p><h1>같은 지형은 공유하고<br>가장 싼 길을 찾는다</h1><p>Flyweight 패턴으로 데이터의 중복을 줄이고, 지형 비용이 다른 격자에서 이동 범위와 경로를 계산한다.</p></header>
+<section id="goals"><p class="chapter">Chapter 01</p><h2>학습 목표</h2><p>이번 차시는 두 가지 생각을 연결한다. 첫째, 수많은 셀이 반복해서 갖는 지형 규칙을 하나의 객체로 공유한다. 둘째, 그 공유 규칙을 사용하여 유닛의 이동 예산 안에서 갈 수 있는 셀과 가장 싼 경로를 구한다.</p><div class="grid2"><div class="card"><h3>설계 목표</h3><ul><li>공유 데이터와 셀별 문맥을 구분한다.</li><li>Flyweight가 메모리뿐 아니라 규칙의 일관성을 어떻게 돕는지 설명한다.</li><li>모델, 알고리즘, 화면 표시의 책임을 나눈다.</li></ul></div><div class="card"><h3>구현 목표</h3><ul><li>평지 1, 숲 2, 산 3, 강 통행 불가를 표현한다.</li><li>누적 비용으로 이동 범위를 계산한다.</li><li>이전 셀 기록으로 최저 비용 경로를 복원한다.</li><li>Lesson2의 Command와 Undo를 유지한다.</li></ul></div></div><div class="note"><strong>완성 장면:</strong> 유닛을 선택하면 지형 비용을 반영한 범위가 나타나고, 강은 범위에서 제외된다. 이동 후 Undo도 이전처럼 동작한다.</div></section>
+<section id="problem"><p class="chapter">Chapter 02</p><h2>문제: 지형 규칙을 셀마다 복제한다면</h2><p>12×10 보드에는 120개의 셀이 있다. 각 셀에 이름, 이동 비용, 통행 여부와 그림을 모두 저장하면 숲이라는 사실을 숲 셀 수만큼 반복하게 된다.</p><pre>Cell (2, 7): name="숲", movementCost=2, isWalkable=true
+Cell (3, 7): name="숲", movementCost=2, isWalkable=true
+Cell (4, 7): name="숲", movementCost=2, isWalkable=true</pre><p>세 셀의 좌표는 서로 다르다. 그러나 “숲은 비용 2이며 걸을 수 있다”는 규칙은 완전히 같다. 여기서 좌표는 셀별 정보이고 지형 규칙은 공유 가능한 정보다.</p><table><thead><tr><th>셀마다 달라지는 정보</th><th>같은 지형끼리 공유할 정보</th></tr></thead><tbody><tr><td>좌표, 현재 유닛, 선택/강조 상태</td><td>이름, 이동 비용, 통행 가능 여부</td></tr><tr><td>게임 진행 중 자주 변할 수 있음</td><td>한 스테이지 안에서는 거의 변하지 않음</td></tr><tr><td>셀 문맥에 남김</td><td>TerrainType으로 분리</td></tr></tbody></table><div class="warning"><strong>중요:</strong> Lesson1의 단순 Tilemap이 잘못된 것은 아니다. 모든 칸의 이동 비용이 같았던 이전 요구에는 충분했다. 지형 종류와 비용이라는 새 요구가 생기면서 새로운 경계가 필요해졌다.</div></section>
+<section id="flyweight"><p class="chapter">Chapter 03</p><h2>Flyweight 패턴</h2><div class="definition"><strong>정의:</strong> Flyweight는 많은 객체가 반복해서 가지는 변하지 않는 데이터를 별도의 작은 객체로 분리하고, 여러 문맥이 그 객체를 공유하게 하는 패턴이다.</div><h3>Intrinsic state와 extrinsic state</h3><p>패턴을 설명할 때 공유 객체 안에 들어가는 데이터를 intrinsic state, 공유 객체 밖의 문맥이 제공하는 데이터를 extrinsic state라고 부른다.</p><div class="grid2"><div class="card"><h3>Intrinsic</h3><p><code>TerrainType</code> 안에 있다.</p><ul><li>Name</li><li>MovementCost</li><li>IsWalkable</li></ul></div><div class="card"><h3>Extrinsic</h3><p><code>Board</code>와 플레이 상태에 있다.</p><ul><li>Vector2Int 좌표</li><li>점유 유닛</li><li>오버레이 표시</li></ul></div></div><h3>왜 불변이어야 하는가</h3><p>하나의 Forest 객체를 여러 셀이 참조한다. 어느 셀이 실수로 Forest의 비용을 바꾸면 모든 숲 셀의 규칙이 동시에 바뀐다. 생성 시 값을 검사하고 getter-only 속성으로 노출하면 공유의 위험을 줄일 수 있다.</p><pre>public sealed class TerrainType
+{
+    public string Name { get; }
+    public int MovementCost { get; }
+    public bool IsWalkable { get; }
+}</pre><p>이 프로젝트는 <code>TerrainTypes</code>에 네 canonical object를 만든다. “canonical”은 같은 의미를 대표하는 표준 객체라는 뜻이다.</p><pre>public static readonly TerrainType Plain =
+    new TerrainType("평지", 1, true);
+public static readonly TerrainType Forest =
+    new TerrainType("숲", 2, true);
+public static readonly TerrainType Mountain =
+    new TerrainType("산", 3, true);
+public static readonly TerrainType River =
+    new TerrainType("강", 1, false);</pre></section>
+<section id="model"><p class="chapter">Chapter 04</p><h2>Board: 좌표와 공유 객체의 관계</h2><p><code>Board</code>는 화면에 타일을 그리지 않는다. 셀 좌표가 어떤 지형을 참조하는지 대답하는 순수한 게임 모델이다.</p><div class="flow"><span class="node">Vector2Int</span><span class="arrow">→</span><span class="node">Dictionary</span><span class="arrow">→</span><span class="node">TerrainType 참조</span></div><pre>private readonly Dictionary&lt;Vector2Int, TerrainType&gt; _cells;
+
+public bool Contains(Vector2Int cell)
+{
+    return _cells.ContainsKey(cell);
+}
+
+public TerrainType GetTerrain(Vector2Int cell)
+{
+    return _cells[cell];
+}</pre><p>사전을 생성자에서 복사하는 이유는 Board를 만든 외부 코드가 나중에 원본 사전을 변경하여 Board의 규칙을 몰래 바꾸지 못하게 하기 위해서다. 존재하지 않는 좌표를 자동으로 평지로 만들지 않는 것도 중요하다. 잘못된 좌표는 조기에 드러나야 한다.</p><h3>객체 수로 다시 보기</h3><table><tr><th>구조</th><th>셀 관계</th><th>지형 규칙 객체</th></tr><tr><td>복제형</td><td>120</td><td>최대 120</td></tr><tr><td>Flyweight</td><td>120</td><td>4</td></tr></table><p>Flyweight가 모든 메모리를 없애는 것은 아니다. 좌표와 참조 관계는 여전히 120개다. 없애는 것은 “같은 규칙 데이터의 반복”이다.</p></section>
+<section id="map"><p class="chapter">Chapter 05</p><h2>MapLoader: 문자를 공유 참조로 바꾸기</h2><p>텍스트 맵은 사람이 읽고 수정하기 쉽다. 각 문자는 새 객체를 만들라는 명령이 아니라 이미 존재하는 공유 객체를 선택하라는 표지다.</p><pre>PPPPPPPPPPPP
+PPFFFFPPPPPP
+PPFMMFPPPPRP
+PPFPPFPPPPRP</pre><table><tr><th>문자</th><th>반환 객체</th><th>규칙</th></tr><tr><td>P</td><td>TerrainTypes.Plain</td><td>비용 1</td></tr><tr><td>F</td><td>TerrainTypes.Forest</td><td>비용 2</td></tr><tr><td>M</td><td>TerrainTypes.Mountain</td><td>비용 3</td></tr><tr><td>R</td><td>TerrainTypes.River</td><td>통행 불가</td></tr></table><h3>좌표 방향</h3><p>텍스트의 첫 행은 눈으로 보았을 때 맵의 위쪽이다. Unity 격자에서는 높은 y가 위쪽이므로 첫 행을 <code>y = height - 1</code>에 놓고 다음 행마다 y를 줄인다.</p><h3>입력을 엄격하게 검사하는 이유</h3><ul><li>행 길이가 다르면 직사각형 보드의 좌표 규칙이 깨진다.</li><li>알 수 없는 문자를 평지로 바꾸면 오타가 게임 규칙으로 숨어든다.</li><li>빈 중간 행은 보드를 둘로 나누는 의도인지 파일 실수인지 구분할 수 없다.</li></ul><div class="warning">잘못된 데이터는 “가능한 값”으로 추측하지 않는다. 행 번호나 좌표가 들어간 오류가 제작자의 수정 시간을 줄인다.</div></section>
+<section id="search"><p class="chapter">Chapter 06</p><h2>비용 기반 이동 범위</h2><h3>BFS가 정확했던 조건</h3><p>Lesson1의 BFS는 간선 하나의 비용이 언제나 1이라는 조건에서 최단 칸 수를 구했다. 모든 이동의 비용이 같으면 먼저 방문한 경로가 최저 비용 경로다. 숲과 산이 생기면 같은 칸 수의 경로도 비용이 달라진다.</p><div class="grid2"><div class="card"><h3>위 → 오른쪽</h3><p>숲 2 + 평지 1 = <strong>3</strong></p></div><div class="card"><h3>오른쪽 → 위</h3><p>평지 1 + 평지 1 = <strong>2</strong></p></div></div><h3>축소형 다익스트라의 세 기록</h3><dl class="terms"><dt>frontier</dt><dd>발견했지만 아직 이웃을 조사하지 않은 셀.</dd><dt>costs</dt><dd>시작에서 각 셀까지 현재 알려진 최저 누적 비용.</dd><dt>previous</dt><dd>그 최저 비용 경로에서 바로 전에 방문한 셀.</dd></dl><h3>반복 규칙</h3><ol><li>시작 셀 비용을 0으로 기록한다.</li><li>frontier에서 누적 비용이 가장 작은 셀을 꺼낸다.</li><li>상하좌우 이웃이 Board 안에 있는지 확인한다.</li><li>통행 불가 지형은 건너뛴다.</li><li><code>현재 누적 비용 + 다음 지형 비용</code>을 계산한다.</li><li>예산을 넘으면 건너뛴다.</li><li>처음 찾았거나 기존보다 싸면 costs와 previous를 갱신한다.</li></ol><pre>int candidateCost = costs[current] + terrain.MovementCost;
+
+if (candidateCost > budget)
+    continue;
+
+if (costs.TryGetValue(next, out int knownCost)
+    && knownCost <= candidateCost)
+    continue;
+
+costs[next] = candidateCost;
+previous[next] = current;
+frontier.Add(next);</pre><h3>왜 방문 집합 하나로 부족한가</h3><p>비용이 다른 그래프에서는 어떤 셀을 비싼 길로 먼저 발견한 뒤 더 싼 길로 다시 발견할 수 있다. “한 번 발견했음”만 저장하면 갱신 기회를 잃는다. 따라서 셀마다 현재 최저 비용을 저장하고 비교해야 한다.</p><div class="note">이번 수업은 작은 12×10 보드에서 알고리즘을 눈으로 읽기 위해 frontier 전체를 훑어 최저 비용 셀을 찾는다. 큰 맵에서는 우선순위 큐로 교체할 수 있지만 핵심 규칙은 같다.</div></section>
+<section id="path"><p class="chapter">Chapter 07</p><h2>previous로 경로 복원하기</h2><p><code>costs</code>는 “얼마나 드는가?”에 답하지만 “어느 길로 왔는가?”에는 답하지 못한다. 더 싼 경로를 채택할 때 <code>previous[next] = current</code>도 함께 저장해야 한다.</p><div class="flow"><span class="node">목표</span><span class="arrow">←</span><span class="node">이전 셀</span><span class="arrow">←</span><span class="node">이전 셀</span><span class="arrow">←</span><span class="node">시작</span></div><p>목표부터 이전 셀을 따라가면 역순이므로 마지막에 한 번 뒤집는다.</p><pre>List&lt;Vector2Int&gt; path = new() { destination };
+Vector2Int current = destination;
+
+while (current != start)
+{
+    current = previous[current];
+    path.Add(current);
+}
+
+path.Reverse();</pre><h3>경계 사례</h3><ul><li>도달하지 못한 목적지: 빈 경로</li><li>목적지가 시작점: 시작점 하나</li><li>previous가 끊어진 비정상 결과: 빈 경로로 안전하게 종료</li></ul><p>경로는 10차시 이동 연출에서도 다시 사용된다. 지금 “도달 가능 여부”와 함께 이전 셀을 기록해 두면 미래 기능이 알고리즘을 다시 실행할 필요가 없다.</p></section>
+<section id="integration"><p class="chapter">Chapter 08</p><h2>게임에 연결되는 데이터 흐름</h2><div class="flow"><span class="node">map01.txt</span><span class="arrow">→</span><span class="node">MapLoader</span><span class="arrow">→</span><span class="node">Board</span><span class="arrow">→</span><span class="node">MovementRange</span><span class="arrow">→</span><span class="node">RangeHighlighter</span></div><h3>BoardView</h3><p>BoardView는 모델을 Tilemap과 Unity 좌표에 연결한다. 선택 유닛의 월드 위치를 셀로 바꾸고, 이동 예산을 MovementRange에 넘긴다. 결과 셀은 RangeHighlighter에 전달한다.</p><h3>점유 규칙은 어디에 있는가</h3><p>지형 탐색은 다른 유닛이 있는 셀도 계산할 수 있다. 이 차시에서는 기존 동작처럼 그 셀을 지나갈 수 있지만 최종 목적지로는 선택할 수 없다. 지형의 통행 가능 여부와 유닛 점유는 서로 다른 이유로 바뀌므로 같은 데이터에 섞지 않는다.</p><h3>Command와의 협력</h3><div class="grid2"><div class="card"><h3>MovementRange</h3><p>목적지가 규칙상 가능한지 판단한다.</p></div><div class="card"><h3>MoveUnitCommand</h3><p>검증을 통과한 이동을 실행하고 Undo에 필요한 출발점을 기억한다.</p></div></div><pre>if (!_board.CanMoveTo(SelectedUnit, targetCell))
+    return false;
+
+var command = new MoveUnitCommand(SelectedUnit, _board, targetCell);
+_history.Execute(command);</pre><p>Lesson3는 Lesson2 코드를 버리지 않는다. 탐색 책임만 발전시키고 실행·기록 책임은 재사용한다. 이것이 책임 분리의 실제 이점이다.</p></section>
+<section id="tradeoff"><p class="chapter">Chapter 09</p><h2>언제 Flyweight를 적용할까</h2><table><tr><th>적합한 신호</th><th>주의할 신호</th></tr><tr><td>동일 데이터가 수십·수백 번 반복된다.</td><td>객체 수가 적어 단순한 복제가 더 읽기 쉽다.</td></tr><tr><td>공유 데이터가 거의 변하지 않는다.</td><td>인스턴스마다 자주 독립적으로 바뀐다.</td></tr><tr><td>공유 정보와 문맥을 명확히 나눌 수 있다.</td><td>문맥을 매 호출마다 전달해 코드가 더 복잡해진다.</td></tr><tr><td>표준 객체를 참조로 비교할 수 있다.</td><td>값 동등성이 더 자연스럽고 객체 정체성이 필요 없다.</td></tr></table><h3>메모리 절약만이 목적은 아니다</h3><p>작은 보드에서는 절약되는 바이트가 중요하지 않을 수 있다. 하지만 “숲의 규칙은 한곳에 있다”는 사실은 밸런스 변경과 오류 수정의 경계를 선명하게 만든다. 패턴의 이득은 메모리와 일관성 두 가지다.</p><h3>공유의 대가</h3><p>공유 객체를 변경하면 모든 사용처가 영향을 받는다. 그래서 불변 데이터로 만들고, 런타임에 셀 하나만 불타서 잿더미가 되는 변화는 Board가 그 셀의 참조를 다른 TerrainType으로 교체하는 방식으로 표현한다.</p></section>
+<section id="review"><p class="chapter">Chapter 10</p><h2>용어와 복습</h2><dl class="terms"><dt>Flyweight</dt><dd>반복되는 고유 데이터를 공유 객체로 분리하는 패턴.</dd><dt>Intrinsic state</dt><dd>공유 객체 내부의 문맥 독립 데이터.</dd><dt>Extrinsic state</dt><dd>공유 객체를 사용하는 곳이 제공하는 좌표 같은 문맥.</dd><dt>Frontier</dt><dd>발견했지만 아직 확장하지 않은 탐색 후보.</dd><dt>Relaxation</dt><dd>더 싼 경로를 발견했을 때 비용과 이전 셀을 갱신하는 과정.</dd><dt>Path reconstruction</dt><dd>previous 관계를 목표에서 시작까지 따라가 실제 경로를 만드는 과정.</dd></dl><h3>스스로 답하기</h3><details><summary>1. 숲 셀 40개가 Forest 객체 하나를 공유해도 되는 이유는?</summary><p>숲의 이름, 이동 비용과 통행 규칙은 셀 좌표와 무관하게 동일하며 수업 중에는 변하지 않는 데이터이기 때문이다. 좌표와 점유 정보는 Board와 게임 상태에 남긴다.</p></details><details><summary>2. BFS의 방문 집합만으로 비용 최저 경로를 구하기 어려운 이유는?</summary><p>비싼 경로로 먼저 발견한 셀을 더 싼 경로로 다시 발견할 수 있기 때문이다. 발견 여부뿐 아니라 현재 알려진 최저 비용을 저장하고 비교해야 한다.</p></details><details><summary>3. 강에 비용 999를 주는 대신 IsWalkable을 두는 이유는?</summary><p>통행 불가는 비용이 큰 이동과 다른 규칙이다. 예산이 커져도 건널 수 없어야 하므로 먼저 명시적으로 제외한다.</p></details><details><summary>4. previous는 언제 갱신해야 하는가?</summary><p>새 셀을 처음 발견했거나 기존보다 더 싼 누적 비용을 발견해 costs를 바꿀 때 같은 순간에 갱신한다.</p></details><details><summary>5. Lesson2의 Command가 바뀌지 않은 이유는?</summary><p>MovementRange는 이동 가능 여부, Command는 검증된 이동의 실행과 취소를 담당한다. 서로 다른 책임이므로 지형 규칙의 변화가 Command 구현을 요구하지 않는다.</p></details><div class="definition"><strong>한 문장 정리:</strong> 같은 지형 규칙은 공유하고, 누적 비용을 비교하며 가장 싼 이동 가능 영역과 경로를 찾는다.</div></section>
+</main>
+</div>
+</body>
+</html>

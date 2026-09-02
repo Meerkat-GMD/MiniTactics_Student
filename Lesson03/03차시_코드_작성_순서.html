@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>3차시 코드 작성 순서 — Flyweight와 비용 이동</title>
+<style>
+:root{--bg:#07110f;--panel:#10221c;--card:#142b23;--line:#315548;--text:#edf8f3;--muted:#afc4bb;--mint:#62e6b1;--amber:#ffd166;--red:#ff9a9a}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font-family:Pretendard,"Noto Sans KR",system-ui,sans-serif;line-height:1.68;word-break:keep-all}.wrap{max-width:1100px;margin:auto;padding:28px 24px 100px}header{padding:38px;border:1px solid var(--line);border-radius:20px;background:radial-gradient(circle at 90% 8%,#255642,transparent 33%),var(--panel)}.tag{color:var(--mint);font-weight:900;letter-spacing:.12em;text-transform:uppercase}h1{font-size:clamp(2rem,5vw,4rem);line-height:1.1;letter-spacing:-.05em;margin:.3em 0}h2{margin-top:52px;font-size:1.8rem;letter-spacing:-.03em}h3{margin:.2em 0;color:var(--mint)}p,li{font-size:1rem}.progress{position:sticky;top:0;z-index:5;margin:18px 0;padding:13px 16px;border:1px solid var(--line);border-radius:12px;background:#07110feb;backdrop-filter:blur(8px);display:flex;gap:14px;align-items:center}.bar{height:9px;flex:1;border-radius:99px;background:#233a32;overflow:hidden}.bar span{display:block;height:100%;width:0;background:var(--mint);transition:.2s}.timeline{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.phase{padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}.step{display:grid;grid-template-columns:auto 1fr;gap:14px;margin:18px 0;padding:22px;border:1px solid var(--line);border-radius:15px;background:var(--card)}.step input{width:22px;height:22px;margin-top:5px;accent-color:var(--mint)}.meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}.pill{padding:3px 9px;border:1px solid var(--line);border-radius:99px;color:var(--muted);font-size:.86rem}.file{color:var(--amber);font-family:Consolas,"D2Coding",monospace}.goal{padding:12px 15px;border-left:4px solid var(--mint);background:#0b1b16;border-radius:7px}.recover{padding:12px 15px;border-left:4px solid var(--amber);background:#211c0d;border-radius:7px}pre{overflow:auto;padding:17px;border:1px solid #3b6555;border-radius:10px;background:#050d0a;color:#dcf8ed;font:13.5px/1.62 Consolas,"D2Coding",monospace;white-space:pre-wrap}details{margin-top:12px;border:1px solid var(--line);border-radius:9px;padding:10px 13px;background:#0c1b16}summary{cursor:pointer;color:var(--mint);font-weight:800}.checklist{columns:2;column-gap:28px}.checklist li{break-inside:avoid;margin:.5em 0}.warn{color:var(--red)}@media(max-width:760px){.wrap{padding:14px}.timeline{grid-template-columns:1fr}.step{grid-template-columns:1fr}.step input{width:26px;height:26px}.checklist{columns:1}header{padding:25px 20px}.progress{top:0}}@media print{body{background:white;color:#111}.wrap{max-width:none}.progress{display:none}header,.phase,.step,details{background:white;color:#111;border-color:#777}.step{break-inside:avoid}.file,.tag,h3,summary{color:#111}pre{background:white;color:#111;white-space:pre-wrap}.goal,.recover{background:white}}
+.step>div{min-width:0}html,body{overflow-x:hidden}</style>
+</head>
+<body>
+<div class="wrap">
+<header><p class="tag">Mini Tactics · Lesson 03</p><h1>코드 작성 순서</h1><p>Flyweight 지형 → Board → 비용 탐색 → 경로 복원 → 화면 연결의 순서로 완성한다. 체크 상태는 이 브라우저에 자동 저장된다.</p></header>
+<div class="progress"><strong id="count">0 / 10</strong><div class="bar"><span id="fill"></span></div><button id="reset" type="button">초기화</button></div>
+<h2>180분 흐름</h2>
+<div class="timeline"><div class="phase"><h3>0–30분</h3><p>발표 자료로 중복 데이터와 비용 경로 문제를 이해한다.</p></div><div class="phase"><h3>30–150분</h3><p>아래 1–8단계를 순서대로 작성하고 매 단계 Play Mode로 확인한다.</p></div><div class="phase"><h3>150–180분</h3><p>9–10단계의 플레이 목표, 복구와 회고를 수행한다.</p></div></div>
+<h2>시작 전</h2>
+<p><span class="file">Assets/Lesson03/Scenes/Lesson03.unity</span>를 열고 Play Mode에서 선택·이동·Undo가 되는지 확인한다. 이 시점의 이동 범위는 아직 모든 타일을 비용 1로 계산한다. Console이 깨끗한 상태에서 시작한다.</p>
+
+<article class="step"><input class="done" id="s1" type="checkbox"><div><div class="meta"><span class="pill">30–45분</span><span class="pill">Step 1</span></div><h3>TerrainType의 불변 데이터 완성</h3><p class="file">Assets/Lesson03/Scripts/TerrainType.cs</p><p>생성자가 이름·이동 비용·통행 가능 여부를 받아 getter-only 속성에 저장하게 한다. 빈 이름과 0 이하 비용은 거부한다.</p><pre>public TerrainType(string name, int movementCost, bool isWalkable)
+{
+    if (string.IsNullOrWhiteSpace(name))
+        throw new ArgumentException("Terrain needs a name.", nameof(name));
+    if (movementCost &lt;= 0)
+        throw new ArgumentOutOfRangeException(nameof(movementCost));
+
+    Name = name;
+    MovementCost = movementCost;
+    IsWalkable = isWalkable;
+}</pre><div class="goal"><strong>완료 신호:</strong> 저장 후 컴파일 오류가 없고 기존 게임이 실행된다.</div><div class="recover"><strong>막히면:</strong> 파일 위에 <code>using System;</code>이 있는지, 속성 이름의 대소문자가 같은지 본다.</div></div></article>
+
+<article class="step"><input class="done" id="s2" type="checkbox"><div><div class="meta"><span class="pill">45–55분</span><span class="pill">Step 2</span></div><h3>지형 객체 네 개를 한 번만 생성</h3><p class="file">TerrainType.cs · TerrainTypes</p><pre>Plain    = new TerrainType("평지", 1, true);
+Forest   = new TerrainType("숲",   2, true);
+Mountain = new TerrainType("산",   3, true);
+River    = new TerrainType("강",   1, false);</pre><p>각 멤버는 <code>public static readonly</code>다. getter가 호출될 때마다 <code>new</code>하지 않는다.</p><div class="goal"><strong>완료 신호:</strong> Inspector 조작 없이 네 종류가 코드에서 참조 가능하다.</div><details><summary>왜 강에도 비용 1이 있나요?</summary><p>모든 지형이 같은 데이터 모양을 갖게 한다. 탐색은 비용을 더하기 전에 <code>IsWalkable</code>로 강을 제외한다.</p></details></div></article>
+
+<article class="step"><input class="done" id="s3" type="checkbox"><div><div class="meta"><span class="pill">55–75분</span><span class="pill">Step 3</span></div><h3>Board가 좌표와 지형 참조를 보관</h3><p class="file">Assets/Lesson03/Scripts/Board.cs</p><pre>private readonly Dictionary&lt;Vector2Int, TerrainType&gt; _cells;
+
+public IReadOnlyDictionary&lt;Vector2Int, TerrainType&gt; Cells =&gt; _cells;
+public bool Contains(Vector2Int cell) =&gt; _cells.ContainsKey(cell);
+public TerrainType GetTerrain(Vector2Int cell) =&gt; _cells[cell];</pre><p>생성자에서는 받은 사전을 새 Dictionary로 복사한다.</p><div class="goal"><strong>완료 신호:</strong> <code>MapLoader.cs</code>가 P/F/M/R을 같은 네 객체로 연결하며 컴파일된다.</div><div class="recover"><strong>막히면:</strong> <code>using System.Collections.Generic;</code>과 <code>using UnityEngine;</code>을 확인한다.</div></div></article>
+
+<article class="step"><input class="done" id="s4" type="checkbox"><div><div class="meta"><span class="pill">75–90분</span><span class="pill">Step 4</span></div><h3>MovementRangeResult에 비용 기록</h3><p class="file">Assets/Lesson03/Scripts/MovementRange.cs</p><p>시작점, <code>Dictionary&lt;Vector2Int,int&gt; costs</code>, <code>Dictionary&lt;Vector2Int,Vector2Int&gt; previous</code>를 보관한다. 먼저 비용 조회와 도달 셀 목록을 완성한다.</p><pre>public bool TryGetCost(Vector2Int cell, out int cost)
+{
+    return _costs.TryGetValue(cell, out cost);
+}</pre><div class="goal"><strong>완료 신호:</strong> 빈 결과도 만들 수 있고, 아직 화면 동작은 이전과 같다.</div></div></article>
+
+<article class="step"><input class="done" id="s5" type="checkbox"><div><div class="meta"><span class="pill">90–120분</span><span class="pill">Step 5</span></div><h3>누적 비용이 가장 작은 셀부터 탐색</h3><p class="file">MovementRange.cs · MovementRange.Calculate</p><ol><li>시작이 Board 밖이거나 강이면 빈 결과를 반환한다.</li><li>시작 비용 0과 frontier를 만든다.</li><li>frontier에서 현재 비용이 가장 낮은 셀을 고른다.</li><li>상하좌우 이웃을 검사한다.</li></ol><pre>int candidateCost = costs[current] + terrain.MovementCost;
+
+if (candidateCost > budget)
+    continue;
+
+if (costs.TryGetValue(next, out int knownCost)
+    &amp;&amp; knownCost &lt;= candidateCost)
+    continue;
+
+costs[next] = candidateCost;
+previous[next] = current;
+frontier.Add(next);</pre><div class="goal"><strong>완료 신호:</strong> 코드가 컴파일되고 무한 반복 없이 Play Mode가 시작된다.</div><div class="recover"><strong>무한 반복이면:</strong> current를 frontier에서 제거하는 줄과, 기존 비용보다 싸지 않으면 건너뛰는 조건을 확인한다.</div></div></article>
+
+<article class="step"><input class="done" id="s6" type="checkbox"><div><div class="meta"><span class="pill">120–132분</span><span class="pill">Step 6</span></div><h3>previous를 따라 경로 복원</h3><p class="file">MovementRange.cs · GetPathTo</p><pre>path에 destination 추가
+current가 start와 다르면:
+    previous[current]를 current로 바꿈
+    path에 current 추가
+path.Reverse()
+return path</pre><p>도달하지 못한 목적지는 빈 배열, 시작점은 시작점 하나를 반환한다.</p><div class="goal"><strong>완료 신호:</strong> 목표에서 시작까지 거슬러 갈 때 누락된 key 오류가 없다.</div></div></article>
+
+<article class="step"><input class="done" id="s7" type="checkbox"><div><div class="meta"><span class="pill">132–142분</span><span class="pill">Step 7</span></div><h3>BoardView를 새 모델에 연결</h3><p class="file">Assets/Lesson03/Scripts/BoardView.cs</p><ul><li><code>LoadBoard()</code>에서 <code>MapLoader.Parse(_mapText.text)</code>를 호출한다.</li><li>유닛 월드 위치를 시작 셀로 바꾼다.</li><li><code>MovementRange.Calculate(Board, start, selectedUnit.MoveBudget)</code>을 반환한다.</li><li>목적지가 제자리거나 다른 유닛이 있으면 거부한다.</li></ul><div class="goal"><strong>완료 신호:</strong> Play Mode에서 네 지형 타일이 보이고 유닛 선택 시 범위가 나타난다.</div><div class="recover"><strong>맵이 비면:</strong> Board 컴포넌트의 Map Text와 네 Tile 참조가 연결되어 있는지 확인한다.</div></div></article>
+
+<article class="step"><input class="done" id="s8" type="checkbox"><div><div class="meta"><span class="pill">142–150분</span><span class="pill">Step 8</span></div><h3>BattleController가 새 결과를 표시</h3><p class="file">Assets/Lesson03/Scripts/BattleController.cs</p><pre>LastMovementRange = _board.GetMovementRange(SelectedUnit);
+GetHighlighter().Show(LastMovementRange, SelectedUnit);</pre><p>이동 성공 부분은 반드시 <code>MoveUnitCommand</code>와 <code>CommandHistory.Execute()</code>를 유지한다.</p><div class="goal"><strong>완료 신호:</strong> 숲 쪽 범위가 평지보다 짧고, 강 셀을 클릭해도 이동하지 않으며 Undo가 동작한다.</div><div class="recover"><strong>Undo가 깨지면:</strong> <code>SelectedUnit.MoveTo()</code>를 직접 호출한 곳이 없는지 확인한다.</div></div></article>
+
+<article class="step"><input class="done" id="s9" type="checkbox"><div><div class="meta"><span class="pill">150–165분</span><span class="pill">Step 9</span></div><h3>최종 플레이 목표</h3><ol><li>평지 방향과 숲 방향의 범위를 비교한다.</li><li>숲 한 칸이 비용 2를 쓰는지 확인한다.</li><li>강 셀 이동이 거부되는지 확인한다.</li><li>유효한 셀로 세 번 이동한다.</li><li>Undo 두 번으로 최근 두 이동을 역순 복원한다.</li></ol><div class="goal"><strong>완료 신호:</strong> 모든 동작 뒤에도 Console에 오류가 없다.</div></div></article>
+
+<article class="step"><input class="done" id="s10" type="checkbox"><div><div class="meta"><span class="pill">165–180분</span><span class="pill">Step 10</span></div><h3>설명하고 확장하기</h3><ul><li>공유 정보와 셀별 정보를 각각 세 가지 말한다.</li><li>BFS 대신 누적 비용을 저장해야 하는 이유를 말한다.</li><li><code>costs</code>와 <code>previous</code>의 차이를 말한다.</li></ul><p>시간이 남으면 비용 4의 늪 <code>S</code>를 추가하거나 비용별 오버레이 농도를 바꾼다.</p><div class="goal"><strong>완료 신호:</strong> “같은 규칙은 공유하고, 가장 싼 후보부터 조사한다”를 자신의 말로 설명한다.</div></div></article>
+
+<h2>제출 전 확인</h2>
+<ul class="checklist"><li>지형 객체는 네 개만 생성된다.</li><li>숲 비용 2, 산 비용 3이다.</li><li>강은 통행 불가다.</li><li>예산 밖 셀은 표시되지 않는다.</li><li>더 싼 경로가 비용을 갱신한다.</li><li>경로가 시작→목표 순서다.</li><li>점유 셀에 이동하지 않는다.</li><li>제자리 이동을 기록하지 않는다.</li><li>Command/Undo가 유지된다.</li><li>Console 오류가 없다.</li></ul>
+</div>
+<script>
+const boxes=[...document.querySelectorAll(".done")],fill=document.getElementById("fill"),count=document.getElementById("count"),key="lesson03-code-order";
+function save(){const state=boxes.map(function(b){return b.checked});localStorage.setItem(key,JSON.stringify(state));render()}
+function render(){const n=boxes.filter(function(b){return b.checked}).length;count.textContent=n+" / "+boxes.length;fill.style.width=(n/boxes.length*100)+"%"}
+try{const state=JSON.parse(localStorage.getItem(key)||"[]");boxes.forEach(function(b,i){b.checked=Boolean(state[i])})}catch(e){}
+boxes.forEach(function(b){b.addEventListener("change",save)});document.getElementById("reset").onclick=function(){boxes.forEach(function(b){b.checked=false});save()};render();
+</script>
+</body>
+</html>
