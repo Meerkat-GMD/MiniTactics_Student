@@ -1,0 +1,43 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>4차시 강의자료 — State 패턴</title>
+<style>:root{--bg:#f4f5fb;--paper:#fff;--ink:#171b2e;--muted:#59617d;--line:#d9def0;--violet:#6548c8;--cyan:#057d98;--code:#11162b}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:Pretendard,"Noto Sans KR",system-ui,sans-serif;line-height:1.8;word-break:keep-all}.layout{display:grid;grid-template-columns:260px minmax(0,820px);gap:42px;max-width:1180px;margin:auto;padding:32px}.toc{position:sticky;top:24px;align-self:start;padding:20px;border:1px solid var(--line);border-radius:16px;background:var(--paper)}.toc a{display:block;color:var(--muted);text-decoration:none;padding:6px 0}.toc a:hover{color:var(--violet)}main{min-width:0}.hero,.chapter{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:clamp(24px,5vw,54px);margin-bottom:24px}.tag{color:var(--violet);font-weight:900;letter-spacing:.12em}h1{font-size:clamp(2.3rem,6vw,4.8rem);line-height:1.08;letter-spacing:-.05em;margin:.25em 0}h2{font-size:2rem;letter-spacing:-.035em;margin-top:0}h3{color:var(--violet)}p,li{font-size:1.05rem;color:#343a55}code{font-family:Consolas,monospace;color:var(--violet)}pre{max-width:100%;overflow:auto;background:var(--code);color:#e9edff;border-radius:12px;padding:20px;line-height:1.6;font-size:.9rem}.note,.warning{padding:15px 18px;border-left:5px solid var(--cyan);background:#edfafd;border-radius:8px}.warning{border-color:#e59b27;background:#fff7e7}.compare{display:grid;grid-template-columns:1fr 1fr;gap:16px}.box{padding:18px;border:1px solid var(--line);border-radius:12px}.diagram{text-align:center;padding:24px;border:1px dashed var(--violet);border-radius:12px;font-weight:800;color:var(--violet)}@media(max-width:820px){.layout{display:block;padding:14px}.toc{position:relative;margin-bottom:18px}.compare{grid-template-columns:1fr}.chapter,.hero{padding:24px}html,body{overflow-x:hidden}}</style></head>
+<body><div class="layout"><aside class="toc"><strong>4차시 · State</strong><a href="#c1">1. 같은 클릭, 다른 의미</a><a href="#c2">2. State 패턴</a><a href="#c3">3. 입력 계약</a><a href="#c4">4. 상태 머신</a><a href="#c5">5. 대기 상태</a><a href="#c6">6. 선택 상태</a><a href="#c7">7. Context</a><a href="#c8">8. Undo와 기존 패턴</a><a href="#c9">9. 3유닛 씬</a><a href="#c10">10. 판단 기준</a></aside><main>
+<header class="hero"><p class="tag">MINI TACTICS · LESSON 04</p><h1>입력 모드를<br>상태 객체로 나눈다</h1><p>이 자료는 발표 요약이 아니라 수업 뒤에도 다시 읽을 수 있는 교과서형 강의 자료다. 대기와 선택 상태를 구현하며 State 패턴의 구조, 전환 생명주기, 다른 패턴과의 협력을 배운다.</p></header>
+<section class="chapter" id="c1"><h2>1. 같은 클릭, 다른 의미</h2><p>마우스 왼쪽 클릭이라는 물리 입력은 하나지만 게임의 반응은 현재 모드에 따라 달라진다. 아무 유닛도 선택하지 않은 대기 모드에서 유닛을 클릭하면 선택이 시작된다. 이미 유닛을 선택한 모드에서 빈 셀을 클릭하면 이동을 시도한다.</p><div class="compare"><div class="box"><h3>Idle</h3><p>유닛 클릭은 선택 시작. 빈 셀은 무시.</p></div><div class="box"><h3>UnitSelected</h3><p>유닛 클릭은 선택 교체. 빈 셀은 이동 시도.</p></div></div><p>공격과 스킬 모드가 추가될 때 하나의 Update 안에서 모든 조합을 검사하면 변경 이유가 섞인다. State 패턴은 모드별 규칙을 별도 객체로 옮긴다.</p></section>
+<section class="chapter" id="c2"><h2>2. State 패턴의 역할</h2><p>State 패턴은 객체의 내부 상태가 바뀌면 행동도 바뀌는 문제를 다룬다. 이번 수업에서는 네 역할을 구분한다.</p><ul><li><strong>Context</strong>: Board와 Command를 사용하는 BattleController</li><li><strong>State</strong>: 모든 입력 상태의 공통 계약 InputState</li><li><strong>Concrete State</strong>: IdleState와 UnitSelectedState</li><li><strong>State Machine</strong>: Current를 보관하고 전환을 실행</li></ul><div class="diagram">입력 → State Machine → Current State → Context 기능 호출</div><p class="note">State는 게임 전체 데이터를 소유하지 않는다. 무엇을 할지 결정하고 실제 기능은 Context에 요청한다.</p></section>
+<section class="chapter" id="c3"><h2>3. InputState: 같은 입력 표면</h2><pre>public abstract class InputState
+{
+    public virtual void Enter() { }
+    public virtual void Exit() { }
+    public abstract void HandleBoardClick(Unit unit, Vector2Int cell);
+    public abstract void HandleUndo();
+}</pre><p>추상 클래스 덕분에 State Machine은 현재 객체가 Idle인지 Selected인지 묻지 않고 같은 메서드를 호출한다. Enter와 Exit는 모든 상태에 필수 행동이 아니므로 기본 구현이 있는 가상 메서드다. 클릭과 Undo는 모든 구체 상태가 의미를 정해야 하므로 추상 메서드다.</p></section>
+<section class="chapter" id="c4"><h2>4. InputStateMachine: 전환의 단일 관문</h2><pre>public void ChangeState(InputState next)
+{
+    if (next == null) throw new ArgumentNullException(nameof(next));
+    if (ReferenceEquals(Current, next)) return;
+    Current?.Exit();
+    Current = next;
+    Current.Enter();
+}</pre><p>순서는 반드시 이전 Exit, Current 교체, 새 Enter다. 새 상태의 Enter가 실행될 때 Current가 이미 자신을 가리키므로, Enter 안에서 현재 상태를 조회해도 일관된다.</p><p class="warning">각 상태가 Current를 직접 대입하게 만들면 Exit나 Enter를 빠뜨릴 수 있다. 모든 전환은 ChangeState를 통과시킨다.</p><pre>public void HandleBoardClick(Unit unit, Vector2Int cell)
+    => Current?.HandleBoardClick(unit, cell);</pre><p>State Machine은 입력의 의미를 판단하지 않고 현재 상태에 전달만 한다.</p></section>
+<section class="chapter" id="c5"><h2>5. IdleState: 선택을 시작하는 상태</h2><pre>public override void HandleBoardClick(Unit clickedUnit, Vector2Int cell)
+{
+    if (clickedUnit != null && clickedUnit.CanMove)
+        _machine.ChangeState(
+            new UnitSelectedState(_machine, _controller, clickedUnit));
+}</pre><p>Idle은 빈 셀이나 고정 유닛을 무시한다. 이동 계산이나 오버레이 코드는 없다. Undo 입력은 Controller의 UndoLast를 호출한다. 이렇게 한 상태의 규칙을 한 파일에서 읽을 수 있다.</p></section>
+<section class="chapter" id="c6"><h2>6. UnitSelectedState: 선택 문맥을 가진 상태</h2><p>선택 상태는 생성자에서 선택된 Unit을 기억한다. 이것이 이 상태만의 문맥이다.</p><pre>public override void Enter()
+    => _controller.ShowSelection(_unit);
+
+public override void Exit()
+    => _controller.ClearSelection();</pre><p>다른 이동 유닛을 클릭하면 새 UnitSelectedState로 전환한다. 빈 셀을 클릭하면 Controller에 이동을 요청하고 성공 여부와 관계없이 Idle로 돌아간다. Exit가 항상 호출되므로 오버레이 정리가 흩어지지 않는다.</p><pre>_controller.ExecuteMove(_unit, cell);
+_machine.ChangeState(new IdleState(_machine, _controller));</pre></section>
+<section class="chapter" id="c7"><h2>7. BattleController는 Context다</h2><p>Controller는 입력 좌표를 변환하고, Physics2D로 클릭한 Unit을 찾은 뒤 상태 머신에 전달한다.</p><pre>StateMachine.HandleBoardClick(
+    clickedUnit,
+    _board.WorldToCell(worldPosition));</pre><p>상태가 사용할 기능은 작게 나눈다.</p><ul><li>ShowSelection: 이동 범위 계산과 표시</li><li>ClearSelection: 선택과 오버레이 정리</li><li>ExecuteMove: Board 검증 후 MoveUnitCommand 실행</li><li>UndoLast: CommandHistory의 최근 행동 복원</li></ul><p>Controller가 방법을 알고 State가 시점을 결정한다.</p></section>
+<section class="chapter" id="c8"><h2>8. Undo와 기존 패턴의 협력</h2><p>State 패턴을 추가했다고 Command나 Flyweight를 버리지 않는다. 세 패턴은 다른 문제를 푼다.</p><div class="compare"><div class="box"><h3>Flyweight</h3><p>반복되는 지형 규칙 공유</p></div><div class="box"><h3>Command</h3><p>실행한 이동 기억과 Undo</p></div><div class="box"><h3>State</h3><p>현재 모드에서 입력 해석</p></div><div class="box"><h3>Controller</h3><p>세 구조를 연결</p></div></div><p>Idle의 Undo는 단순 복원이다. Selected의 Undo는 복원 후 ShowSelection을 다시 호출해 현재 위치 기준 범위를 갱신한다.</p></section>
+<section class="chapter" id="c9"><h2>9. UnitSpawner와 3유닛 씬</h2><p>선택 전환을 명확히 관찰하려고 세 유닛을 서로 떨어진 셀에 둔다. UnitSpawner는 설정된 셀마다 Prefab을 생성한다. 이미 자식 Unit이 존재하면 기존 배열을 반환한다.</p><pre>Unit[] existing = GetComponentsInChildren&lt;Unit&gt;(true);
+if (existing.Length &gt; 0 || _unitPrefab == null)
+    return existing;</pre><p>이 성질을 멱등성이라고 부른다. 같은 명령을 반복해도 결과가 더 늘어나지 않는다. Play Mode 재진입이나 씬 빌더 재실행 때 중복 생성을 막는다.</p></section>
+<section class="chapter" id="c10"><h2>10. 언제 State를 쓸까?</h2><p>다음 질문 중 두 개 이상이 참이면 State가 유용하다.</p><ul><li>같은 입력이 현재 모드에 따라 다르게 동작하는가?</li><li>모드별로 Enter/Exit 정리가 필요한가?</li><li>새 모드가 계속 추가될 예정인가?</li><li>하나의 조건문이 서로 다른 변경 이유를 품고 있는가?</li></ul><p>반대로 상태가 두 개뿐이고 규칙이 한두 줄이며 확장 가능성이 낮다면 단순 조건문이 더 읽기 쉬울 수 있다. 패턴은 목표가 아니라 복잡성을 다루는 도구다.</p><h3>최종 점검 질문</h3><ol><li>Current는 누가 보관하는가?</li><li>왜 Exit 뒤에 Current를 바꾸고 Enter를 호출하는가?</li><li>State가 Transform을 직접 움직이지 않는 이유는?</li><li>Command와 State는 각각 무엇을 기억하는가?</li></ol></section>
+</main></div></body></html>
