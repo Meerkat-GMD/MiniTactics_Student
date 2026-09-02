@@ -26,5 +26,8 @@
 .DS_Store
 Thumbs.db
 
+# Local feature worktrees
+.worktrees/
+
 # Unity generated crash reports
 sysinfo.txt
