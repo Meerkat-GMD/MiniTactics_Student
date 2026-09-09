@@ -3,6 +3,8 @@ using System.Reflection;
 using NUnit.Framework;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace MiniTactics.Lesson06.Tests
 {
@@ -11,6 +13,7 @@ namespace MiniTactics.Lesson06.Tests
         private BattleController _controller;
         private TurnManager _turns;
         private Unit _player;
+        private Unit _secondPlayer;
         private Transform _overlays;
 
         [SetUp]
@@ -20,6 +23,7 @@ namespace MiniTactics.Lesson06.Tests
             _controller = Object.FindAnyObjectByType<BattleController>();
             _turns = Object.FindAnyObjectByType<TurnManager>();
             _player = GameObject.Find("Player 1").GetComponent<Unit>();
+            _secondPlayer = GameObject.Find("Player 2").GetComponent<Unit>();
             _overlays = GameObject.Find("MovementOverlayRoot").transform;
         }
 
@@ -65,6 +69,28 @@ namespace MiniTactics.Lesson06.Tests
         }
 
         [Test]
+        public void EnterAfterMouseUndo_DoesNotSubmitSelectedUndoAgain()
+        {
+            _controller.Select(_player);
+            Assert.That(_controller.TryMoveSelectedUnit(new Vector2Int(2, 1)), Is.True);
+            _controller.Select(_secondPlayer);
+            Assert.That(_controller.TryMoveSelectedUnit(new Vector2Int(4, 4)), Is.True);
+
+            Button undo = GameObject.Find("Undo Button").GetComponent<Button>();
+            undo.onClick.AddListener(_controller.OnUndoClicked);
+            EventSystem eventSystem = FindSceneEventSystem();
+            eventSystem.SetSelectedGameObject(undo.gameObject);
+            undo.onClick.Invoke();
+            Assert.That(_secondPlayer.transform.position, Is.EqualTo(new Vector3(5, 4, 0)));
+
+            SubmitCurrentSelection(eventSystem);
+            RequestManualEnd();
+
+            Assert.That(_player.transform.position, Is.EqualTo(new Vector3(2, 1, 0)),
+                "Enter must not submit the still-selected Undo button before ending the phase.");
+        }
+
+        [Test]
         public void InputSystemWiring_RoutesBothEnterKeysToThePublicActionBeforeMouseHandling()
         {
             // EditMode has editor input buffers; the public action above exercises
@@ -85,6 +111,18 @@ namespace MiniTactics.Lesson06.Tests
             MethodInfo action = typeof(BattleController).GetMethod("OnEndTurnRequested", BindingFlags.Instance | BindingFlags.Public);
             Assert.That(action, Is.Not.Null, "The controller must expose a public end-turn action.");
             action.Invoke(_controller, null);
+        }
+
+        private static void SubmitCurrentSelection(EventSystem eventSystem)
+        {
+            GameObject selected = eventSystem.currentSelectedGameObject;
+            if (selected != null)
+                ExecuteEvents.Execute(selected, new BaseEventData(eventSystem), ExecuteEvents.submitHandler);
+        }
+
+        private static EventSystem FindSceneEventSystem()
+        {
+            return Object.FindAnyObjectByType<EventSystem>();
         }
 
         private void AssertCleared()

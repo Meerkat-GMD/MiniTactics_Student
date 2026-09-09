@@ -99,6 +99,8 @@ namespace MiniTactics.Lesson05
         public void OnUndoClicked()
         {
             if (!CanAcceptPlayerInput) return;
+            EventSystem eventSystem = EventSystem.current ?? FindAnyObjectByType<EventSystem>();
+            eventSystem?.SetSelectedGameObject(null);
             StateMachine.HandleUndo();
         }
 
