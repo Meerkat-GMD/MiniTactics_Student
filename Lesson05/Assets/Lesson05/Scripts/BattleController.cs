@@ -42,6 +42,12 @@ namespace MiniTactics.Lesson05
         private void Update()
         {
             if (!CanAcceptPlayerInput) return;
+            Keyboard keyboard = Keyboard.current;
+            if (keyboard != null && (keyboard.enterKey.wasPressedThisFrame || keyboard.numpadEnterKey.wasPressedThisFrame))
+            {
+                OnEndTurnRequested();
+                return;
+            }
             if (Mouse.current == null || !Mouse.current.leftButton.wasPressedThisFrame) return;
             if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
             if (_board == null || _camera == null)
@@ -80,6 +86,15 @@ namespace MiniTactics.Lesson05
         public bool CanPlayerAct(Unit unit) => unit != null && unit.CanMove;
 
         private void Start() => _turnManager?.BindCommandHistory(_history);
+
+        public void OnEndTurnRequested()
+        {
+            if (!CanAcceptPlayerInput) return;
+            StateMachine.ChangeState(new IdleState(StateMachine, this));
+            ClearSelection();
+            _turnManager?.BindCommandHistory(_history);
+            _turnManager?.RequestEndPlayerPhase();
+        }
 
         public void OnUndoClicked()
         {

@@ -16,6 +16,30 @@ namespace MiniTactics.Lesson06.Tests
     {
         private const string ScenePath = "Assets/Lesson06/Scenes/Lesson06.unity";
 
+        [Test]
+        public void PrepareStudentScene_PreservesTheUsableUndoListener()
+        {
+            byte[] originalScene = System.IO.File.ReadAllBytes(ScenePath);
+            try
+            {
+                System.Type builder = System.AppDomain.CurrentDomain.GetAssemblies()
+                    .Select(assembly => assembly.GetType("MiniTactics.Lesson06.Editor.Lesson06SceneBuilder"))
+                    .First(type => type != null);
+                builder.GetMethod("PrepareStudentScene").Invoke(null, null);
+                var controller = Object.FindAnyObjectByType<BattleController>();
+                var button = GameObject.Find("Undo Button").GetComponent<Button>();
+                Assert.That(button.onClick.GetPersistentEventCount(), Is.EqualTo(1));
+                Assert.That(button.onClick.GetPersistentTarget(0), Is.SameAs(controller));
+                Assert.That(button.onClick.GetPersistentMethodName(0), Is.EqualTo(nameof(BattleController.OnUndoClicked)));
+            }
+            finally
+            {
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                System.IO.File.WriteAllBytes(ScenePath, originalScene);
+                AssetDatabase.ImportAsset(ScenePath);
+            }
+        }
+
         [TearDown]
         public void CloseScene() => EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 

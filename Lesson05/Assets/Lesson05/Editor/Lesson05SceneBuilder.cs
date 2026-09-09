@@ -155,7 +155,7 @@ namespace MiniTactics.Lesson05.Editor
             hint.fontSize = 22;
             hint.color = Color.white;
             hint.raycastTarget = false;
-            hint.text = "Blue: Player | Red: Enemy | Reach the red goal. Protect the blue goal.\nMove each player once; Undo during your turn. R: Restart";
+            hint.text = "Blue: Player | Red: Enemy | Reach the red goal. Protect the blue goal.\nMove once or Enter: End turn. Undo during your turn. R: Restart";
             RectTransform hintRect = hint.rectTransform;
             hintRect.anchorMin = hintRect.anchorMax = hintRect.pivot = Vector2.zero;
             hintRect.anchoredPosition = new Vector2(32, 24);

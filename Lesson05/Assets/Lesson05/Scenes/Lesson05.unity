@@ -596,8 +596,7 @@ MonoBehaviour:
     m_LineSpacing: 1
   m_Text: 'Blue: Player | Red: Enemy | Reach the red goal. Protect the blue goal.
 
-    Move
-    each player once; Undo during your turn. R: Restart'
+    Move once or Enter: End turn. Undo during your turn. R: Restart'
 --- !u!222 &458554370
 CanvasRenderer:
   m_ObjectHideFlags: 0

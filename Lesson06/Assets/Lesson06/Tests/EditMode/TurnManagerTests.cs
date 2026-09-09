@@ -257,6 +257,52 @@ namespace MiniTactics.Lesson06.Tests
             Assert.That(manager.Result, Is.EqualTo(BattleResult.PlayerWon));
         }
 
+        [Test]
+        public async Task EnemyPhase_EveryRoundResetsOnlyActiveEnemiesBeforePublishingOrActing()
+        {
+            BoardView board = CreateBoard("PPPPPP\nPPPPPP");
+            TurnManager manager = CreateManager();
+            Unit first = CreateUnit("First", Team.Enemy, true, true);
+            Unit second = CreateUnit("Second", Team.Enemy, true, true);
+            Unit fixedEnemy = CreateUnit("Fixed", Team.Enemy, false, true);
+            Unit inactiveEnemy = CreateUnit("Inactive", Team.Enemy, true, true);
+            inactiveEnemy.gameObject.SetActive(false);
+            first.MoveTo(board, Vector2Int.zero);
+            second.MoveTo(board, new Vector2Int(3, 0));
+            fixedEnemy.MoveTo(board, new Vector2Int(5, 1));
+            manager.Bind(new[] { first, second, fixedEnemy, inactiveEnemy },
+                new[] { CreateEnemyAi(board), CreateEnemyAi(board) }, new Vector2Int(5, 0));
+            int entries = 0;
+            int actions = 0;
+            manager.PhaseChanged += phase =>
+            {
+                if (phase != BattlePhase.Enemy) return;
+                entries++;
+                Assert.That(first.HasMoved, Is.False, "Reset before publishing Enemy.");
+                Assert.That(second.HasMoved, Is.False);
+                Assert.That(fixedEnemy.HasMoved, Is.True);
+                Assert.That(inactiveEnemy.HasMoved, Is.True);
+            };
+            manager.EnemyTurnStarted += unit =>
+            {
+                Assert.That(unit.HasMoved, Is.False, "A new enemy action starts unspent.");
+                if (unit == second) Assert.That(first.HasMoved, Is.True);
+                actions++;
+            };
+
+            for (int round = 0; round < 2; round++)
+            {
+                manager.RequestEndPlayerPhase();
+                await manager.RunEnemyPhaseAsync(CancellationToken.None);
+                Assert.That(first.HasMoved, Is.True);
+                Assert.That(second.HasMoved, Is.True);
+                Assert.That(manager.Phase, Is.EqualTo(BattlePhase.Player));
+            }
+            Assert.That(entries, Is.EqualTo(2));
+            Assert.That(actions, Is.EqualTo(4));
+        }
+
+
         private TurnManager CreateManager()
         {
             return Track(new GameObject("Turn Manager")).AddComponent<TurnManager>();

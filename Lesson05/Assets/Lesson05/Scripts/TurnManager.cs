@@ -73,10 +73,12 @@ namespace MiniTactics.Lesson05
 
         public void RequestEndPlayerPhase()
         {
+            // 학습 과제: Enter와 전체 행동 완료를 같은 턴 전환으로 연결한다.
         }
 
         public UniTask RunEnemyPhaseAsync(CancellationToken cancellationToken)
         {
+            // 학습 과제: 진입 시 활성 적의 행동 표시를 초기화하고 순차 행동을 연결한다.
             return UniTask.CompletedTask;
         }
 

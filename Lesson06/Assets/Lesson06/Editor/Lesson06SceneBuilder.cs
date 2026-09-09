@@ -211,7 +211,7 @@ namespace MiniTactics.Lesson06.Editor
             hint.fontSize = 22;
             hint.color = Color.white;
             hint.raycastTarget = false;
-            hint.text = "Select a blue unit and move. Then click an adjacent enemy to attack or empty space to skip.\nDefeat both enemies or reach the red goal. Protect the blue goal. Undo before an attack; R: Restart";
+            hint.text = "Move a blue unit; click adjacent enemy to attack, empty space to skip. Enter: End turn.\nUndo before damage. Defeat enemies / reach red goal; protect blue goal. R: Restart";
             RectTransform hintRect = hint.rectTransform;
             hintRect.anchorMin = hintRect.anchorMax = hintRect.pivot = Vector2.zero;
             hintRect.anchoredPosition = new Vector2(32, 24);
@@ -226,13 +226,7 @@ namespace MiniTactics.Lesson06.Editor
 
         public static void PrepareStudentScene()
         {
-            EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
-            Button undoButton = GameObject.Find("Undo Button").GetComponent<Button>();
-
-            ClearPersistentListeners(undoButton);
-            EditorUtility.SetDirty(undoButton);
-            EditorSceneManager.MarkSceneDirty(undoButton.gameObject.scene);
-            EditorSceneManager.SaveScene(undoButton.gameObject.scene, ScenePath);
+            BuildStudentScene();
         }
 
         private static Button GetOrCreateUndoButton()

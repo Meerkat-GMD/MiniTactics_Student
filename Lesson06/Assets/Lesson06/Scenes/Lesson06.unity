@@ -827,11 +827,9 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Select a blue unit and move. Then click an adjacent enemy to attack or
-    empty space to skip.
+  m_Text: 'Move a blue unit; click adjacent enemy to attack, empty space to skip. Enter: End turn.
 
-    Defeat both enemies or reach the red goal. Protect
-    the blue goal. Undo before an attack; R: Restart'
+    Undo before damage. Defeat enemies / reach red goal; protect blue goal. R: Restart'
 --- !u!222 &458554370
 CanvasRenderer:
   m_ObjectHideFlags: 0

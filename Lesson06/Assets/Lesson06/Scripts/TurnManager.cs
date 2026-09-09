@@ -234,6 +234,10 @@ namespace MiniTactics.Lesson06
             if (Phase == BattlePhase.Player)
             {
                 _commandHistory?.Clear();
+                foreach (Unit unit in _units)
+                {
+                    if (IsActiveEnemyTurnUnit(unit)) unit.SetMoved(false);
+                }
                 SetPhase(BattlePhase.Enemy);
             }
 
