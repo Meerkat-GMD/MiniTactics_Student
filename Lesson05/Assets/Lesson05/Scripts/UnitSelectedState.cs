@@ -1,0 +1,45 @@
+using UnityEngine;
+
+namespace MiniTactics.Lesson05
+{
+    public sealed class UnitSelectedState : InputState
+    {
+        private readonly InputStateMachine _machine;
+        private readonly BattleController _controller;
+        private readonly Unit _unit;
+
+        public UnitSelectedState(InputStateMachine machine, BattleController controller, Unit unit)
+        {
+            _machine = machine;
+            _controller = controller;
+            _unit = unit;
+        }
+
+        public override void Enter() => _controller.ShowSelection(_unit);
+        public override void Exit() => _controller.ClearSelection();
+
+        public override void HandleBoardClick(Unit clickedUnit, Vector2Int cell)
+        {
+            if (!_controller.CanPlayerAct(_unit))
+            {
+                _machine.ChangeState(new IdleState(_machine, _controller));
+                return;
+            }
+            if (_controller.CanPlayerAct(clickedUnit))
+            {
+                _machine.ChangeState(new UnitSelectedState(_machine, _controller, clickedUnit));
+                return;
+            }
+
+            _controller.ExecuteMove(_unit, cell);
+            _machine.ChangeState(new IdleState(_machine, _controller));
+        }
+
+        public override void HandleUndo()
+        {
+            if (!_controller.CanAcceptPlayerInput) return;
+            _controller.UndoLast();
+            _controller.ShowSelection(_unit);
+        }
+    }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "MiniTactics.Lesson05.Tests",
+  "rootNamespace": "MiniTactics.Lesson05.Tests",
+  "references": [
+    "MiniTactics.Lesson05.Runtime",
+    "Unity.ugui"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "autoReferenced": false
+}
