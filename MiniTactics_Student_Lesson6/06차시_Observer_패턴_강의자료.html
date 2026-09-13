@@ -234,7 +234,7 @@ await enemyAi.TakeCombatTurnAsync(unit, _units, cancellationToken);
 <p class="kicker">CHAPTER 09 · 실제 장면과 관찰</p><h2>장면 통합과 실패 진단</h2>
 <div class="objectives">학습 목표: 장면 참조를 코드의 데이터 흐름과 연결한다. 값·발행·구독·반응 중 끊어진 단계를 근거로 찾아 복구한다.</div>
 <h3>9.1 배포 장면의 구성</h3>
-<p>프로젝트 폴더는 Lesson06, 실제 장면은 Assets/Lesson06/Scenes/Lesson06.unity입니다. 12×10 보드는 map01.txt의 P/F/M/R을 읽고 네 가지 지형으로 구성됩니다. 카메라, Tilemap, Unit Spawner, MovementOverlayRoot, Input System EventSystem, Undo 버튼, HUD와 목표가 이미 배치되어 있습니다. 장면을 다시 만들기 위한 학생 메뉴는 Mini Tactics/Lesson 06/Build Student Scene입니다.</p>
+<p>프로젝트 폴더는 MiniTactics_Student_Lesson6, 실제 장면은 Assets/Lesson06/Scenes/Lesson06.unity입니다. 12×10 보드는 map01.txt의 P/F/M/R을 읽고 네 가지 지형으로 구성됩니다. 카메라, Tilemap, Unit Spawner, MovementOverlayRoot, Input System EventSystem, Undo 버튼, HUD와 목표가 이미 배치되어 있습니다. 장면을 다시 만들기 위한 학생 메뉴는 Mini Tactics/Lesson 06/Build Student Scene입니다.</p>
 <table><caption>유닛과 목표의 초기 셀</caption><thead><tr><th>요소</th><th>셀</th><th>역할</th></tr></thead><tbody><tr><td>Player 1 / 2 / 3</td><td>(2,2) / (5,4) / (8,6)</td><td>아군 전투 유닛 3명</td></tr><tr><td>Enemy 1 / 2</td><td>(9,8) / (9,3)</td><td>적 전투 유닛 2명</td></tr><tr><td>Fixed Blocker</td><td>(6,4)</td><td>점유만 담당, 바 없음</td></tr><tr><td>Player Goal</td><td>(0,4)</td><td>적 진입 시 패배</td></tr><tr><td>Enemy Goal</td><td>(11,6)</td><td>아군 진입 시 승리</td></tr></tbody></table>
 <p>다섯 전투 유닛은 HP 10/10, 공격력 6, 방어력 1로 시작합니다. GameManager와 BattleController의 전투 목록은 같은 다섯 Unit을 가리킵니다. TurnManager의 전체 목록에는 Fixed Blocker까지 여섯 개의 참조가 있지만 턴 자격으로 고정 유닛을 제외합니다. 여러 목록이 있다는 사실보다 각 목록의 목적이 무엇인지 구별하는 것이 중요합니다.</p>
 <h3>9.2 데이터 흐름으로 연결을 읽는다</h3>
