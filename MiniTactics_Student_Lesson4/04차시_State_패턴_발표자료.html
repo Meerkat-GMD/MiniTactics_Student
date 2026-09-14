@@ -1,42 +1,348 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>4차시 발표자료 — State 패턴</title>
-<style>
-:root{--bg:#080b18;--panel:#10162b;--line:#33406e;--text:#f3f5ff;--muted:#b7bfdc;--cyan:#6ee7ff;--violet:#a78bfa;--amber:#ffd166}*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:Pretendard,"Noto Sans KR",system-ui,sans-serif}.deck{height:calc(100% - 76px);margin:16px;border:1px solid var(--line);border-radius:20px;overflow:hidden;background:radial-gradient(circle at 88% 10%,#243267 0,transparent 32%),var(--panel)}.slide{display:none;height:100%;padding:clamp(28px,6vw,88px);overflow:auto}.slide.active{display:flex;flex-direction:column;justify-content:center}.eyebrow{color:var(--cyan);font-weight:900;letter-spacing:.13em;text-transform:uppercase}h1{font-size:clamp(2.5rem,7vw,6.4rem);line-height:1.03;margin:.18em 0;letter-spacing:-.055em}h2{font-size:clamp(2rem,5vw,4.5rem);line-height:1.08;margin:.2em 0 .55em;letter-spacing:-.045em}h3{color:var(--cyan);font-size:1.25rem;margin:.2em 0}p,li{font-size:clamp(1rem,2vw,1.55rem);line-height:1.55;color:var(--muted)}strong{color:var(--text)}code{color:var(--amber);font-family:Consolas,monospace}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}.card{border:1px solid var(--line);border-top:4px solid var(--violet);border-radius:14px;padding:22px;background:#0b1022}.flow{display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;font-size:clamp(1.1rem,2.5vw,2rem)}.node{padding:18px 24px;border:1px solid var(--line);border-radius:12px;background:#121a36}.arrow{color:var(--cyan);font-weight:900}.big{font-size:clamp(1.8rem,4vw,3.4rem);color:var(--text)}.number{position:absolute;right:4vw;top:4vh;color:#8f9ac7;font-weight:800}.nav{height:60px;display:flex;align-items:center;justify-content:center;gap:12px}.nav button{border:1px solid var(--line);border-radius:10px;background:#11182f;color:var(--text);padding:10px 17px;font-weight:800}.nav button:disabled{opacity:.35}.toc{position:fixed;inset:5vh 6vw;z-index:8;border:1px solid var(--line);border-radius:18px;background:#090e20f5;color:var(--text);padding:24px;overflow:auto}.toc[hidden]{display:none}.toc header{display:flex;justify-content:space-between}.toc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.toc a{color:var(--muted);text-decoration:none;padding:9px;border:1px solid #28345d;border-radius:8px}.toc a:hover{color:var(--cyan)}@media(max-width:680px){.deck{margin:0;height:calc(100% - 58px);border-radius:0}.slide{padding:24px}.grid,.toc-grid{grid-template-columns:1fr}.nav{height:58px}.card{padding:14px}p,li{font-size:1rem}}
-</style></head><body>
-<main class="deck">
-<section class="slide active" id="slide-1"><span class="number">01 / 26</span><p class="eyebrow">Mini Tactics · Lesson 04</p><h1>입력의 의미는<br>상태가 결정한다</h1><p class="big">State 패턴으로 선택 모드를 분리한다</p></section>
-<section class="slide" id="slide-2"><span class="number">02 / 26</span><p class="eyebrow">Yesterday's Success</p><h2>지형 비용과 최저 비용 경로</h2><p>Board는 규칙을 알고, Command는 이동을 기억한다. 이제 <strong>같은 클릭의 다른 의미</strong>를 정리할 차례다.</p></section>
-<section class="slide" id="slide-3"><span class="number">03 / 26</span><p class="eyebrow">One Input</p><h2>유닛 클릭은 선택<br>빈 칸 클릭은 이동</h2><p>단, 유닛을 아직 선택하지 않았다면 빈 칸 클릭은 아무 의미가 없다.</p></section>
-<section class="slide" id="slide-4"><span class="number">04 / 26</span><p class="eyebrow">Growing Branches</p><h2>모드가 늘수록 if가 얽힌다</h2><div class="grid"><div class="card"><h3>현재</h3><p>대기 · 유닛 선택</p></div><div class="card"><h3>곧 추가</h3><p>공격 대상 · 스킬 범위 · 메뉴</p></div></div></section>
-<section class="slide" id="slide-5"><span class="number">05 / 26</span><p class="eyebrow">Key Formula</p><h2>입력 + 현재 상태 → 행동</h2><p>입력만으로 행동이 정해지지 않는다. 현재 모드가 문맥을 제공한다.</p></section>
-<section class="slide" id="slide-6"><span class="number">06 / 26</span><p class="eyebrow">State Pattern</p><h2>모드별 규칙을 객체로 분리</h2><p>각 상태는 자신에게 들어온 클릭과 Undo를 어떻게 해석할지 안다.</p></section>
-<section class="slide" id="slide-7"><span class="number">07 / 26</span><p class="eyebrow">Four Roles</p><div class="grid"><div class="card"><h3>Context</h3><p>BattleController</p></div><div class="card"><h3>State</h3><p>InputState</p></div><div class="card"><h3>Concrete State</h3><p>Idle · UnitSelected</p></div><div class="card"><h3>State Machine</h3><p>현재 상태와 전환</p></div></div></section>
-<section class="slide" id="slide-8"><span class="number">08 / 26</span><p class="eyebrow">Contract</p><h2>모든 상태가 같은 입력을 받는다</h2><p><code>Enter()</code> · <code>Exit()</code> · <code>HandleBoardClick()</code> · <code>HandleUndo()</code></p></section>
-<section class="slide" id="slide-9"><span class="number">09 / 26</span><p class="eyebrow">Lifecycle</p><h2>전환 순서는 하나로 고정</h2><div class="flow"><span class="node">이전 Exit</span><span class="arrow">→</span><span class="node">Current 교체</span><span class="arrow">→</span><span class="node">새 Enter</span></div></section>
-<section class="slide" id="slide-10"><span class="number">10 / 26</span><p class="eyebrow">Why Exit First?</p><h2>이전 화면 흔적을 먼저 지운다</h2><p>선택 범위가 남아 있는 채 새 상태가 그려지는 순간을 막는다.</p></section>
-<section class="slide" id="slide-11"><span class="number">11 / 26</span><p class="eyebrow">State Machine</p><h2>보관하고, 바꾸고, 전달한다</h2><ul><li>Current를 보관</li><li>ChangeState로 생명주기 실행</li><li>입력을 Current에 전달</li></ul></section>
-<section class="slide" id="slide-12"><span class="number">12 / 26</span><p class="eyebrow">Guard</p><h2>같은 상태 인스턴스면 전환하지 않는다</h2><p>불필요한 Exit/Enter와 화면 깜빡임을 막는 작은 안전장치다.</p></section>
-<section class="slide" id="slide-13"><span class="number">13 / 26</span><p class="eyebrow">Idle</p><h2>대기 상태는 선택만 시작한다</h2><p>움직일 수 있는 유닛을 클릭했을 때만 UnitSelectedState로 간다.</p></section>
-<section class="slide" id="slide-14"><span class="number">14 / 26</span><p class="eyebrow">Selected</p><h2>선택 상태는 세 갈래를 판단한다</h2><ul><li>다른 유닛: 선택 교체</li><li>유효한 빈 셀: 이동 후 Idle</li><li>무효 셀: 이동 없이 Idle</li></ul></section>
-<section class="slide" id="slide-15"><span class="number">15 / 26</span><p class="eyebrow">Enter</p><h2>선택 범위를 보여 준다</h2><p>State는 Controller의 <code>ShowSelection</code>을 호출한다. Board 계산은 직접 하지 않는다.</p></section>
-<section class="slide" id="slide-16"><span class="number">16 / 26</span><p class="eyebrow">Exit</p><h2>선택과 오버레이를 정리한다</h2><p>어떤 경로로 상태를 떠나도 같은 정리 코드가 실행된다.</p></section>
-<section class="slide" id="slide-17"><span class="number">17 / 26</span><p class="eyebrow">Context</p><h2>State는 결정하고<br>Controller는 실행한다</h2><p>좌표 변환, 이동 검증, Command 실행, 범위 표시는 Context의 기능이다.</p></section>
-<section class="slide" id="slide-18"><span class="number">18 / 26</span><p class="eyebrow">Thin Update</p><h2>Update의 마지막은 한 줄</h2><p><code>StateMachine.HandleBoardClick(clickedUnit, cell);</code></p></section>
-<section class="slide" id="slide-19"><span class="number">19 / 26</span><p class="eyebrow">Undo</p><h2>Undo도 현재 상태가 해석한다</h2><div class="grid"><div class="card"><h3>Idle</h3><p>기록만 되돌린다.</p></div><div class="card"><h3>Selected</h3><p>되돌린 뒤 선택 범위를 갱신한다.</p></div></div></section>
-<section class="slide" id="slide-20"><span class="number">20 / 26</span><p class="eyebrow">Reuse</p><h2>Command 패턴은 버리지 않는다</h2><p>State가 이동 여부를 결정하고, 실제 이동·기억·Undo는 기존 Command가 담당한다.</p></section>
-<section class="slide" id="slide-21"><span class="number">21 / 26</span><p class="eyebrow">Three Units</p><h2>선택 전환을 눈으로 확인한다</h2><p>UnitSpawner가 (2,2), (5,4), (8,6)에 유닛을 배치한다.</p></section>
-<section class="slide" id="slide-22"><span class="number">22 / 26</span><p class="eyebrow">Idempotent Spawn</p><h2>두 번 호출해도 세 유닛</h2><p>이미 자식 Unit이 있으면 기존 배열을 반환해 중복 생성을 막는다.</p></section>
-<section class="slide" id="slide-23"><span class="number">23 / 26</span><p class="eyebrow">Transition Map</p><div class="flow"><span class="node">Idle</span><span class="arrow">유닛 클릭 →</span><span class="node">Selected</span><span class="arrow">셀 클릭 →</span><span class="node">Idle</span></div></section>
-<section class="slide" id="slide-24"><span class="number">24 / 26</span><p class="eyebrow">Use With Care</p><h2>상태가 적고 규칙이 단순하면?</h2><p>클래스 수가 늘어나는 비용이 더 클 수 있다. 변화하는 모드가 여러 개일 때 효과적이다.</p></section>
-<section class="slide" id="slide-25"><span class="number">25 / 26</span><p class="eyebrow">Explain It</p><h2>세 문장으로 정리</h2><ol><li>현재 상태는 누가 보관하는가?</li><li>Enter와 Exit는 언제 실행되는가?</li><li>State와 Context의 책임은 어떻게 다른가?</li></ol></section>
-<section class="slide" id="slide-26"><span class="number">26 / 26</span><p class="eyebrow">Takeaway</p><h2>오늘의 핵심</h2><ul><li>같은 입력의 의미를 상태별로 분리한다.</li><li>모든 전환은 Exit → 교체 → Enter다.</li><li>State는 결정하고 Context는 실행한다.</li><li>기존 Command와 Flyweight를 그대로 재사용한다.</li></ul></section>
-</main>
-<nav class="nav" aria-label="슬라이드 탐색"><button id="prev">←</button><button id="tocBtn">목차</button><strong id="counter">1 / 26</strong><button id="next">→</button></nav>
-<dialog class="toc" id="toc"><header><h2>목차</h2><button id="close">닫기</button></header><div class="toc-grid" id="tocGrid"></div></dialog>
-<script>
-const slides=[...document.querySelectorAll(".slide")],counter=document.querySelector("#counter"),prev=document.querySelector("#prev"),next=document.querySelector("#next"),toc=document.querySelector("#toc");let current=0;
-function show(n){current=Math.max(0,Math.min(slides.length-1,n));slides.forEach((s,i)=>s.classList.toggle("active",i===current));counter.textContent=(current+1)+" / "+slides.length;prev.disabled=current===0;next.disabled=current===slides.length-1;location.hash="slide-"+(current+1)}
-slides.forEach((s,i)=>{const a=document.createElement("a"),heading=s.querySelector("h1,h2,h3");a.href="#slide-"+(i+1);a.textContent=String(i+1).padStart(2,"0")+" · "+(heading?heading.textContent.replace(/\s+/g," "):"상태 전환 지도");a.onclick=e=>{e.preventDefault();show(i);toc.close()};document.querySelector("#tocGrid").append(a)});
-prev.onclick=()=>show(current-1);next.onclick=()=>show(current+1);document.querySelector("#tocBtn").onclick=()=>toc.showModal();document.querySelector("#close").onclick=()=>toc.close();addEventListener("keydown",e=>{if(toc.open)return;if(["ArrowRight","PageDown"," "].includes(e.key))show(current+1);if(["ArrowLeft","PageUp"].includes(e.key))show(current-1);if(e.key==="Home")show(0);if(e.key==="End")show(slides.length-1)});const hash=Number(location.hash.replace("#slide-",""));show(Number.isFinite(hash)&&hash>0?hash-1:0);
-</script></body></html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>4차시 — 미니 택틱스로 이해하는 State 패턴 | 미니 택틱스</title>
+  <style>
+    :root {
+      --bg:#040a13; --slide:#091526; --panel:#10233a; --panel2:#142b45;
+      --text:#eef5ff; --muted:#afbed1; --teal:#55e4cf; --violet:#b8a4ff;
+      --amber:#ffd16f; --red:#ff8c99; --line:#2a405b; --green:#83e58f;
+    }
+    * { box-sizing:border-box; }
+    html, body { width:100%; height:100%; margin:0; overflow:hidden; }
+    body { background:var(--bg); color:var(--text); font-family:"Pretendard","Noto Sans KR",system-ui,sans-serif; word-break:keep-all; overflow-wrap:break-word; }
+    button, a { font:inherit; }
+    button { color:inherit; }
+    .app { min-height:100%; display:grid; grid-template-rows:1fr auto; }
+    .stage { min-height:0; display:grid; place-items:center; padding:14px 18px 6px; }
+    .deck { position:relative; width:min(100%,calc((100vh - 80px) * 16 / 9)); max-height:calc(100vh - 80px); aspect-ratio:16/9; overflow:hidden; border:1px solid #263b56; border-radius:18px; background:var(--slide); box-shadow:0 28px 88px #000a; container-type:inline-size; }
+    .slide { position:absolute; inset:0; display:none; overflow:auto; padding:clamp(28px,3.6cqw,56px) clamp(36px,5cqw,78px); background:radial-gradient(circle at 94% 7%,#253969 0,transparent 27%),linear-gradient(145deg,#0c1a2d 0%,#07121f 74%); }
+    .slide.is-active { display:grid; align-content:center; animation:reveal .24s ease-out; }
+    .slide::after { content:attr(data-slide); position:absolute; right:26px; top:20px; color:#7189a6; font-size:.76rem; font-weight:850; letter-spacing:.13em; }
+    @keyframes reveal { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:none; } }
+    h1,h2,h3,p { margin-top:0; }
+    h1 { max-width:78cqw; margin-bottom:20px; font-size:clamp(2.3rem,5.1cqw,4.9rem); line-height:1.08; letter-spacing:-.05em; }
+    h2 { max-width:82cqw; margin-bottom:clamp(16px,2.2cqw,30px); font-size:clamp(1.75rem,3.35cqw,3.15rem); line-height:1.17; letter-spacing:-.035em; }
+    h3 { margin-bottom:8px; color:var(--teal); font-size:clamp(.98rem,1.38cqw,1.3rem); }
+    p,li { font-size:clamp(.83rem,1.23cqw,1.13rem); line-height:1.53; }
+    p { margin-bottom:.72em; }
+    ul,ol { margin:.1em 0 0; padding-left:1.25em; }
+    li { margin:.38em 0; }
+    li::marker { color:var(--teal); font-weight:800; }
+    strong { color:#fff; }
+    .kicker { margin:0 0 7px; color:var(--teal); font-size:clamp(.68rem,1cqw,.9rem); font-weight:900; letter-spacing:.13em; text-transform:uppercase; }
+    .subtitle { max-width:72cqw; color:var(--muted); font-size:clamp(1rem,1.68cqw,1.5rem); line-height:1.5; }
+    .accent { color:var(--teal); } .violet { color:var(--violet); } .amber { color:var(--amber); } .red { color:var(--red); } .green { color:var(--green); }
+    .big { max-width:78cqw; font-size:clamp(1.28rem,2.3cqw,2.12rem); line-height:1.45; letter-spacing:-.02em; }
+    .quote { max-width:76cqw; margin:12px 0; padding-left:22px; border-left:5px solid var(--violet); font-size:clamp(1.2rem,2.25cqw,2rem); line-height:1.43; font-weight:760; }
+    .two { display:grid; grid-template-columns:1fr 1fr; gap:clamp(15px,2.2cqw,30px); align-items:stretch; }
+    .wide { display:grid; grid-template-columns:1.3fr .85fr; gap:clamp(18px,2.6cqw,36px); align-items:center; }
+    .panel { padding:clamp(14px,1.8cqw,23px); border:1px solid var(--line); border-radius:14px; background:#0f2138d9; }
+    .panel.teal { border-top:4px solid var(--teal); } .panel.violet { border-top:4px solid var(--violet); } .panel.amber { border-top:4px solid var(--amber); } .panel.redline { border-top:4px solid var(--red); }
+    .callout { margin-top:15px; padding:13px 18px; border-left:4px solid var(--teal); border-radius:8px; background:#10243c; }
+    .callout.warning { border-left-color:var(--amber); } .callout.danger { border-left-color:var(--red); }
+    .callout p:last-child,.panel p:last-child { margin-bottom:0; }
+    pre { margin:10px 0 0; padding:clamp(13px,1.65cqw,21px); overflow:auto; border:1px solid var(--line); border-radius:12px; background:#030a13; color:#dceafa; white-space:pre; font:clamp(.68rem,1.04cqw,.96rem)/1.58 Consolas,"D2Coding",monospace; }
+    p code,li code { padding:.08em .32em; border:1px solid #344d69; border-radius:5px; background:#081522; color:var(--amber); font-family:Consolas,"D2Coding",monospace; font-size:.92em; }
+    .code-focus { color:var(--amber); font-weight:800; }
+    .source { margin-top:10px; color:#7f94ad; font-size:clamp(.62rem,.82cqw,.76rem); }
+    .flow { display:grid; grid-template-columns:repeat(7,auto); align-items:center; justify-content:center; gap:9px; margin-top:22px; }
+    .node { min-width:9cqw; min-height:66px; display:grid; place-items:center; padding:10px 12px; border:1px solid #3b5575; border-radius:12px; background:var(--panel); text-align:center; font-size:clamp(.7rem,.95cqw,.9rem); font-weight:800; }
+    .arrow { color:var(--teal); font-size:1.35rem; font-weight:900; }
+    .state-board { display:grid; grid-template-columns:1fr auto 1fr; gap:18px; align-items:center; margin-top:14px; }
+    .coord { min-height:140px; display:grid; place-items:center; padding:22px; border:1px solid var(--line); border-radius:14px; background:#07111e; text-align:center; font:800 clamp(1rem,1.7cqw,1.55rem)/1.6 Consolas,monospace; }
+    .missing { color:var(--red); text-decoration:line-through; text-decoration-thickness:3px; }
+    .compare { width:100%; border-collapse:collapse; font-size:clamp(.72rem,1cqw,.94rem); line-height:1.42; }
+    .compare th,.compare td { padding:10px 13px; border:1px solid var(--line); vertical-align:top; text-align:left; }
+    .compare th { color:var(--teal); background:#071321; }
+    .stack { width:min(440px,70cqw); margin:14px auto 0; display:grid; gap:8px; }
+    .stack-item { padding:11px 16px; border:1px solid #405c7d; border-radius:9px; background:var(--panel); text-align:center; font-weight:800; }
+    .stack-item.top { border-color:var(--amber); color:var(--amber); }
+    .question { padding:clamp(20px,2.7cqw,38px); border:1px solid #5b4e25; border-radius:15px; background:linear-gradient(135deg,#221d10,#101c2d); }
+    .question .big { margin-bottom:0; }
+    .role-map { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:18px; }
+    .role { min-height:125px; padding:15px; border-top:4px solid var(--teal); border-radius:12px; background:var(--panel); }
+    .role:nth-child(2) { border-color:var(--violet); } .role:nth-child(3) { border-color:var(--amber); } .role:nth-child(4) { border-color:var(--red); }
+    .role b { display:block; margin-bottom:7px; font-size:clamp(.82rem,1.12cqw,1rem); }
+    .role span { color:var(--muted); font-size:clamp(.7rem,.92cqw,.86rem); line-height:1.45; }
+    .controls { min-height:60px; display:flex; align-items:center; justify-content:center; gap:9px; padding:7px 14px 10px; }
+    .control-btn { min-width:44px; min-height:40px; padding:7px 15px; border:1px solid #354c68; border-radius:10px; background:#0d1d30; cursor:pointer; }
+    .control-btn:hover:not(:disabled) { border-color:var(--teal); color:var(--teal); }
+    .control-btn:focus-visible,.toc-link:focus-visible { outline:3px solid var(--amber); outline-offset:2px; }
+    .control-btn:disabled { opacity:.35; cursor:not-allowed; }
+    #slideCounter { min-width:76px; color:var(--muted); text-align:center; font-weight:850; font-variant-numeric:tabular-nums; }
+    dialog { width:min(780px,calc(100% - 32px)); max-height:min(80vh,740px); padding:0; border:1px solid #405b7a; border-radius:18px; background:#091526; color:var(--text); box-shadow:0 30px 100px #000d; }
+    dialog::backdrop { background:#020710df; backdrop-filter:blur(4px); }
+    .toc-head { position:sticky; top:0; z-index:2; display:flex; align-items:center; justify-content:space-between; padding:18px 21px; border-bottom:1px solid var(--line); background:#091526; }
+    .toc-head h2 { margin:0; font-size:1.4rem; }
+    .toc-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; padding:16px; }
+    .toc-link { display:grid; grid-template-columns:34px 1fr; gap:8px; padding:9px 11px; border:1px solid transparent; border-radius:8px; color:var(--muted); text-decoration:none; font-size:.88rem; }
+    .toc-link:hover { color:var(--text); background:var(--panel); border-color:var(--line); }
+    .toc-link span { color:var(--teal); font-weight:900; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @media (max-height:650px) and (min-width:721px) {
+      .slide { padding:24px 40px; }
+      h1 { font-size:3rem; } h2 { font-size:1.72rem; margin-bottom:12px; } h3 { font-size:.91rem; }
+      p,li { font-size:.76rem; line-height:1.38; } li { margin:.25em 0; }
+      .panel { padding:10px 13px; } .callout { margin-top:8px; padding:8px 13px; }
+      pre { margin-top:6px; padding:9px 12px; font-size:.64rem; line-height:1.4; }
+      .node { min-height:48px; padding:6px 9px; font-size:.65rem; }
+      .role { min-height:90px; padding:10px; } .coord { min-height:105px; padding:14px; }
+    }
+    @media (max-width:720px) {
+      .stage { padding:0; }
+      .deck { width:100%; height:calc(100vh - 60px); max-height:none; aspect-ratio:auto; border:0; border-radius:0; }
+      .slide { padding:48px 21px 28px; }
+      .slide.is-active { align-content:start; }
+      .two,.wide,.state-board,.role-map { grid-template-columns:1fr; }
+      .flow { grid-template-columns:1fr; }
+      .flow .arrow { transform:rotate(90deg); }
+      .toc-grid { grid-template-columns:1fr; }
+      h1 { font-size:clamp(2.05rem,10.5cqw,3.25rem); }
+      h2 { font-size:clamp(1.6rem,7.2cqw,2.25rem); }
+      p,li { font-size:1rem; }
+      pre { font-size:.75rem; white-space:pre-wrap; overflow-wrap:anywhere; }
+    }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; } }
+    @media print {
+      html,body { height:auto; overflow:visible; background:#fff; color:#111; }
+      .app,.stage,.deck { display:block; width:auto; height:auto; max-height:none; padding:0; overflow:visible; border:0; box-shadow:none; }
+      .slide,.slide.is-active { position:relative; display:grid; width:100%; min-height:175mm; padding:15mm; break-after:page; overflow:hidden; background:#fff; color:#111; animation:none; }
+      .slide:last-child { break-after:auto; }
+      .controls,dialog { display:none !important; }
+      h1,h2,h3,p,li,strong,.subtitle,.kicker,.accent,.violet,.amber,.red,.green,.source { color:#111; }
+      .panel,.callout,pre,.node,.coord,.role,.stack-item,.question,.compare th,.compare td { background:#fff; color:#111; border-color:#777; }
+    }
+  </style>
+<style id="layout-safety">
+    .slide > div,.two > div,.wide > div,.role,.node { min-width:0; }
+    .compare { table-layout:fixed; overflow-wrap:anywhere; }
+    .role b,.role span { overflow-wrap:anywhere; }
+    @media (max-width:720px) { .state-board > .arrow { transform:rotate(90deg); justify-self:center; } .flow > .arrow { justify-self:center; } }
+    @media print { .deck { container-type:normal; aspect-ratio:auto; } .slide,.slide.is-active { height:auto; overflow:visible; break-inside:avoid; } }
+    </style>
+</head>
+<body>
+  <div class="app">
+    <main class="stage">
+      <div class="deck" id="deck">
+        <section class="slide is-active" id="slide-1" data-slide="01 / 38" aria-labelledby="title-1"><div><p class="kicker">Mini Tactics · Lesson 04</p><h1 id="title-1">미니 택틱스로 이해하는<br><span class="accent">State 패턴</span></h1><p class="subtitle">같은 칸을 눌렀는데, 왜 이번에는 이동할까?<br>현재 조작 단계에 따라 입력을 해석하는 객체를 만든다.</p></div></section>
+
+<section class="slide" id="slide-2" data-slide="02 / 38" aria-labelledby="title-2"><div><p class="kicker">Yesterday&#x27;s Success</p><h2 id="title-2">3차시는 지형에 맞는 이동을 완성했다</h2><div class="two"><ul><li>여러 셀이 같은 지형 규칙을 공유한다.</li><li>지형별 비용을 더해 이동 범위를 구한다.</li><li>선택한 유닛을 이동하고 Undo로 되돌린다.</li></ul><div class="panel teal"><h3>이미 나뉜 책임</h3><p>Board는 지형을, 이동 범위 계산은 비용을, Command는 이동 기록을 맡는다. 기존 구조는 이 기능들을 충분히 설명한다.</p></div></div><div class="callout"><p>현재 맵의 각 셀은 공통 TileData 에셋을 참조하고, 같은 에셋의 RuntimeTerrain을 공유한다. 이제 살펴볼 대상은 <strong>클릭의 뜻을 정하는 코드</strong>다.</p></div><p class="source">현재 구조: MapLoader.Load(MapData), TileData.RuntimeTerrain, BattleController</p></div></section>
+
+<section class="slide" id="slide-3" data-slide="03 / 38" aria-labelledby="title-3"><div><p class="kicker">New Requirement</p><h2 id="title-3">조작 단계마다 다른 규칙이 필요하다</h2><div class="question"><p class="big">“A 선택 중 B를 누르면 B로 바꾸고,<br>Undo 후에는 <span class="amber">현재 선택한 유닛의 범위를 다시 보여 주세요.</span>”</p></div><div class="callout"><p>빈 칸 클릭, 유닛 클릭, Undo를 항상 같은 방식으로 처리할 수는 없다. 요구가 늘어날수록 <strong>지금 어떤 조작 단계인가</strong>에 따라 규칙을 골라야 한다. 다음 장에서 같은 입력의 결과를 비교한다.</p></div></div></section>
+
+<section class="slide" id="slide-4" data-slide="04 / 38" aria-labelledby="title-4"><div><p class="kicker">Observation</p><h2 id="title-4">좌표만 같아도 클릭의 뜻은 달라진다</h2><table class="compare"><thead><tr><th>입력 전 상황</th><th>같은 입력</th><th>실행할 일</th></tr></thead><tbody><tr><td>선택 없음</td><td>빈 칸 (3,2) 클릭</td><td>아무 일도 하지 않음</td></tr><tr><td>A 선택, 이동 가능</td><td>빈 칸 (3,2) 클릭</td><td>A의 이동 요청</td></tr></tbody></table><p class="quote">입력의 뜻 = 무엇을 눌렀는가 + 지금 어떤 단계인가</p><div class="callout"><p>A는 (2,2)에 있고 (3,2)는 갈 수 있는 빈 평지라고 가정한다. 좌표는 같지만, 두 번째 입력은 <strong>어느 유닛을 움직일지</strong>까지 결정된다. 이전 선택을 기억하기 때문이다.</p></div><p class="source">설명용 좌표 예제. 현재 동작 근거: IdleState / UnitSelectedState</p></div></section>
+
+<section class="slide" id="slide-5" data-slide="05 / 38" aria-labelledby="title-5"><div><p class="kicker">First Attempt</p><h2 id="title-5">첫 생각은 선택 여부를 검사하는 것이다</h2><div class="wide"><div><pre><code>if (selectedUnit == null)
+{
+    Select(clickedUnit);
+}
+else
+{
+    TryMove(selectedUnit, cell);
+}</code></pre></div><div class="panel teal"><h3>작은 요구에는 충분하다</h3><p>선택하지 않았으면 선택하고, 선택했다면 이동한다. 상태가 두 가지이고 처리도 짧다면 한 조건문으로 흐름을 읽을 수 있다.</p></div></div><div class="callout"><p>이 예제는 최초 아이디어를 보여 주는 가상 코드다. 선택 가능한 대상 검사와 재선택 규칙이 추가되기 전에는, <strong>선택 여부 하나로 두 행동을 나누는 방식</strong>도 이해하기 쉽다.</p></div><p class="source">설명용 가상 코드: 현재 Teacher 구현이 아님. Select / TryMove의 세부 동작 생략</p></div></section>
+
+<section class="slide" id="slide-6" data-slide="06 / 38" aria-labelledby="title-6"><div><p class="kicker">More Rules</p><h2 id="title-6">규칙이 늘면 여러 입력에 조건이 퍼진다</h2><div class="two"><pre><code>void OnClick() {
+    if (isSelected) HandleSelectedClick();
+    else HandleIdleClick();
+}
+void OnUndo() {
+    if (isSelected) UndoAndRefresh();
+    else UndoOnly();
+}</code></pre><div class="panel amber"><h3>추가 요구를 대입하면</h3><p>선택 중 클릭은 다시 유닛 클릭과 빈 칸 클릭으로 나뉜다. Undo 뒤 범위 갱신도 선택 여부에 달렸다. 이후 공격 대기가 생기면 두 입력의 분기를 함께 수정해야 한다.</p></div></div><div class="callout"><p>문제는 if라는 문법 자체가 아니다. <strong>하나의 모드 규칙이 여러 입력 처리 위치에 흩어지는 것</strong>이 변경을 어렵게 한다.</p></div><p class="source">설명용 가상 코드. 공격 대기는 확장 상황이며 현재 구현에는 없음</p></div></section>
+
+<section class="slide" id="slide-7" data-slide="07 / 38" aria-labelledby="title-7"><div><p class="kicker">Conflicting State</p><h2 id="title-7">여러 값으로 한 모드를 표현하면 어긋날 수 있다</h2><div class="two"><div class="panel teal"><h3>의도한 조합</h3><p><code>isSelected = true</code><br><code>selectedUnit = A</code><br>선택 중이며, 다음 이동 대상은 A다.</p></div><div class="panel redline"><h3>실수로 남긴 조합</h3><p><code>isSelected = false</code><br><code>selectedUnit = A</code><br>어떤 값에 따라 클릭을 해석해야 할까?</p></div></div><div class="callout"><p>모드와 선택 대상을 별도 필드로 관리하면 모든 전환에서 둘을 맞춰야 한다. 해제할 때 대상만 남기거나 표시만 지우는 실수도 가능하다. <strong>함께 변하는 정보와 행동을 한 단위로 묶을 이유</strong>가 생긴다.</p></div><p class="source">설명용 가상 실패 사례. 현재 Teacher 코드에 이 두 필드가 있다는 뜻은 아님</p></div></section>
+
+<section class="slide" id="slide-8" data-slide="08 / 38" aria-labelledby="title-8"><div><p class="kicker">Responsibility Boundary</p><h2 id="title-8">한 조작 단계에 필요한 것을 묶는다</h2><div class="panel teal"><h3>선택 중이라는 단위</h3><p class="big">선택 대상 + 클릭 해석 + Undo 후 처리 + 시작과 정리</p></div><div class="two"><ul><li>유닛 클릭이면 새 선택으로 바꾼다.</li><li>빈 칸 클릭이면 대상의 이동을 요청한다.</li></ul><ul><li>진입할 때 범위를 보여 준다.</li><li>나갈 때 선택 표시를 지운다.</li></ul></div><div class="callout"><p>이 항목들은 모두 ‘선택 중’이라는 같은 이유로 달라진다. 이 단위에 <strong>입력을 맡기면</strong> Controller는 모드별 규칙을 매번 분기할 필요가 없다.</p></div></div></section>
+
+<section class="slide" id="slide-9" data-slide="09 / 38" aria-labelledby="title-9"><div><p class="kicker">State Pattern</p><h2 id="title-9">State는 현재 모드의 행동을 객체로 만든다</h2><p class="quote">현재 입력을 처리할 객체를 정하고,<br>모드가 바뀌면 그 객체를 교체한다.</p><div class="two"><div class="panel teal"><h3>IdleState</h3><p>대기 상태. 선택 가능한 유닛을 기다린다. 빈 칸을 눌러도 이동 요청을 만들지 않는다.</p></div><div class="panel violet"><h3>UnitSelectedState</h3><p>선택 상태. 특정 유닛의 참조를 기억하고 재선택·이동 요청·Undo 후 표시를 처리한다.</p></div></div><div class="callout"><p>여기서 <strong>상태(State)</strong>는 다음 입력을 해석하는 모드다. 체력, 위치, 지형처럼 게임의 모든 데이터를 이 객체에 넣는다는 뜻은 아니다.</p></div></div></section>
+
+<section class="slide" id="slide-10" data-slide="10 / 38" aria-labelledby="title-10"><div><p class="kicker">Roles</p><h2 id="title-10">입력 감지와 해석과 실행을 나눈다</h2><div class="role-map"><div class="role"><b>Controller</b><span>클릭한 유닛과 셀을 구한다. 이동 검사와 표시 기능을 연결한다.</span></div><div class="role"><b>상태 기계</b><span>현재 상태 하나를 보관하고 입력 전달과 교체 순서를 맡는다.</span></div><div class="role"><b>현재 State</b><span>이번 클릭의 뜻과 다음 모드를 정한다.</span></div><div class="role"><b>명령과 이력</b><span>실제 이동을 실행하고 되돌릴 기록을 남긴다.</span></div></div><div class="callout"><p><strong>상태 기계(State Machine)</strong>는 현재 모드를 보관하고 다른 모드로 바꾸는 관리자다. ‘무엇을 눌렀나’, ‘무슨 뜻인가’, ‘무엇을 바꾸나’를 각 담당자에게 물을 수 있다.</p></div><p class="source">대응: BattleController / InputStateMachine / InputState의 자식 / MoveUnitCommand·CommandHistory</p></div></section>
+
+<section class="slide" id="slide-11" data-slide="11 / 38" aria-labelledby="title-11"><div><p class="kicker">Current Reference</p><h2 id="title-11">Current는 지금 입력을 맡은 객체다</h2><pre><code>public <span class="code-focus">InputState Current</span> { get; private set; }</code></pre><div class="two"><div class="panel teal"><h3>하나의 공통 타입</h3><p><code>Current</code>에는 IdleState 또는 UnitSelectedState 객체를 가리키는 참조가 들어간다. 한 시점에 입력을 맡는 객체는 하나다.</p></div><div class="panel violet"><h3>교체하는 입구 제한</h3><p><code>get</code>은 외부 읽기를 허용한다. <code>private set</code>은 대입을 이 클래스 안으로 제한해, 정해진 교체 절차를 거치게 한다.</p></div></div><div class="callout"><p>Controller는 상태 기계를 처음 사용할 때 Current가 비어 있으면 IdleState를 넣는다. 따라서 처음 입력은 대기 규칙으로 처리한다.</p></div><p class="source">실제 발췌: InputStateMachine.Current. 초기화: BattleController.StateMachine</p></div></section>
+
+<section class="slide" id="slide-12" data-slide="12 / 38" aria-labelledby="title-12"><div><p class="kicker">Abstract Contract</p><h2 id="title-12">InputState는 모든 상태의 공통 약속이다</h2><div class="wide"><div><pre><code>public abstract class InputState
+{
+    public abstract void HandleBoardClick(
+        Unit clickedUnit, Vector2Int cell);
+    public abstract void HandleUndo();
+}</code></pre></div><div class="panel teal"><h3>abstract와 override</h3><p><code>abstract</code>는 자식이 채워야 할 틀이다. InputState 자체를 new로 만들 수 없으며, 구체적인 자식은 <code>override</code>로 클릭과 Undo의 내용을 작성한다.</p></div></div><div class="callout"><p>상태 기계는 구체적인 클래스 이름을 몰라도 이 두 메서드를 호출할 수 있다. 대기는 클릭을 무시할 수 있고, 선택 상태는 같은 호출로 이동을 요청할 수 있다.</p></div><p class="source">InputState.cs 선언을 설명용으로 축약. Enter / Exit 생략, 긴 선언 줄바꿈 정리</p></div></section>
+
+<section class="slide" id="slide-13" data-slide="13 / 38" aria-labelledby="title-13"><div><p class="kicker">Entry and Exit Contract</p><h2 id="title-13">virtual은 바꾸어 쓸 수 있는 기본 동작이다</h2><div class="wide"><div><pre><code>public virtual void Enter()
+{
+}
+
+public virtual void Exit()
+{
+}</code></pre></div><div class="panel violet"><h3>필요한 상태만 재정의</h3><p><code>virtual</code> 메서드에는 기본 본문이 있다. 여기서는 아무 일도 하지 않는다. 대기 상태는 그대로 쓰고, 선택 상태는 시작·정리 동작을 override한다.</p></div></div><div class="callout"><p><code>Enter</code>는 그 상태가 현재 상태가 될 때, <code>Exit</code>는 그 역할을 끝낼 때 호출한다. 선택 표시를 시작하고 지우는 일을 이 두 시점에 모으면 전환에서 빠뜨리기 어렵다.</p></div><p class="source">실제 발췌: InputState.Enter / Exit</p></div></section>
+
+<section class="slide" id="slide-14" data-slide="14 / 38" aria-labelledby="title-14"><div><p class="kicker">Input Data</p><h2 id="title-14">클릭은 유닛과 셀 두 정보로 전달한다</h2><table class="compare"><thead><tr><th>클릭 대상</th><th>clickedUnit</th><th>cell</th></tr></thead><tbody><tr><td>(2,2)의 유닛 A</td><td>A를 가리키는 참조</td><td>(2,2)</td></tr><tr><td>빈 칸 (3,2)</td><td>null</td><td>(3,2)</td></tr></tbody></table><div class="two"><div class="panel teal"><h3>유닛 참조</h3><p><code>null</code>은 클릭 위치에서 유닛을 찾지 못했다는 뜻이다. 같은 칸을 누른 사실 자체가 사라지는 것은 아니다.</p></div><div class="panel amber"><h3>셀 좌표</h3><p><code>Vector2Int</code>는 가로·세로의 정수 좌표 두 개를 담는다. 빈 칸에도 이동 목적지가 될 좌표는 있다.</p></div></div><div class="callout"><p>Controller가 화면 위치를 월드 위치로 바꾸고, 그곳의 유닛과 보드 셀을 구한다. State는 마우스 장치 대신 이 결과를 받는다.</p></div><p class="source">실제 경로: BattleController.Update → StateMachine.HandleBoardClick</p></div></section>
+
+<section class="slide" id="slide-15" data-slide="15 / 38" aria-labelledby="title-15"><div><p class="kicker">Dispatch</p><h2 id="title-15">전달 코드는 상태 이름을 비교하지 않는다</h2><pre><code>public void HandleBoardClick(
+    Unit clickedUnit, Vector2Int cell)
+{
+    <span class="code-focus">Current?.HandleBoardClick(clickedUnit, cell);</span>
+}</code></pre><div class="flow"><div class="node">클릭 정보</div><div class="arrow">→</div><div class="node">상태 기계</div><div class="arrow">→</div><div class="node">Current의<br>클릭 메서드</div><div class="arrow">→</div><div class="node">그 상태의<br>입력 규칙</div></div><div class="callout"><p><code>?.</code>는 참조가 null이면 호출을 건너뛰는 문법이다. Current가 있다면 <strong>실제 객체의 override</strong>가 실행된다. 같은 이름의 메서드로 서로 다른 동작을 고르는 것을 다형성이라고 한다.</p></div><p class="source">실제 발췌: InputStateMachine.HandleBoardClick, 줄바꿈 정리. HandleUndo도 같은 방식</p></div></section>
+
+<section class="slide" id="slide-16" data-slide="16 / 38" aria-labelledby="title-16"><div><p class="kicker">State Data</p><h2 id="title-16">선택 상태는 유닛의 참조를 기억한다</h2><pre><code><span class="code-focus">private readonly Unit _unit;</span>
+
+// 생성자 안에서 선택 대상을 받는다.
+_unit = unit;</code></pre><div class="two"><div class="panel teal"><h3>같은 유닛을 계속 가리킨다</h3><p>객체를 만들 때 호출하는 생성자에서 A를 받으면 _unit은 A 객체를 가리킨다. A가 움직여도 같은 객체이므로, 다시 범위를 구할 때 현재 위치를 읽는다.</p></div><div class="panel amber"><h3>readonly의 범위</h3><p>생성 후 이 필드에 B를 다시 대입할 수 없다. A의 위치 변경까지 막는 것은 아니다. B를 선택할 때는 새 상태 객체를 만든다.</p></div></div><p class="source">UnitSelectedState.cs 실제 필드·생성자 대입 발췌. 다른 필드와 생성자 선언 생략</p></div></section>
+
+<section class="slide" id="slide-17" data-slide="17 / 38" aria-labelledby="title-17"><div><p class="kicker">Transition Order</p><h2 id="title-17">전환은 종료 후 교체하고 진입한다</h2><pre><code>Current?.Exit();
+<span class="code-focus">Current = next;</span>
+Current.Enter();</code></pre><div class="flow"><div class="node">이전 상태<br>Exit</div><div class="arrow">→</div><div class="node">Current를<br>next로 교체</div><div class="arrow">→</div><div class="node">새 상태<br>Enter</div><div class="arrow">→</div><div class="node">새 규칙으로<br>다음 입력 처리</div></div><div class="callout"><p>새 상태를 먼저 표시하고 이전 상태를 나중에 정리하면 새 표시까지 지울 수 있다. <strong>전환</strong>은 참조 하나를 바꾸는 일에 더해, 이전 역할을 끝내고 다음 역할을 준비하는 절차다.</p></div><p class="source">실제 핵심 발췌: InputStateMachine.ChangeState. next 검사 이후 실행</p></div></section>
+
+<section class="slide" id="slide-18" data-slide="18 / 38" aria-labelledby="title-18"><div><p class="kicker">Transition Guard</p><h2 id="title-18">같은 상태 객체인지 먼저 검사한다</h2><div class="wide"><div><pre><code>if (ReferenceEquals(Current, next))
+{
+    return;
+}</code></pre></div><div class="panel amber"><h3>비교 대상은 객체 자체</h3><p><code>ReferenceEquals</code>는 두 참조가 정확히 같은 객체를 가리키는지 확인한다. 같으면 Exit와 Enter를 반복하지 않는다. 클래스 이름이나 선택 유닛만 비교하지 않는다.</p></div></div><div class="callout"><p>A를 기억하는 선택 상태를 <code>new</code>로 다시 만들면 다른 객체다. 따라서 A를 다시 선택해도 전환할 수 있다. 또한 ChangeState에 null을 넘기면 예외를 발생시켜 잘못된 다음 상태를 거절한다.</p></div><p class="source">실제 발췌·검사 순서: InputStateMachine.ChangeState</p></div></section>
+
+<section class="slide" id="slide-19" data-slide="19 / 38" aria-labelledby="title-19"><div><p class="kicker">IdleState</p><h2 id="title-19">대기는 선택 가능한 유닛만 받는다</h2><pre><code>if (<span class="code-focus">clickedUnit != null &amp;&amp; clickedUnit.CanMove</span>)
+    _machine.ChangeState(new UnitSelectedState(
+        _machine, _controller, clickedUnit));</code></pre><div class="two"><div class="panel teal"><h3>조건이 참</h3><p>유닛이 있고 이동 가능한 대상이면, 그 유닛을 기억하는 선택 상태를 만들어 전환한다. 아직 이동 명령을 만들지는 않는다.</p></div><div class="panel violet"><h3>조건이 거짓</h3><p>빈 칸이나 이동 불가 유닛을 클릭하면 아무 일도 하지 않고 Idle에 머문다. <code>&amp;&amp;</code>는 앞 조건이 거짓이면 뒤 속성을 읽지 않는다.</p></div></div><p class="source">실제 발췌: IdleState.HandleBoardClick, 긴 호출 줄바꿈만 정리</p></div></section>
+
+<section class="slide" id="slide-20" data-slide="20 / 38" aria-labelledby="title-20"><div><p class="kicker">Trace · Enter</p><h2 id="title-20">A를 선택하면 진입 동작이 범위를 표시한다</h2><pre><code>public override void Enter() =&gt;
+    _controller.ShowSelection(_unit);
+public override void Exit() =&gt;
+    _controller.ClearSelection();</code></pre><table class="compare"><thead><tr><th>A 클릭 후 순서</th><th>현재 상태</th><th>선택 화면</th></tr></thead><tbody><tr><td>Idle.Exit</td><td>Idle</td><td>아직 없음</td></tr><tr><td>Current 교체</td><td>Selected(A)</td><td>아직 없음</td></tr><tr><td>Selected(A).Enter</td><td>Selected(A)</td><td>A 기준 범위 표시</td></tr></tbody></table><div class="callout"><p><strong>Selected(A)</strong>는 A를 기억하는 UnitSelectedState라는 설명용 표기다. ShowSelection은 Controller의 SelectedUnit에 A를 넣고 현재 위치의 범위를 표시한다. 나갈 때는 Exit가 선택과 표시를 정리한다.</p></div><p class="source">실제 발췌: UnitSelectedState.Enter / Exit, 줄바꿈 정리. 표시: BattleController</p></div></section>
+
+<section class="slide" id="slide-21" data-slide="21 / 38" aria-labelledby="title-21"><div><p class="kicker">Click Priority</p><h2 id="title-21">선택 중에는 재선택을 먼저 검사한다</h2><pre><code>if (clickedUnit != null &amp;&amp; clickedUnit.CanMove)
+{
+    _machine.ChangeState(new UnitSelectedState(
+        _machine, _controller, clickedUnit));
+    <span class="code-focus">return;</span>
+}</code></pre><div class="callout"><p>A 선택 중 이동 가능한 B를 누르면 B를 기억하는 새 상태로 전환한다. <strong>return이 이번 클릭 처리를 끝내므로</strong> A를 B의 칸으로 옮기는 요청은 발생하지 않는다. B 선택은 A의 이동 범위와도 별개다.</p></div><p class="source">실제 발췌: UnitSelectedState.HandleBoardClick의 첫 분기, 긴 호출 줄바꿈 정리</p></div></section>
+
+<section class="slide" id="slide-22" data-slide="22 / 38" aria-labelledby="title-22"><div><p class="kicker">Trace · Reselection</p><h2 id="title-22">재선택은 이전 표시를 지운 뒤 다시 그린다</h2><table class="compare"><thead><tr><th>B를 클릭한 뒤</th><th>Current</th><th>Controller의 선택과 표시</th></tr></thead><tbody><tr><td>기존 Exit</td><td>Selected(A)</td><td>선택 해제, A 표시 숨김</td></tr><tr><td>참조 교체</td><td>Selected(B)</td><td>아직 없음</td></tr><tr><td>새 Enter</td><td>Selected(B)</td><td>B 선택, B 범위 표시</td></tr></tbody></table><div class="two"><div class="panel teal"><h3>변하는 것</h3><p>앞으로 입력을 해석할 상태 객체와 선택 대상이 바뀐다. A와 B의 위치는 그대로이며 이동 이력은 추가되지 않는다.</p></div><div class="panel violet"><h3>A를 다시 눌러도</h3><p>new로 새 선택 상태를 만들기 때문에 같은 전환 순서를 거친다. A를 가리키는 유닛 참조와 상태 객체의 동일성은 별개다.</p></div></div><p class="source">실제 경로: UnitSelectedState.HandleBoardClick → InputStateMachine.ChangeState</p></div></section>
+
+<section class="slide" id="slide-23" data-slide="23 / 38" aria-labelledby="title-23"><div><p class="kicker">Move Request</p><h2 id="title-23">재선택이 아니면 기억한 유닛의 이동을 요청한다</h2><pre><code><span class="code-focus">_controller.ExecuteMove(_unit, cell);</span>
+_machine.ChangeState(new IdleState(_machine, _controller));</code></pre><div class="two"><div class="panel teal"><h3>클릭에서 얻은 정보</h3><p>빈 칸 (3,2)를 누르면 clickedUnit은 null이고 cell은 (3,2)다. 새로운 선택 대상은 없다.</p></div><div class="panel amber"><h3>상태가 더한 정보</h3><p>Selected(A)는 _unit으로 A를 기억한다. 따라서 Controller에 ‘A를 (3,2)로 이동해 달라’고 요청할 수 있다.</p></div></div><div class="callout"><p>같은 빈 칸을 대기 중에 누르면 요청이 없다. 선택 중이면 이 두 줄을 실행한다. 두 번째 줄은 이동 결과와 관계없이 Idle로 전환하는 현재 클릭 정책이다.</p></div><p class="source">실제 발췌: UnitSelectedState.HandleBoardClick의 마지막 두 줄</p></div></section>
+
+<section class="slide" id="slide-24" data-slide="24 / 38" aria-labelledby="title-24"><div><p class="kicker">Validate Before Execute</p><h2 id="title-24">이동 가능성은 기존 담당자에게 묻는다</h2><pre><code>if (unit == null || _board == null ||
+    <span class="code-focus">!_board.CanMoveTo(unit, targetCell)</span>) return false;
+_history.Execute(new MoveUnitCommand(unit, _board, targetCell));
+return true;</code></pre><div class="two"><div class="panel teal"><h3>State가 결정</h3><p>어느 유닛을 어느 셀로 보내고 싶은지 정한다. 이동 예산과 지형 계산을 상태마다 다시 작성하지 않는다.</p></div><div class="panel violet"><h3>BoardView가 검사</h3><p>목적지가 다른 유닛에게 점유됐는지, 제자리인지, 지형 비용에 따른 범위에 포함되는지 확인한다. 통과하면 명령을 실행하고 기록한다.</p></div></div><p class="source">실제 발췌: BattleController.ExecuteMove 본문, 조건 줄바꿈 정리. 검사: BoardView.CanMoveTo</p></div></section>
+
+<section class="slide" id="slide-25" data-slide="25 / 38" aria-labelledby="title-25"><div><p class="kicker">Trace · Successful Move</p><h2 id="title-25">이동 뒤 대기가 되어도 기록은 남는다</h2><div class="state-board"><div class="coord"><span class="green">이동 전</span><br>A = (2,2)<br>Selected(A)<br>이력 0개</div><div class="arrow">→</div><div class="coord"><span class="amber">이동 후</span><br>A = (3,2)<br>Idle<br>이력 1개</div></div><div class="callout"><p>예제에서는 (3,2)가 비어 있는 평지이며 이동 예산 안이다. 명령이 A를 이동하고 이력에 들어간 뒤 Idle로 바뀐다. 기존 선택 상태의 Exit가 SelectedUnit을 비우고 범위를 숨긴다. <strong>위치 변경과 모드 변경은 각각 일어난다.</strong></p></div><p class="source">설명용 좌표 추적. 경로: ExecuteMove → CommandHistory.Execute → ChangeState</p></div></section>
+
+<section class="slide" id="slide-26" data-slide="26 / 38" aria-labelledby="title-26"><div><p class="kicker">Trace · Failed Move</p><h2 id="title-26">갈 수 없는 빈 칸도 선택을 끝낸다</h2><div class="question"><p class="big">A를 선택한 뒤 범위 밖의 빈 칸을 클릭하면<br><span class="amber">위치, 선택, 이력은 어떻게 될까?</span></p></div><div class="two"><div class="panel teal"><h3>실제 결과</h3><p>A는 움직이지 않고 이동 이력도 늘지 않는다. ExecuteMove의 검사에서 false를 반환하기 때문이다.</p></div><div class="panel amber"><h3>선택은 해제된다</h3><p>클릭 상태는 반환값을 검사하지 않고 다음 줄에서 Idle로 전환한다. Exit가 선택 표시를 숨기므로 다시 선택해야 한다.</p></div></div><div class="callout"><p>이 구현의 클릭 정책은 <strong>재선택이 아닌 클릭 한 번이면 선택을 끝내는 것</strong>이다. ‘이동 실패’만 보고 선택이 유지될 것이라고 예상하면 실제 흐름과 달라진다.</p></div><p class="source">답의 근거: UnitSelectedState.HandleBoardClick / BattleController.ExecuteMove</p></div></section>
+
+<section class="slide" id="slide-27" data-slide="27 / 38" aria-labelledby="title-27"><div><p class="kicker">Occupied Cell</p><h2 id="title-27">유닛 클릭도 선택 가능 여부로 나뉜다</h2><table class="compare"><thead><tr><th>A 선택 중 입력</th><th>먼저 정하는 뜻</th><th>그 뒤 결과</th></tr></thead><tbody><tr><td>이동 가능한 B 클릭</td><td>B를 새로 선택</td><td>이동 요청 없이 Selected(B)</td></tr><tr><td>이동 불가인 다른 B 클릭</td><td>A의 이동을 요청</td><td>점유 검사로 실패, Idle</td></tr><tr><td>강 또는 범위 밖 빈 칸</td><td>A의 이동을 요청</td><td>범위 검사로 실패, Idle</td></tr></tbody></table><div class="callout"><p>선택 가능 여부는 클릭한 유닛의 <code>CanMove</code>로 정한다. 목적지 점유 여부는 BoardView가 다른 활성 유닛의 위치로 검사한다. <strong>화면에 유닛이 있다는 사실만으로 재선택을 단정할 수 없다.</strong></p></div><p class="source">UnitSelectedState.HandleBoardClick / BoardView.IsOccupiedByOther·CanMoveTo</p></div></section>
+
+<section class="slide" id="slide-28" data-slide="28 / 38" aria-labelledby="title-28"><div><p class="kicker">Different Entry Point</p><h2 id="title-28">공개 이동 메서드는 실패 시 선택을 유지한다</h2><div class="wide"><div><pre><code><span class="code-focus">if (!ExecuteMove(SelectedUnit, targetCell)) return false;</span>
+StateMachine.ChangeState(new IdleState(StateMachine, this));
+return true;</code></pre></div><div class="panel amber"><h3>실패하면 여기서 끝난다</h3><p>Controller의 공개 메서드 TryMoveSelectedUnit은 이동 실패 시 즉시 반환한다. ChangeState까지 내려가지 않으므로 기존 선택이 유지된다.</p></div></div><div class="callout"><p>앞의 마우스 예제는 <strong>Update → 상태 기계 → 선택 상태</strong> 경로다. 이름이 비슷해도 공개 메서드와 실패 후 동작은 다르다. 각 경로에서 ‘전환하는 줄에 도달하는가’를 확인해야 한다.</p></div><p class="source">실제 발췌: BattleController.TryMoveSelectedUnit의 본문</p></div></section>
+
+<section class="slide" id="slide-29" data-slide="29 / 38" aria-labelledby="title-29"><div><p class="kicker">Pattern Boundary</p><h2 id="title-29">State와 Command는 다른 것을 기억한다</h2><div class="two"><div class="panel teal"><h3>State의 기억</h3><p>현재 입력 모드와 선택 대상을 기억한다. A에서 B로 재선택할 때 앞으로 클릭을 해석할 대상이 바뀐다.</p></div><div class="panel violet"><h3>Command의 기억</h3><p>이동한 유닛, 보드, 출발 셀과 도착 셀을 기억한다. 상태가 Idle로 바뀌어도 실행한 이동 기록은 남는다.</p></div></div><pre><code>// MoveUnitCommand의 Execute 본문
+_unit.MoveTo(_board, _toCell);
+// MoveUnitCommand의 Undo 본문
+_unit.MoveTo(_board, _fromCell);</code></pre><div class="callout"><p>출발 셀은 명령을 만들 때 저장한다. History의 <strong>스택</strong>은 나중에 넣은 명령을 먼저 꺼내 Undo한다. 선택 시작과 해제는 이 이동 이력에 들어가지 않는다.</p></div><p class="source">실제 본문 발췌: MoveUnitCommand.Execute / Undo. 기록: CommandHistory</p></div></section>
+
+<section class="slide" id="slide-30" data-slide="30 / 38" aria-labelledby="title-30"><div><p class="kicker">Undo in Idle</p><h2 id="title-30">대기 중 Undo는 위치만 되돌린다</h2><pre><code>public override void HandleUndo() =&gt; _controller.UndoLast();</code></pre><div class="state-board"><div class="coord"><span class="green">Undo 전</span><br>A = (3,2)<br>Idle, 이력 1개</div><div class="arrow">→</div><div class="coord"><span class="amber">Undo 후</span><br>A = (2,2)<br>Idle, 이력 0개</div></div><div class="callout"><p>A가 (2,2)에서 (3,2)로 이동한 뒤 Undo를 누른 예다. Idle은 마지막 명령의 취소만 요청한다. 상태 전환이나 선택 표시 요청이 없으므로 <strong>A가 돌아와도 자동으로 선택되지는 않는다.</strong></p></div><p class="source">실제 발췌: IdleState.HandleUndo. 좌표는 설명용</p></div></section>
+
+<section class="slide" id="slide-31" data-slide="31 / 38" aria-labelledby="title-31"><div><p class="kicker">Undo While Selected</p><h2 id="title-31">선택 중 Undo는 같은 대상을 다시 표시한다</h2><pre><code>public override void HandleUndo()
+{
+    _controller.UndoLast();
+    <span class="code-focus">_controller.ShowSelection(_unit);</span>
+}</code></pre><div class="two"><div class="panel teal"><h3>위치 복구</h3><p>A 이동 후 A를 다시 선택했다고 하자. Undo로 A가 (3,2)에서 (2,2)로 돌아와도 _unit은 같은 A 객체를 가리킨다.</p></div><div class="panel violet"><h3>범위 갱신</h3><p>ShowSelection이 A의 새 현재 위치로 범위를 다시 구한다. ChangeState를 호출하지 않으므로 기존 선택 상태를 유지하고 Exit·Enter도 실행하지 않는다.</p></div></div><p class="source">실제 발췌: UnitSelectedState.HandleUndo. 표시 갱신: BattleController.ShowSelection</p></div></section>
+
+<section class="slide" id="slide-32" data-slide="32 / 38" aria-labelledby="title-32"><div><p class="kicker">Trace · Global History</p><h2 id="title-32">B를 선택했어도 마지막 이동은 A의 것일 수 있다</h2><table class="compare"><thead><tr><th>순서</th><th>A 위치</th><th>B 위치</th><th>상태와 이력</th></tr></thead><tbody><tr><td>A를 (3,2)로 이동</td><td>(3,2)</td><td>(5,2)</td><td>Idle / A 이동 1개</td></tr><tr><td>B 선택</td><td>(3,2)</td><td>(5,2)</td><td>Selected(B) / A 이동 1개</td></tr><tr><td>Undo</td><td>(2,2)</td><td>(5,2)</td><td>Selected(B) / 이력 없음</td></tr></tbody></table><div class="callout"><p><strong>답: A가 돌아가고 B의 범위를 다시 표시한다.</strong> Controller의 이동 이력은 유닛별로 나뉘지 않는다. 마지막 명령 대상은 A이고, 현재 선택 상태가 기억한 대상은 B이므로 두 유닛의 역할이 다르다.</p></div><div class="callout warning"><p>이력이 비어 있으면 UndoLast는 아무것도 되돌리지 않는다. 그래도 선택 상태의 다음 줄은 실행되므로 B의 범위는 다시 표시된다.</p></div><p class="source">설명용 좌표 예제. 근거: BattleController._history / CommandHistory.UndoLast / UnitSelectedState.HandleUndo</p></div></section>
+
+<section class="slide" id="slide-33" data-slide="33 / 38" aria-labelledby="title-33"><div><p class="kicker">Selection Responsibilities</p><h2 id="title-33">상태는 범위를 직접 계산하거나 그리지 않는다</h2><div class="flow"><div class="node">선택 상태<br>Enter</div><div class="arrow">→</div><div class="node">Controller<br>대상 저장</div><div class="arrow">→</div><div class="node">BoardView<br>범위 계산</div><div class="arrow">→</div><div class="node">Highlighter<br>범위 표시</div></div><div class="two"><div class="panel teal"><h3>계산</h3><p>BoardView는 유닛의 현재 셀과 이동 예산을 MovementRange에 넘긴다. 계산은 Board의 지형 규칙을 읽어 도달 가능한 셀을 구한다.</p></div><div class="panel violet"><h3>표시</h3><p>RangeHighlighter는 범위의 셀마다 점유 여부를 확인해 표시 데이터로 만든다. 실제 표시 객체는 OverlayPool이 보여 주고 숨긴다.</p></div></div><div class="callout"><p>State는 <strong>언제 선택 표시를 시작하고 끝낼지</strong>만 정한다. 범위 포함과 목적지의 최종 이동 허용은 별개이므로, 이동 직전 점유 검사는 다시 필요하다.</p></div><p class="source">BattleController.ShowSelection / BoardView.GetMovementRange / RangeHighlighter.Show</p></div></section>
+
+<section class="slide" id="slide-34" data-slide="34 / 38" aria-labelledby="title-34"><div><p class="kicker">Spawner</p><h2 id="title-34">유닛 생성은 게임 시작 준비의 책임이다</h2><div class="two"><div class="panel teal"><h3>생성 입력</h3><p><strong>프리팹</strong>은 복제할 유닛 원본이다. UnitSpawner는 이 원본과 생성 셀 목록을 받아 Awake에서 SpawnAll을 호출한다.</p></div><div class="panel violet"><h3>생성 결과</h3><p>셀마다 별도 유닛을 자신의 자식으로 만든다. 이름을 붙이고 BoardView로 셀 중심의 월드 위치를 구해 배치한다.</p></div></div><table class="compare"><thead><tr><th>설명용 생성 셀</th><th>만드는 객체</th></tr></thead><tbody><tr><td>(2,2)</td><td>Squad Unit 1</td></tr><tr><td>(5,2)</td><td>Squad Unit 2</td></tr></tbody></table><div class="callout"><p>Spawner는 유닛을 준비하고, State는 준비된 유닛 중 누구의 입력을 처리할지 정한다. 생성 책임을 선택 상태에 넣지 않아도 두 기능은 연결된다.</p></div><p class="source">현재 코드: UnitSpawner.Awake / SpawnAll. BoardView가 없으면 셀 좌표를 월드 좌표로 사용</p></div></section>
+
+<section class="slide" id="slide-35" data-slide="35 / 38" aria-labelledby="title-35"><div><p class="kicker">Idempotence</p><h2 id="title-35">반복 생성 요청은 기존 유닛을 반환한다</h2><pre><code>Unit[] existing = GetComponentsInChildren&lt;Unit&gt;(true);
+if (<span class="code-focus">existing.Length &gt; 0 || _unitPrefab == null</span>)
+{
+    return existing;
+}</code></pre><div class="two"><div class="panel teal"><h3>검사 기준</h3><p>자식에서 유닛을 먼저 찾는다. true는 비활성 객체도 검색한다는 뜻이다. 하나라도 있거나 프리팹이 없으면 새로 만들지 않는다.</p></div><div class="panel amber"><h3>멱등성</h3><p>같은 요청을 반복해도 결과를 계속 추가로 바꾸지 않는 성질이다. 기존 자식이 유지되면 두 번째 SpawnAll은 같은 유닛들을 돌려준다.</p></div></div><p class="source">실제 발췌: UnitSpawner.SpawnAll의 초기 검사</p></div></section>
+
+<section class="slide" id="slide-36" data-slide="36 / 38" aria-labelledby="title-36"><div><p class="kicker">Scope of the Guarantee</p><h2 id="title-36">중복 방지는 부족한 유닛의 복구와 다르다</h2><table class="compare"><thead><tr><th>생성 셀은 3개, 프리팹 있음</th><th>호출 전 유닛 수</th><th>호출 후 유닛 수</th></tr></thead><tbody><tr><td>첫 호출</td><td>0</td><td>3</td></tr><tr><td>그대로 다시 호출</td><td>3</td><td>3</td></tr><tr><td>둘이 사라진 뒤 호출</td><td>1</td><td>1</td></tr></tbody></table><div class="callout warning"><p>하나만 남아도 existing.Length가 0보다 크므로 그 하나를 반환한다. <strong>현재 수를 생성 셀 수에 맞추는 구현이 아니다.</strong> 누락된 두 유닛을 복구하거나 기존 유닛을 원래 셀로 재배치하지 않는다.</p></div><p class="quote">책임을 읽을 때는 보장하는 결과의 범위까지 확인한다.</p><p class="source">설명용 반복 호출 추적. 근거: UnitSpawner.SpawnAll</p></div></section>
+
+<section class="slide" id="slide-37" data-slide="37 / 38" aria-labelledby="title-37"><div><p class="kicker">Judgment</p><h2 id="title-37">모드별 규칙이 함께 달라질 때 가치가 커진다</h2><div class="two"><div class="panel teal"><h3>도입 가치</h3><ul><li>같은 클릭의 뜻이 모드마다 달라진다.</li><li>Undo 이후 처리도 모드에 따라 다르다.</li><li>모드의 시작과 정리를 함께 관리한다.</li></ul></div><div class="panel amber"><h3>비용</h3><ul><li>클래스와 연결할 참조가 늘어난다.</li><li>각 상태로 들어가고 나올 조건을 설계한다.</li><li>현재 구현은 재선택마다 객체를 새로 만든다.</li></ul></div></div><div class="callout"><p>두 모드의 규칙이 아주 짧고 안정적이면 작은 조건문이 읽기 쉬울 수 있다. State는 속도나 메모리의 자동 개선책이 아니다. <strong>함께 바뀌는 규칙을 한곳에서 읽고 고치는 가치</strong>와 연결 비용을 비교한다.</p></div></div></section>
+
+<section class="slide" id="slide-38" data-slide="38 / 38" aria-labelledby="title-38"><div><p class="kicker">Takeaway</p><h2 id="title-38">현재 모드를 알면 같은 입력의 결과를 설명할 수 있다</h2><ol><li>입력의 뜻은 클릭 정보와 현재 모드가 함께 정한다.</li><li>State는 그 모드의 대상과 행동을 묶고, 상태 기계는 현재 객체에 입력을 맡긴다.</li><li>전환은 Exit → Current 교체 → Enter 순서로 정리와 준비를 수행한다.</li><li>이동·Undo의 기록은 Command에 남고, 선택 화면은 현재 상태 규칙으로 처리한다.</li></ol><div class="callout"><p><strong>확인과 답:</strong> A가 이동한 뒤 B를 선택하고 Undo하면? 마지막 이동 명령이 A를 되돌리고, Selected(B)는 B의 범위를 다시 표시한다. <strong>현재 선택과 마지막 이동 기록을 따로 추적</strong>하면 예측할 수 있다.</p></div><p class="quote">State 패턴의 핵심은 현재 모드의 행동을 객체에 맡기는 것이다.</p></div></section>
+      </div>
+    </main>
+
+    <nav class="controls" aria-label="슬라이드 탐색">
+      <button class="control-btn" id="prevBtn" type="button" aria-label="이전 슬라이드">←</button>
+      <button class="control-btn" id="tocBtn" type="button">목차</button>
+      <span id="slideCounter" aria-live="polite">1 / 38</span>
+      <button class="control-btn" id="nextBtn" type="button" aria-label="다음 슬라이드">→</button>
+    </nav>
+  </div>
+
+  <dialog id="tocDialog" aria-labelledby="tocTitle">
+    <div class="toc-head"><h2 id="tocTitle">전체 목차</h2><button class="control-btn" id="tocCloseBtn" type="button">닫기</button></div>
+    <div class="toc-grid">
+<a class="toc-link" href="#slide-1"><span>01</span>미니 택틱스로 이해하는 State 패턴</a><a class="toc-link" href="#slide-2"><span>02</span>3차시는 지형에 맞는 이동을 완성했다</a><a class="toc-link" href="#slide-3"><span>03</span>조작 단계마다 다른 규칙이 필요하다</a><a class="toc-link" href="#slide-4"><span>04</span>좌표만 같아도 클릭의 뜻은 달라진다</a><a class="toc-link" href="#slide-5"><span>05</span>첫 생각은 선택 여부를 검사하는 것이다</a><a class="toc-link" href="#slide-6"><span>06</span>규칙이 늘면 여러 입력에 조건이 퍼진다</a><a class="toc-link" href="#slide-7"><span>07</span>여러 값으로 한 모드를 표현하면 어긋날 수 있다</a><a class="toc-link" href="#slide-8"><span>08</span>한 조작 단계에 필요한 것을 묶는다</a><a class="toc-link" href="#slide-9"><span>09</span>State는 현재 모드의 행동을 객체로 만든다</a><a class="toc-link" href="#slide-10"><span>10</span>입력 감지와 해석과 실행을 나눈다</a><a class="toc-link" href="#slide-11"><span>11</span>Current는 지금 입력을 맡은 객체다</a><a class="toc-link" href="#slide-12"><span>12</span>InputState는 모든 상태의 공통 약속이다</a><a class="toc-link" href="#slide-13"><span>13</span>virtual은 바꾸어 쓸 수 있는 기본 동작이다</a><a class="toc-link" href="#slide-14"><span>14</span>클릭은 유닛과 셀 두 정보로 전달한다</a><a class="toc-link" href="#slide-15"><span>15</span>전달 코드는 상태 이름을 비교하지 않는다</a><a class="toc-link" href="#slide-16"><span>16</span>선택 상태는 유닛의 참조를 기억한다</a><a class="toc-link" href="#slide-17"><span>17</span>전환은 종료 후 교체하고 진입한다</a><a class="toc-link" href="#slide-18"><span>18</span>같은 상태 객체인지 먼저 검사한다</a><a class="toc-link" href="#slide-19"><span>19</span>대기는 선택 가능한 유닛만 받는다</a><a class="toc-link" href="#slide-20"><span>20</span>A를 선택하면 진입 동작이 범위를 표시한다</a><a class="toc-link" href="#slide-21"><span>21</span>선택 중에는 재선택을 먼저 검사한다</a><a class="toc-link" href="#slide-22"><span>22</span>재선택은 이전 표시를 지운 뒤 다시 그린다</a><a class="toc-link" href="#slide-23"><span>23</span>재선택이 아니면 기억한 유닛의 이동을 요청한다</a><a class="toc-link" href="#slide-24"><span>24</span>이동 가능성은 기존 담당자에게 묻는다</a><a class="toc-link" href="#slide-25"><span>25</span>이동 뒤 대기가 되어도 기록은 남는다</a><a class="toc-link" href="#slide-26"><span>26</span>갈 수 없는 빈 칸도 선택을 끝낸다</a><a class="toc-link" href="#slide-27"><span>27</span>유닛 클릭도 선택 가능 여부로 나뉜다</a><a class="toc-link" href="#slide-28"><span>28</span>공개 이동 메서드는 실패 시 선택을 유지한다</a><a class="toc-link" href="#slide-29"><span>29</span>State와 Command는 다른 것을 기억한다</a><a class="toc-link" href="#slide-30"><span>30</span>대기 중 Undo는 위치만 되돌린다</a><a class="toc-link" href="#slide-31"><span>31</span>선택 중 Undo는 같은 대상을 다시 표시한다</a><a class="toc-link" href="#slide-32"><span>32</span>B를 선택했어도 마지막 이동은 A의 것일 수 있다</a><a class="toc-link" href="#slide-33"><span>33</span>상태는 범위를 직접 계산하거나 그리지 않는다</a><a class="toc-link" href="#slide-34"><span>34</span>유닛 생성은 게임 시작 준비의 책임이다</a><a class="toc-link" href="#slide-35"><span>35</span>반복 생성 요청은 기존 유닛을 반환한다</a><a class="toc-link" href="#slide-36"><span>36</span>중복 방지는 부족한 유닛의 복구와 다르다</a><a class="toc-link" href="#slide-37"><span>37</span>모드별 규칙이 함께 달라질 때 가치가 커진다</a><a class="toc-link" href="#slide-38"><span>38</span>현재 모드를 알면 같은 입력의 결과를 설명할 수 있다</a>
+</div>
+  </dialog>
+
+  <script>
+    const slides = [...document.querySelectorAll('.slide')];
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const tocBtn = document.getElementById('tocBtn');
+    const tocDialog = document.getElementById('tocDialog');
+    const tocCloseBtn = document.getElementById('tocCloseBtn');
+    const slideCounter = document.getElementById('slideCounter');
+    let current = 0;
+
+    function showSlide(index, updateHash = true) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      slides.forEach((slide, slideIndex) => slide.classList.toggle('is-active', slideIndex === current));
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current === slides.length - 1;
+      slideCounter.textContent = `${current + 1} / ${slides.length}`;
+      if (updateHash) history.replaceState(null, '', `#slide-${current + 1}`);
+    }
+
+    function indexFromHash() {
+      const match = location.hash.match(/^#slide-(\d+)$/);
+      const index = match ? Number(match[1]) - 1 : -1;
+      if (index >= 0 && index < slides.length) return index;
+      history.replaceState(null, '', '#slide-1');
+      return 0;
+    }
+
+    function openToc() { if (!tocDialog.open) tocDialog.showModal(); }
+    function closeToc() { if (tocDialog.open) tocDialog.close(); }
+
+    prevBtn.addEventListener('click', () => showSlide(current - 1));
+    nextBtn.addEventListener('click', () => showSlide(current + 1));
+    tocBtn.addEventListener('click', openToc);
+    tocCloseBtn.addEventListener('click', closeToc);
+    tocDialog.addEventListener('click', (event) => { if (event.target === tocDialog) closeToc(); });
+    tocDialog.querySelectorAll('.toc-link').forEach((link) => link.addEventListener('click', (event) => {
+      event.preventDefault();
+      const index = Number(link.hash.replace('#slide-', '')) - 1;
+      closeToc();
+      showSlide(index);
+    }));
+    window.addEventListener('hashchange', () => showSlide(indexFromHash(), false));
+    window.addEventListener('keydown', (event) => {
+      if (tocDialog.open) return;
+      const tag = document.activeElement?.tagName;
+      if (['ArrowRight','ArrowLeft','PageDown','PageUp','Home','End'].includes(event.key)) event.preventDefault();
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (event.key === 'ArrowRight' || event.key === 'PageDown') showSlide(current + 1);
+      else if (event.key === 'ArrowLeft' || event.key === 'PageUp') showSlide(current - 1);
+      else if (event.key === 'Home') showSlide(0);
+      else if (event.key === 'End') showSlide(slides.length - 1);
+    });
+
+    const initialIndex = indexFromHash();
+    showSlide(initialIndex);
+  </script>
+<noscript><style>
+    html,body{height:auto;overflow:visible}.app,.stage,.deck{display:block;width:100%;height:auto;max-height:none;aspect-ratio:auto;overflow:visible;container-type:normal}
+    .slide,.slide.is-active{position:relative;display:block;overflow:visible;animation:none;margin-bottom:20px}.controls,dialog{display:none}
+    </style></noscript></body>
+</html>

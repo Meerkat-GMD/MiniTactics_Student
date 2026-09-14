@@ -3,517 +3,252 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>RPG 전투 시스템으로 이해하는 객체지향 프로그래밍 — 발표 자료</title>
+  <title>1차시 — 객체지향 프로그래밍 | 미니 택틱스</title>
   <style>
     :root {
-      --bg: #050c17; --slide: #0b1728; --panel: #11233a; --panel2: #152a43;
-      --text: #edf4ff; --muted: #b5c3d6; --teal: #59e3cf; --violet: #b6a2ff;
-      --amber: #ffd071; --red: #ff8d9a; --line: #2b405a;
+      --bg:#040a13; --slide:#091526; --panel:#10233a; --panel2:#142b45;
+      --text:#eef5ff; --muted:#afbed1; --teal:#55e4cf; --violet:#b8a4ff;
+      --amber:#ffd16f; --red:#ff8c99; --line:#2a405b; --green:#83e58f;
     }
-    * { box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
-    body {
-      background: var(--bg); color: var(--text);
-      font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
-      word-break: keep-all; overflow-wrap: break-word;
+    * { box-sizing:border-box; }
+    html, body { width:100%; height:100%; margin:0; overflow:hidden; }
+    body { background:var(--bg); color:var(--text); font-family:"Pretendard","Noto Sans KR",system-ui,sans-serif; word-break:keep-all; overflow-wrap:break-word; }
+    button, a { font:inherit; }
+    button { color:inherit; }
+    .app { min-height:100%; display:grid; grid-template-rows:1fr auto; }
+    .stage { min-height:0; display:grid; place-items:center; padding:14px 18px 6px; }
+    .deck { position:relative; width:min(100%,calc((100vh - 80px) * 16 / 9)); max-height:calc(100vh - 80px); aspect-ratio:16/9; overflow:hidden; border:1px solid #263b56; border-radius:18px; background:var(--slide); box-shadow:0 28px 88px #000a; container-type:inline-size; }
+    .slide { position:absolute; inset:0; display:none; overflow:auto; padding:clamp(28px,3.6cqw,56px) clamp(36px,5cqw,78px); background:radial-gradient(circle at 94% 7%,#253969 0,transparent 27%),linear-gradient(145deg,#0c1a2d 0%,#07121f 74%); }
+    .slide.is-active { display:grid; align-content:center; animation:reveal .24s ease-out; }
+    .slide::after { content:attr(data-slide); position:absolute; right:26px; top:20px; color:#7189a6; font-size:.76rem; font-weight:850; letter-spacing:.13em; }
+    @keyframes reveal { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:none; } }
+    h1,h2,h3,p { margin-top:0; }
+    h1 { max-width:78cqw; margin-bottom:20px; font-size:clamp(2.3rem,5.1cqw,4.9rem); line-height:1.08; letter-spacing:-.05em; }
+    h2 { max-width:82cqw; margin-bottom:clamp(16px,2.2cqw,30px); font-size:clamp(1.75rem,3.35cqw,3.15rem); line-height:1.17; letter-spacing:-.035em; }
+    h3 { margin-bottom:8px; color:var(--teal); font-size:clamp(.98rem,1.38cqw,1.3rem); }
+    p,li { font-size:clamp(.83rem,1.23cqw,1.13rem); line-height:1.53; }
+    p { margin-bottom:.72em; }
+    ul,ol { margin:.1em 0 0; padding-left:1.25em; }
+    li { margin:.38em 0; }
+    li::marker { color:var(--teal); font-weight:800; }
+    strong { color:#fff; }
+    .kicker { margin:0 0 7px; color:var(--teal); font-size:clamp(.68rem,1cqw,.9rem); font-weight:900; letter-spacing:.13em; text-transform:uppercase; }
+    .subtitle { max-width:72cqw; color:var(--muted); font-size:clamp(1rem,1.68cqw,1.5rem); line-height:1.5; }
+    .accent { color:var(--teal); } .violet { color:var(--violet); } .amber { color:var(--amber); } .red { color:var(--red); } .green { color:var(--green); }
+    .big { max-width:78cqw; font-size:clamp(1.28rem,2.3cqw,2.12rem); line-height:1.45; letter-spacing:-.02em; }
+    .quote { max-width:76cqw; margin:12px 0; padding-left:22px; border-left:5px solid var(--violet); font-size:clamp(1.2rem,2.25cqw,2rem); line-height:1.43; font-weight:760; }
+    .two { display:grid; grid-template-columns:1fr 1fr; gap:clamp(15px,2.2cqw,30px); align-items:stretch; }
+    .wide { display:grid; grid-template-columns:1.3fr .85fr; gap:clamp(18px,2.6cqw,36px); align-items:center; }
+    .panel { padding:clamp(14px,1.8cqw,23px); border:1px solid var(--line); border-radius:14px; background:#0f2138d9; }
+    .panel.teal { border-top:4px solid var(--teal); } .panel.violet { border-top:4px solid var(--violet); } .panel.amber { border-top:4px solid var(--amber); } .panel.redline { border-top:4px solid var(--red); }
+    .callout { margin-top:15px; padding:13px 18px; border-left:4px solid var(--teal); border-radius:8px; background:#10243c; }
+    .callout.warning { border-left-color:var(--amber); } .callout.danger { border-left-color:var(--red); }
+    .callout p:last-child,.panel p:last-child { margin-bottom:0; }
+    pre { margin:10px 0 0; padding:clamp(13px,1.65cqw,21px); overflow:auto; border:1px solid var(--line); border-radius:12px; background:#030a13; color:#dceafa; white-space:pre; font:clamp(.68rem,1.04cqw,.96rem)/1.58 Consolas,"D2Coding",monospace; }
+    p code,li code { padding:.08em .32em; border:1px solid #344d69; border-radius:5px; background:#081522; color:var(--amber); font-family:Consolas,"D2Coding",monospace; font-size:.92em; }
+    .code-focus { color:var(--amber); font-weight:800; }
+    .source { margin-top:10px; color:#7f94ad; font-size:clamp(.62rem,.82cqw,.76rem); }
+    .flow { display:grid; grid-template-columns:repeat(7,auto); align-items:center; justify-content:center; gap:9px; margin-top:22px; }
+    .node { min-width:9cqw; min-height:66px; display:grid; place-items:center; padding:10px 12px; border:1px solid #3b5575; border-radius:12px; background:var(--panel); text-align:center; font-size:clamp(.7rem,.95cqw,.9rem); font-weight:800; }
+    .arrow { color:var(--teal); font-size:1.35rem; font-weight:900; }
+    .state-board { display:grid; grid-template-columns:1fr auto 1fr; gap:18px; align-items:center; margin-top:14px; }
+    .coord { min-height:140px; display:grid; place-items:center; padding:22px; border:1px solid var(--line); border-radius:14px; background:#07111e; text-align:center; font:800 clamp(1rem,1.7cqw,1.55rem)/1.6 Consolas,monospace; }
+    .missing { color:var(--red); text-decoration:line-through; text-decoration-thickness:3px; }
+    .compare { width:100%; border-collapse:collapse; font-size:clamp(.72rem,1cqw,.94rem); line-height:1.42; }
+    .compare th,.compare td { padding:10px 13px; border:1px solid var(--line); vertical-align:top; text-align:left; }
+    .compare th { color:var(--teal); background:#071321; }
+    .stack { width:min(440px,70cqw); margin:14px auto 0; display:grid; gap:8px; }
+    .stack-item { padding:11px 16px; border:1px solid #405c7d; border-radius:9px; background:var(--panel); text-align:center; font-weight:800; }
+    .stack-item.top { border-color:var(--amber); color:var(--amber); }
+    .question { padding:clamp(20px,2.7cqw,38px); border:1px solid #5b4e25; border-radius:15px; background:linear-gradient(135deg,#221d10,#101c2d); }
+    .question .big { margin-bottom:0; }
+    .role-map { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:18px; }
+    .role { min-height:125px; padding:15px; border-top:4px solid var(--teal); border-radius:12px; background:var(--panel); }
+    .role:nth-child(2) { border-color:var(--violet); } .role:nth-child(3) { border-color:var(--amber); } .role:nth-child(4) { border-color:var(--red); }
+    .role b { display:block; margin-bottom:7px; font-size:clamp(.82rem,1.12cqw,1rem); }
+    .role span { color:var(--muted); font-size:clamp(.7rem,.92cqw,.86rem); line-height:1.45; }
+    .controls { min-height:60px; display:flex; align-items:center; justify-content:center; gap:9px; padding:7px 14px 10px; }
+    .control-btn { min-width:44px; min-height:40px; padding:7px 15px; border:1px solid #354c68; border-radius:10px; background:#0d1d30; cursor:pointer; }
+    .control-btn:hover:not(:disabled) { border-color:var(--teal); color:var(--teal); }
+    .control-btn:focus-visible,.toc-link:focus-visible { outline:3px solid var(--amber); outline-offset:2px; }
+    .control-btn:disabled { opacity:.35; cursor:not-allowed; }
+    #slideCounter { min-width:76px; color:var(--muted); text-align:center; font-weight:850; font-variant-numeric:tabular-nums; }
+    dialog { width:min(780px,calc(100% - 32px)); max-height:min(80vh,740px); padding:0; border:1px solid #405b7a; border-radius:18px; background:#091526; color:var(--text); box-shadow:0 30px 100px #000d; }
+    dialog::backdrop { background:#020710df; backdrop-filter:blur(4px); }
+    .toc-head { position:sticky; top:0; z-index:2; display:flex; align-items:center; justify-content:space-between; padding:18px 21px; border-bottom:1px solid var(--line); background:#091526; }
+    .toc-head h2 { margin:0; font-size:1.4rem; }
+    .toc-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; padding:16px; }
+    .toc-link { display:grid; grid-template-columns:34px 1fr; gap:8px; padding:9px 11px; border:1px solid transparent; border-radius:8px; color:var(--muted); text-decoration:none; font-size:.88rem; }
+    .toc-link:hover { color:var(--text); background:var(--panel); border-color:var(--line); }
+    .toc-link span { color:var(--teal); font-weight:900; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @media (max-height:650px) and (min-width:721px) {
+      .slide { padding:24px 40px; }
+      h1 { font-size:3rem; } h2 { font-size:1.72rem; margin-bottom:12px; } h3 { font-size:.91rem; }
+      p,li { font-size:.76rem; line-height:1.38; } li { margin:.25em 0; }
+      .panel { padding:10px 13px; } .callout { margin-top:8px; padding:8px 13px; }
+      pre { margin-top:6px; padding:9px 12px; font-size:.64rem; line-height:1.4; }
+      .node { min-height:48px; padding:6px 9px; font-size:.65rem; }
+      .role { min-height:90px; padding:10px; } .coord { min-height:105px; padding:14px; }
     }
-    button, a { font: inherit; }
-    button { color: inherit; }
-    .app { min-height: 100%; display: grid; grid-template-rows: 1fr auto; }
-    .stage { min-height: 0; display: grid; place-items: center; padding: 18px 18px 8px; }
-    .deck {
-      position: relative; width: min(100%, calc((100vh - 92px) * 16 / 9));
-      max-height: calc(100vh - 92px); aspect-ratio: 16 / 9; overflow: hidden;
-      border: 1px solid #273b54; border-radius: 18px; background: var(--slide);
-      box-shadow: 0 30px 90px #0009;
-      container-type: inline-size;
+    @media (max-width:720px) {
+      .stage { padding:0; }
+      .deck { width:100%; height:calc(100vh - 60px); max-height:none; aspect-ratio:auto; border:0; border-radius:0; }
+      .slide { padding:48px 21px 28px; }
+      .slide.is-active { align-content:start; }
+      .two,.wide,.state-board,.role-map { grid-template-columns:1fr; }
+      .flow { grid-template-columns:1fr; }
+      .flow .arrow { transform:rotate(90deg); }
+      .toc-grid { grid-template-columns:1fr; }
+      h1 { font-size:clamp(2.05rem,10.5cqw,3.25rem); }
+      h2 { font-size:clamp(1.6rem,7.2cqw,2.25rem); }
+      p,li { font-size:1rem; }
+      pre { font-size:.75rem; white-space:pre-wrap; overflow-wrap:anywhere; }
     }
-    .slide {
-      position: absolute; inset: 0; display: none; overflow: auto;
-      padding: clamp(34px, 4.4cqw, 68px) clamp(40px, 5.4cqw, 86px);
-      background:
-        radial-gradient(circle at 92% 8%, #263466 0, transparent 27%),
-        linear-gradient(145deg, #0c192b 0%, #091422 72%);
-    }
-    .slide.is-active { display: grid; align-content: center; animation: reveal .24s ease-out; }
-    .slide.compact { padding-top: clamp(28px, 3.3cqw, 50px); padding-bottom: clamp(28px, 3.3cqw, 50px); }
-    .slide.compact p, .slide.compact li { line-height: 1.48; }
-    #slide-16 h2 { margin-bottom: 16px; }
-    #slide-16 p { margin-bottom: .55em; }
-    #slide-16 .callout { margin-top: 10px; padding: 12px 18px; }
-    .slide::after { content: attr(data-slide); position: absolute; right: 28px; top: 22px; color: #7890ac; font-weight: 800; font-size: .78rem; letter-spacing: .14em; }
-    @keyframes reveal { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
-    .kicker { margin: 0 0 8px; color: var(--teal); font-weight: 850; font-size: clamp(.72rem, 1.15cqw, 1rem); letter-spacing: .12em; text-transform: uppercase; }
-    h1, h2, h3, p { margin-top: 0; }
-    h1 { max-width: 76.5cqw; margin-bottom: 22px; font-size: clamp(2.25rem, 5.2cqw, 5rem); line-height: 1.08; letter-spacing: -.05em; }
-    h2 { max-width: 80cqw; margin-bottom: clamp(18px, 2.4cqw, 34px); font-size: clamp(1.8rem, 3.55cqw, 3.25rem); line-height: 1.18; letter-spacing: -.035em; }
-    h3 { margin-bottom: 9px; color: var(--teal); font-size: clamp(1rem, 1.45cqw, 1.35rem); }
-    p, li { font-size: clamp(.86rem, 1.34cqw, 1.2rem); line-height: 1.58; }
-    p { margin-bottom: .82em; }
-    strong { color: #fff; }
-    .subtitle { max-width: 70.7cqw; color: var(--muted); font-size: clamp(1rem, 1.75cqw, 1.5rem); line-height: 1.55; }
-    .meta { margin-top: 26px; color: #8fa2b9; font-size: clamp(.75rem, 1cqw, .95rem); }
-    .accent { color: var(--teal); } .violet { color: var(--violet); } .amber { color: var(--amber); }
-    .big-idea { max-width: 76.5cqw; font-size: clamp(1.35rem, 2.45cqw, 2.25rem); line-height: 1.48; letter-spacing: -.02em; }
-    .two-column { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(16px, 2.4cqw, 32px); align-items: stretch; }
-    .wide-narrow { display: grid; grid-template-columns: 1.35fr .8fr; gap: clamp(18px, 2.7cqw, 38px); align-items: center; }
-    .panel { padding: clamp(15px, 2cqw, 25px); background: #102138cc; border: 1px solid var(--line); border-radius: 14px; }
-    .panel.teal { border-top: 4px solid var(--teal); } .panel.violet { border-top: 4px solid var(--violet); }
-    .panel.amber { border-top: 4px solid var(--amber); } .panel.red { border-top: 4px solid var(--red); }
-    .panel p:last-child, .callout p:last-child { margin-bottom: 0; }
-    .callout { margin-top: 18px; padding: 15px 20px; background: #102239; border-left: 4px solid var(--teal); border-radius: 9px; }
-    .callout.warning { border-left-color: var(--amber); }
-    .callout.violet-border { border-left-color: var(--violet); }
-    ul { margin: .2em 0 0; padding-left: 1.2em; }
-    li { margin: .36em 0; }
-    .lecture-points { margin: .15em 0 0; padding-left: 1.25em; }
-    .lecture-points li { margin: .54em 0; padding-left: .2em; }
-    .lecture-points li::marker { color: var(--teal); }
-    .panel .lecture-points li { margin: .42em 0; }
-    .flow, pre {
-      margin: 16px 0 0; padding: clamp(14px, 1.8cqw, 22px); overflow-x: auto;
-      border: 1px solid var(--line); border-radius: 12px; background: #050d18;
-      color: #dbe9f8; white-space: pre; font: clamp(.72rem, 1.1cqw, 1rem)/1.65 Consolas, "D2Coding", monospace;
-    }
-    .formula { display: grid; place-items: center; min-height: 160px; padding: 22px; border-radius: 14px; background: #07111e; border: 1px solid var(--line); color: var(--violet); font: 700 clamp(1rem, 1.6cqw, 1.5rem)/1.65 Consolas, monospace; text-align: center; }
-    .comparison { width: 100%; border-collapse: collapse; font-size: clamp(.75rem, 1.05cqw, 1rem); line-height: 1.45; }
-    .comparison th, .comparison td { padding: 11px 14px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
-    .comparison th { color: var(--teal); background: #081321; }
-    .sequence { display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; gap: 8px; margin-top: 22px; }
-    .node { min-height: 76px; display: grid; place-items: center; padding: 10px; border: 1px solid #3b5573; border-radius: 12px; background: var(--panel); text-align: center; font-weight: 750; font-size: clamp(.72rem, 1cqw, .95rem); }
-    .arrow { color: var(--teal); text-align: center; font-size: 1.35rem; }
-    .sequence.five { grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr auto 1fr; }
-    .implementation-map { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 18px; margin-top: 20px; text-align: center; }
-    .implementation-map .role { grid-column: 1 / -1; justify-self: center; width: min(420px, 80%); }
-    .implementation-map .connector { color: var(--teal); font-weight: 900; line-height: 1; }
-    .implementation-map .impl { padding: 13px; border: 1px solid #3b5573; border-radius: 10px; background: var(--panel); font-weight: 800; }
-    .quote { max-width: 75cqw; margin: 12px 0; padding-left: 24px; border-left: 5px solid var(--violet); font-size: clamp(1.25rem, 2.4cqw, 2.15rem); line-height: 1.45; font-weight: 720; }
-    .controls { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 66px; padding: 8px 16px 12px; }
-    .control-btn { min-width: 44px; min-height: 42px; padding: 8px 16px; border: 1px solid #354b65; border-radius: 10px; background: #0f1e31; cursor: pointer; }
-    .control-btn:hover:not(:disabled) { border-color: var(--teal); color: var(--teal); }
-    .control-btn:focus-visible, .toc-link:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
-    .control-btn:disabled { opacity: .35; cursor: not-allowed; }
-    #slideCounter { min-width: 74px; color: var(--muted); text-align: center; font-weight: 800; font-variant-numeric: tabular-nums; }
-    dialog { width: min(760px, calc(100% - 32px)); max-height: min(78vh, 720px); padding: 0; border: 1px solid #415b78; border-radius: 18px; background: #0b1728; color: var(--text); box-shadow: 0 30px 100px #000d; }
-    dialog::backdrop { background: #020711d9; backdrop-filter: blur(4px); }
-    .toc-header { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; padding: 20px 22px; background: #0b1728; border-bottom: 1px solid var(--line); }
-    .toc-header h2 { margin: 0; font-size: 1.45rem; }
-    .toc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 18px; }
-    .toc-link { display: grid; grid-template-columns: 34px 1fr; gap: 9px; padding: 10px 12px; border: 1px solid transparent; border-radius: 9px; color: var(--muted); text-decoration: none; font-size: .92rem; }
-    .toc-link:hover { background: var(--panel); color: var(--text); border-color: var(--line); }
-    .toc-link span { color: var(--teal); font-weight: 850; }
-    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
-    caption { padding: 0 0 9px; color: var(--muted); text-align: left; font-weight: 750; }
-    @media (max-height: 620px) and (min-width: 721px) {
-      .slide { padding: 26px 42px; }
-      .slide.compact { padding-top: 22px; padding-bottom: 22px; }
-      h1 { font-size: 3rem; margin-bottom: 14px; }
-      h2 { font-size: 1.72rem; margin-bottom: 13px; }
-      h3 { font-size: .95rem; margin-bottom: 5px; }
-      p, li { font-size: .78rem; line-height: 1.38; }
-      p { margin-bottom: .55em; }
-      .lecture-points li { margin: .34em 0; }
-      .panel { padding: 11px 14px; }
-      .callout, #slide-16 .callout { margin-top: 8px; padding: 9px 14px; }
-      .flow, pre { margin-top: 8px; padding: 10px 14px; font-size: .67rem; line-height: 1.42; }
-      .quote { font-size: 1.15rem; margin: 8px 0; }
-      .sequence { margin-top: 10px; }
-      .node { min-height: 52px; padding: 7px; font-size: .68rem; }
-      .comparison th, .comparison td { padding: 7px 10px; }
-    }
-    @media (max-width: 720px) {
-      .stage { padding: 0; }
-      .deck { width: 100%; height: calc(100vh - 66px); max-height: none; aspect-ratio: auto; border: 0; border-radius: 0; }
-      .slide { padding: 50px 22px 32px; }
-      .slide.is-active { align-content: start; }
-      .two-column, .wide-narrow { grid-template-columns: 1fr; }
-      .sequence.five { grid-template-columns: 1fr; }
-      .sequence .arrow { transform: rotate(90deg); }
-      .toc-grid { grid-template-columns: 1fr; }
-      h1 { font-size: clamp(2.15rem, 11cqw, 3.3rem); }
-      h2 { font-size: clamp(1.65rem, 7.6cqw, 2.35rem); }
-      p, li { font-size: 1rem; }
-      .flow, pre { font-size: .76rem; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
-    }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; } }
     @media print {
-      html, body { height: auto; overflow: visible; background: white; color: #111; }
-      .app { display: block; }
-      .stage, .deck { display: block; width: auto; height: auto; max-height: none; padding: 0; overflow: visible; border: 0; box-shadow: none; }
-      .slide, .slide.is-active { position: relative; display: grid; width: 100%; min-height: 175mm; padding: 16mm; break-after: page; overflow: hidden; background: white; color: #111; animation: none; }
-      .slide:last-child { break-after: auto; }
-      .controls, dialog { display: none !important; }
-      h1, h2, h3, p, li, strong, .subtitle, .meta, .kicker, .accent, .violet, .amber { color: #111; }
-      .lecture-points li::marker { color: #111; }
-      .panel, .callout, .flow, pre, .formula, .node, .comparison th, .comparison td { background: white; color: #111; border-color: #777; }
-      .slide::after { color: #333; }
+      html,body { height:auto; overflow:visible; background:#fff; color:#111; }
+      .app,.stage,.deck { display:block; width:auto; height:auto; max-height:none; padding:0; overflow:visible; border:0; box-shadow:none; }
+      .slide,.slide.is-active { position:relative; display:grid; width:100%; min-height:175mm; padding:15mm; break-after:page; overflow:hidden; background:#fff; color:#111; animation:none; }
+      .slide:last-child { break-after:auto; }
+      .controls,dialog { display:none !important; }
+      h1,h2,h3,p,li,strong,.subtitle,.kicker,.accent,.violet,.amber,.red,.green,.source { color:#111; }
+      .panel,.callout,pre,.node,.coord,.role,.stack-item,.question,.compare th,.compare td { background:#fff; color:#111; border-color:#777; }
     }
   </style>
+<style id="layout-safety">
+    .slide > div,.two > div,.wide > div,.role,.node { min-width:0; }
+    .compare { table-layout:fixed; overflow-wrap:anywhere; }
+    .role b,.role span { overflow-wrap:anywhere; }
+    @media (max-width:720px) { .state-board > .arrow { transform:rotate(90deg); justify-self:center; } .flow > .arrow { justify-self:center; } }
+    @media print { .deck { container-type:normal; aspect-ratio:auto; } .slide,.slide.is-active { height:auto; overflow:visible; break-inside:avoid; } }
+    </style>
 </head>
 <body>
   <div class="app">
     <main class="stage">
-      <div class="deck" id="deck" aria-live="off">
-        <section class="slide is-active" id="slide-1" data-slide="01 / 20" aria-labelledby="title-1">
-          <div>
-            <h1 id="title-1">RPG 전투 시스템으로 이해하는<br><span class="accent">객체지향 프로그래밍</span></h1>
-          </div>
-        </section>
+      <div class="deck" id="deck">
+        <section class="slide is-active" id="slide-1" data-slide="01 / 30" aria-labelledby="title-1"><div><p class="kicker">Mini Tactics · Lesson 01</p><h1 id="title-1">미니 택틱스로 이해하는<br><span class="accent">객체지향 프로그래밍</span></h1><p class="subtitle">새 무기와 스킬이 늘어날 때,<br>전투 코드를 어디에서 바꾸어야 할까?</p></div></section>
 
-        <section class="slide" id="slide-2" data-slide="02 / 20" aria-labelledby="title-2">
-          <div>
-            <p class="kicker">Definition</p>
-            <h2 id="title-2">객체지향 프로그래밍이란 무엇인가</h2>
-            <p class="big-idea">객체지향 프로그래밍은 프로그램을 상태와 행동을 가진 객체들의 협력으로 구성하고, 각 객체에 적절한 책임을 배치하는 프로그래밍 방식이다.</p>
-            <div class="two-column">
-              <div class="panel teal"><h3>객체와 책임</h3><ul class="lecture-points"><li>객체는 서로 관련된 상태와 행동을 하나의 단위로 묶는다.</li><li>각 객체는 자신이 소유한 상태와 그 상태를 다루는 규칙에 책임을 진다.</li></ul></div>
-              <div class="panel violet"><h3>메시지와 협력</h3><ul class="lecture-points"><li>객체들은 공개된 메시지를 주고받으며 혼자서는 완성할 수 없는 기능을 함께 수행한다.</li><li>RPG에서는 캐릭터, 무기와 스킬 객체가 각자의 규칙을 담당하고 협력하여 하나의 전투를 완성한다.</li></ul></div>
-            </div>
-            <div class="callout"><p>핵심은 현실의 사물을 그대로 복제하는 것이 아니라, 프로그램의 책임과 변경 경계를 객체라는 단위로 설계하는 데 있다.</p></div>
-          </div>
-        </section>
+<section class="slide" id="slide-2" data-slide="02 / 30" aria-labelledby="title-2"><div><p class="kicker">First Success</p><h2 id="title-2">처음에는 피해 계산 하나면 충분하다</h2><pre><code>int damage = Math.Max(1, attack - defense);
+defenderHp = Math.Max(0, defenderHp - damage);</code></pre><div class="two"><div class="panel teal"><h3>이미 할 수 있는 일</h3><p>공격력 6, 방어력 1이면 피해는 5다. HP 10인 적은 공격을 받은 뒤 5가 된다.</p></div><div class="panel violet"><h3>이 설계가 충분한 조건</h3><p>공격 종류가 하나이고 규칙이 거의 바뀌지 않는 작은 게임이라면 짧은 함수로 쉽게 이해할 수 있다.</p></div></div><p class="source">객체지향 개념을 설명하는 RPG 설계 예시. 아래 클래스와 기능 전체가 1차시 게임에 구현되어 있다는 뜻은 아니다.</p></div></section>
 
-        <section class="slide" id="slide-3" data-slide="03 / 20" aria-labelledby="title-3">
-          <div>
-            <p class="kicker">Change Pressure</p>
-            <h2 id="title-3">RPG 전투 시스템은 계속 변한다</h2>
-            <div class="wide-narrow">
-              <div>
-                <ul class="lecture-points"><li>초기 전투는 공격력에서 방어력을 빼는 계산 하나만으로 구현할 수 있다.</li><li>게임이 발전하면 직업 공식, 사거리, 치명타, 원소 상성과 상태 효과가 추가된다.</li><li>무기 밸런스, 피해 공식과 UI 로그는 서로 다른 주기로 변경된다.</li><li>하나의 코드가 모든 변경을 담당하면 충돌과 회귀 오류가 증가한다.</li><li>객체지향 설계는 변경의 영향을 관련 객체 내부로 제한하여 다른 기능으로의 전파를 줄인다.</li></ul>
-                <div class="callout warning"><p><strong>좋은 경계:</strong> 빙결 효과 추가는 빙결 코드에서, 로그 출력 변경은 로그 구현에서 끝나야 한다.</p></div>
-              </div>
-              <div class="formula">새 직업<br>× 새 무기<br>× 새 스킬<br>× 새 상태 효과<br><span class="amber">= 조합 폭발</span></div>
-            </div>
-          </div>
-        </section>
+<section class="slide" id="slide-3" data-slide="03 / 30" aria-labelledby="title-3"><div><p class="kicker">New Requirement</p><h2 id="title-3">전투에 새 무기와 효과를 더하고 싶다</h2><div class="question"><p class="big">“검에는 독을 바르고,<br>활은 먼 적을 공격하고,<br>얼음 지팡이는 적을 얼리게 해 주세요.”</p></div><div class="callout "><p>피해 계산 외에 사거리, 지속 효과, 무기 교체, 화면 표시가 필요해졌다. 서로 다른 규칙이 서로 다른 이유로 바뀌기 시작한다.</p></div></div></section>
 
-        <section class="slide" id="slide-4" data-slide="04 / 20" aria-labelledby="title-4">
-          <div>
-            <p class="kicker">First Implementation</p>
-            <h2 id="title-4">첫 구현: 하나의 전투 함수에 모든 절차를 적는다</h2>
-            <div class="two-column">
-              <div>
-                <ul class="lecture-points"><li>작은 프로토타입에서는 하나의 전투 함수가 단순하고 빠른 선택이다.</li><li>전투 함수는 공격자와 방어자의 수치로 최종 피해를 계산한다.</li><li>기능이 늘어나면 전투 함수가 모든 종류와 세부 규칙을 알게 된다.</li></ul>
-              </div>
-              <pre>전투(공격자, 방어자)
- ├ 직업 종류 확인
- ├ 무기 종류 확인
- ├ 스킬 종류 확인
- ├ 치명타 판정
- ├ 방어·보호막 확인
- ├ 상태 효과 적용
- ├ 체력 직접 수정
- └ 로그·애니메이션 호출</pre>
-            </div>
-            <div class="callout"><ul class="lecture-points"><li>절차가 짧고 변화가 적을 때는 절차적 구현이 더 명료할 수 있다.</li><li>객체지향적 분리가 필요한 순간은 서로 다른 변화가 한 함수에 축적될 때다.</li></ul></div>
-          </div>
-        </section>
+<section class="slide" id="slide-4" data-slide="04 / 30" aria-labelledby="title-4"><div><p class="kicker">First Attempt</p><h2 id="title-4">첫 생각: 전투 함수에 분기를 추가하자</h2><pre><code>if (weaponType == &quot;Sword&quot;) ApplySwordDamage();
+else if (weaponType == &quot;Bow&quot;) CheckRangeAndShoot();
+else if (weaponType == &quot;IceStaff&quot;) DamageAndFreeze();
 
-        <section class="slide" id="slide-5" data-slide="05 / 20" aria-labelledby="title-5">
-          <div>
-            <p class="kicker">Coupling</p>
-            <h2 id="title-5">거대한 조건문의 문제는 <span class="amber">지식의 집중</span>이다</h2>
-            <div class="two-column">
-              <div class="panel red"><h3>중앙 코드가 아는 것</h3><ul class="lecture-points"><li>중앙 코드는 모든 직업과 무기의 구체적인 종류를 안다.</li><li>중앙 코드는 스킬별 비용과 효과 계산법을 안다.</li><li>중앙 코드는 방어자의 상태부터 UI와 로그의 출력 방법까지 안다.</li></ul></div>
-              <div class="panel teal"><h3>변경이 만드는 결과</h3><ul class="lecture-points"><li>새로운 종류가 추가될 때마다 기존 분기를 수정해야 한다.</li><li>동일한 종류 판별 코드가 여러 장소에서 반복된다.</li><li>한 규칙의 변경이 다른 규칙을 깨뜨리고 테스트 범위까지 넓힐 수 있다.</li></ul></div>
-            </div>
-            <p class="quote">객체지향적 개편은 함수를 잘게 자르는 일이 아니라, “누가 이 판단을 맡아야 하는가?”를 다시 정하는 일이다.</p>
-          </div>
-        </section>
+UpdateHp();
+WriteLog();
+PlayAnimation();</code></pre><div class="callout warning"><p>한곳에 모으면 처음에는 전체 순서가 잘 보인다. 그러나 새 무기나 로그 방식이 추가될 때마다 이 함수가 바뀐다.</p></div><p class="source">객체지향 개념을 설명하는 RPG 설계 예시. 아래 클래스와 기능 전체가 1차시 게임에 구현되어 있다는 뜻은 아니다.</p></div></section>
 
-        <section class="slide" id="slide-6" data-slide="06 / 20" aria-labelledby="title-6">
-          <div>
-            <p class="kicker">Object</p>
-            <h2 id="title-6">객체는 상태·행동·정체성을 가진 협력 주체다</h2>
-            <div class="two-column">
-              <div>
-                <ul class="lecture-points"><li><strong>상태</strong>는 현재 체력, 마나와 장착 무기처럼 시간에 따라 변하는 정보다.</li><li><strong>행동</strong>은 피해 받기, 스킬 사용과 장비 교체처럼 상태를 사용하는 규칙이다.</li><li><strong>정체성</strong>이 있으므로 체력이 같은 고블린 두 마리도 서로 다른 생명 주기와 상태 효과를 가진다.</li></ul>
-              </div>
-              <div class="panel violet">
-                <h3>Character 객체</h3>
-                <ul class="lecture-points"><li><span class="violet">상태</span>는 hp, mana, weapon과 effects로 표현할 수 있다.</li><li><span class="violet">행동</span>은 takeDamage(), useSkill()과 equip()으로 표현할 수 있다.</li><li><span class="violet">정체성</span>은 전장에 존재하는 특정 캐릭터를 구분한다.</li></ul>
-              </div>
-            </div>
-            <div class="callout"><p>외부에서 데이터를 마음대로 꺼내 쓰는 상자가 아니라, 자신의 규칙을 지키면서 다른 객체의 요청에 응답하는 주체로 본다.</p></div>
-          </div>
-        </section>
+<section class="slide" id="slide-5" data-slide="05 / 30" aria-labelledby="title-5"><div><p class="kicker">Think · Change</p><h2 id="title-5">독 묻은 활을 더하면 어떤 분기를 바꿀까?</h2><div class="two"><div class="question"><p class="big">무기 3종 × 효과 3종<br><span class="amber">9가지 조합</span></p></div><div class="panel amber"><h3>분기만 늘렸을 때</h3><p>무기와 효과를 한 종류로 묶으면 조합마다 처리 코드가 생긴다. 독 규칙을 고칠 때 검과 활의 독 처리도 함께 찾아야 한다.</p></div></div><div class="callout "><p>같은 이유로 바뀌는 규칙을 모으고, 독립적으로 바뀌는 규칙의 경계를 나누는 방법이 필요하다.</p></div></div></section>
 
-        <section class="slide" id="slide-7" data-slide="07 / 20" aria-labelledby="title-7">
-          <div>
-            <p class="kicker">Class &amp; Instance</p>
-            <h2 id="title-7">클래스는 정의, 인스턴스는 실행 중인 실체다</h2>
-            <div class="two-column">
-              <div class="panel teal"><h3>클래스</h3><ul class="lecture-points"><li>클래스는 객체의 상태, 행동과 외부 약속을 정의한다.</li><li>Character 클래스는 책임과 캡슐화의 경계 안에서 체력 처리와 생존 판단의 규칙을 정의한다.</li></ul></div>
-              <div class="panel violet"><h3>인스턴스</h3><ul class="lecture-points"><li>인스턴스는 클래스 정의를 바탕으로 실행 중에 생성된 구체적 객체다.</li><li>기사 아린과 마법사 루나처럼 같은 클래스의 인스턴스도 상태와 생명 주기는 서로 독립적이다.</li></ul></div>
-            </div>
-            <div class="callout warning"><ul class="lecture-points"><li>플레이어는 정체성이 중요한 엔티티로 표현한다.</li><li>‘불 속성’과 ‘피해량 10’은 값이 같으면 동일하게 취급하는 불변 값 객체로 표현할 수 있다.</li></ul></div>
-          </div>
-        </section>
+<section class="slide" id="slide-6" data-slide="06 / 30" aria-labelledby="title-6"><div><p class="kicker">Responsibility Boundary</p><h2 id="title-6">필요한 정보를 가진 쪽이 판단을 맡는다</h2><table class="compare"><thead><tr><th>판단할 내용</th><th>필요한 정보</th><th>맡길 객체</th></tr></thead><tbody><tr><td>HP를 얼마나 줄일까?</td><td>현재 HP, 최대 HP</td><td>Character</td></tr><tr><td>어떤 공격 효과를 만들까?</td><td>장착 무기의 규칙</td><td>Weapon</td></tr><tr><td>독이 몇 턴 더 지속될까?</td><td>남은 시간과 독 피해</td><td>StatusEffect</td></tr><tr><td>누가 다음에 행동할까?</td><td>현재 차례와 참여자</td><td>Battle</td></tr></tbody></table><div class="callout "><p>책임은 객체가 무엇을 알고 무엇을 수행해야 하는지다. 단순히 함수 이름을 나누는 데서 끝내지 않고, 판단에 필요한 상태도 함께 배치한다.</p></div></div></section>
 
-        <section class="slide" id="slide-8" data-slide="08 / 20" aria-labelledby="title-8">
-          <div>
-            <p class="kicker">Responsibility</p>
-            <h2 id="title-8">책임: 누가 무엇을 알고 결정해야 하는가</h2>
-            <div class="two-column">
-              <div>
-                <ul class="lecture-points"><li>책임은 객체가 무엇을 알고 무엇을 수행해야 하는지를 의미한다.</li><li>필요한 정보를 가진 객체가 그 정보를 사용하는 판단도 맡아야 한다.</li><li>체력의 유효 범위는 캐릭터가 관리한다.</li><li>독의 지속 시간과 기본 공격 방식은 각각 상태 효과와 무기 객체가 관리한다.</li></ul>
-              </div>
-              <div class="flow">Character  체력·자원·생존 상태
-Weapon     기본 공격 방식
-Skill      조건·비용·효과 생성
-Effect     적용 시점·지속 시간
-Battle     턴 순서·협력 조정</div>
-            </div>
-            <div class="callout"><ul class="lecture-points"><li>한 객체가 여러 이유로 자주 변경된다면 책임이 과도할 수 있다.</li><li>행동 하나를 이해하기 위해 너무 많은 객체를 거쳐야 한다면 책임을 지나치게 분리했을 수 있다.</li></ul></div>
-          </div>
-        </section>
+<section class="slide" id="slide-7" data-slide="07 / 30" aria-labelledby="title-7"><div><p class="kicker">Object-oriented Programming</p><h2 id="title-7">객체지향은 책임을 가진 객체들의 협력이다</h2><p class="quote">관련된 상태와 행동을 객체로 묶고,<br>객체들이 공개된 요청으로 협력하게 만든다.</p><div class="two"><div class="panel teal"><h3>객체 안에서는</h3><p>자기가 가진 상태가 유효하도록 규칙을 지킨다. Character는 피해를 받아도 HP를 0 아래로 내리지 않는다.</p></div><div class="panel violet"><h3>객체 사이에서는</h3><p>상대의 내부 계산을 대신하지 않고 공개된 행동을 요청한다. 공격자는 방어자에게 TakeDamage를 요청한다.</p></div></div></div></section>
 
-        <section class="slide" id="slide-9" data-slide="09 / 20" aria-labelledby="title-9">
-          <div>
-            <p class="kicker">Message &amp; Collaboration</p>
-            <h2 id="title-9">메시지와 협력: 전투 한 번은 여러 객체가 완성한다</h2>
-            <ul class="lecture-points"><li>메시지는 상대 객체에게 특정 행동을 수행해 달라고 요청하는 것이다.</li><li>요청을 구체적으로 수행하는 방법은 메시지를 받은 객체가 결정한다.</li><li>호출자는 상대의 내부 필드가 아니라 공개된 행동에 의존한다.</li></ul>
-            <div class="sequence five" aria-label="전투 메시지 흐름">
-              <div class="node">플레이어<br>공격 선택</div><div class="arrow">→</div>
-              <div class="node">Battle<br>협력 조정</div><div class="arrow">→</div>
-              <div class="node">Weapon<br>효과 생성</div><div class="arrow">→</div>
-              <div class="node">DamagePolicy<br>피해 계산</div><div class="arrow">→</div>
-              <div class="node">Character<br>피해 수용</div>
-            </div>
-            <div class="callout violet-border"><p>Battle이 방어자의 체력을 직접 덮어쓰지 않고 “이 피해를 받아 달라”고 요청하면, 방어자는 보호막·무적·최소 체력 같은 자신의 규칙을 지킬 수 있다.</p></div>
-          </div>
-        </section>
+<section class="slide" id="slide-8" data-slide="08 / 30" aria-labelledby="title-8"><div><p class="kicker">Object</p><h2 id="title-8">객체에는 상태·행동·정체성이 있다</h2><div class="two"><div class="panel teal"><h3>고블린 A</h3><p>상태: HP 10, 장착 무기 검<br>행동: 피해 받기, 무기 교체<br>정체성: 전장 왼쪽의 그 고블린</p></div><div class="panel violet"><h3>고블린 B</h3><p>상태: HP 10, 장착 무기 검<br>행동: 피해 받기, 무기 교체<br>정체성: 전장 오른쪽의 다른 고블린</p></div></div><div class="callout "><p>값이 같아도 A와 B는 별개다. A가 피해를 받았다고 B의 HP가 줄어들어서는 안 된다. 정체성은 상태 값과 별개로 “어느 객체인가”를 구별한다.</p></div></div></section>
 
-        <section class="slide" id="slide-10" data-slide="10 / 20" aria-labelledby="title-10">
-          <div>
-            <p class="kicker">Encapsulation</p>
-            <h2 id="title-10">캡슐화는 값을 숨기는 것보다 <span class="accent">변화를 가두는 일</span>이다</h2>
-            <div class="two-column">
-              <div class="panel red"><h3>약한 캡슐화</h3><ul class="lecture-points"><li>필드를 비공개로 만들더라도 모든 값에 읽기와 쓰기를 제공하면 내부 구조가 노출된다.</li><li>외부에서 체력을 계산하고 저장하면 체력 규칙이 호출자에게 퍼진다.</li></ul></div>
-              <div class="panel teal"><h3>의도 중심 캡슐화</h3><ul class="lecture-points"><li>takeDamage(), heal()과 spendMana()처럼 의미 있는 행동만 공개한다.</li><li>내부 자료 구조와 검증 순서는 객체가 책임진다.</li></ul></div>
-            </div>
-            <ul class="lecture-points"><li>외부 객체는 대상이 피해를 받을 수 있다는 공개 약속만 알면 되고, 체력 필드나 보호막 적용 순서는 알 필요가 없다.</li><li>공개된 행동이 유지되면 내부 구현의 변경은 객체 안에서 끝난다.</li></ul>
-            <div class="callout"><p>정보 은닉은 보안 장치가 아니라 <strong>변경 전파를 막는 설계의 방화벽</strong>이다.</p></div>
-          </div>
-        </section>
+<section class="slide" id="slide-9" data-slide="09 / 30" aria-labelledby="title-9"><div><p class="kicker">Class and Instance</p><h2 id="title-9">클래스는 정의이고 인스턴스는 실제 객체다</h2><pre><code>var a = new Character(&quot;고블린 A&quot;, 10);
+var b = new Character(&quot;고블린 B&quot;, 10);
+a.TakeDamage(4);</code></pre><table class="compare"><thead><tr><th>구분</th><th>뜻</th><th>예시 결과</th></tr></thead><tbody><tr><td>Character 클래스</td><td>상태와 행동의 공통 정의</td><td>HP, TakeDamage 규칙</td></tr><tr><td>a와 b 인스턴스</td><td>실행 중 따로 만들어진 두 객체</td><td>a.Hp = 6, b.Hp = 10</td></tr></tbody></table><div class="callout "><p>new는 그 정의로 새 객체를 만드는 표현이다. 하나의 클래스로 여러 인스턴스를 만들 수 있으며 각각의 상태는 독립적이다.</p></div><p class="source">객체지향 개념을 설명하는 RPG 설계 예시. 아래 클래스와 기능 전체가 1차시 게임에 구현되어 있다는 뜻은 아니다.</p></div></section>
 
-        <section class="slide compact" id="slide-11" data-slide="11 / 20" aria-labelledby="title-11">
-          <div>
-            <p class="kicker">Invariant &amp; State Transition</p>
-            <h2 id="title-11">불변 조건과 상태 전이로 객체를 항상 유효하게 유지한다</h2>
-            <div class="wide-narrow">
-              <div>
-                <ul class="lecture-points"><li><strong>불변 조건</strong>은 객체가 존재하는 동안 항상 참이어야 하는 규칙이다.</li><li>캐릭터의 체력은 유효 범위를 벗어날 수 없고, 사망한 캐릭터는 일반 행동을 수행할 수 없다.</li><li><strong>상태 전이</strong>는 공격 시작 같은 허용된 사건을 통해서만 상태를 변경하는 과정이다.</li><li>사망 상태의 캐릭터에 대한 공격 시작 요청은 거부된다.</li></ul>
-              </div>
-              <div class="flow">행동 가능
-   │ 공격 시작
-   ▼
-행동 중 ── 완료 ─▶ 대기
-   │ 치명적 피해
-   ▼
-  사망
+<section class="slide" id="slide-10" data-slide="10 / 30" aria-labelledby="title-10"><div><p class="kicker">Identity and Value</p><h2 id="title-10">값만 중요한 정보는 값으로 다룰 수 있다</h2><div class="two"><div class="panel teal"><h3>정체성을 구별해야 할 때</h3><p>고블린 둘의 HP가 같아도 다른 대상이다. 선택, 피해, 사망은 특정 고블린에 적용한다.</p></div><div class="panel violet"><h3>값이 같으면 같게 다룰 때</h3><p>피해량 10이나 좌표 (2,3)은 값 자체가 의미다. 변경할 수 없는 값 객체로 표현하면 함께 읽기도 쉽다.</p></div></div><div class="callout "><p>화면에 보이는 모든 명사를 독립된 객체로 만들 필요는 없다. 어떤 정보에 정체성이 필요한지, 어떤 정보는 값 비교로 충분한지 판단한다.</p></div></div></section>
 
-사망 + 공격 요청 = 거부</div>
-            </div>
-            <div class="callout warning"><ul class="lecture-points"><li>외부가 상태를 직접 바꾸면 사망했지만 공격 가능한 캐릭터 같은 불가능한 조합이 생긴다.</li><li>상태를 소유한 객체가 모든 상태 전이의 유효성을 검사해야 한다.</li></ul></div>
-          </div>
-        </section>
+<section class="slide" id="slide-11" data-slide="11 / 30" aria-labelledby="title-11"><div><p class="kicker">Message and Collaboration</p><h2 id="title-11">메시지는 다른 객체에게 행동을 요청하는 것이다</h2><div class="flow"><div class="node">공격 입력</div><div class="arrow">→</div><div class="node">Battle<br>협력 조정</div><div class="arrow">→</div><div class="node">Weapon<br>효과 생성</div><div class="arrow">→</div><div class="node">Character<br>피해 처리</div></div><div class="callout "><p>여기서 메시지는 메서드 호출로 표현한다. Battle이 Character.TakeDamage(5)를 부르면 Character가 자기 규칙으로 HP를 변경한다.</p></div><p>구체적인 피해량 계산 정책은 Battle이 사용하는 별도 계산기로 둘 수 있다. 협력의 순서와 각 객체 내부의 처리 방법을 구분한다.</p></div></section>
 
-        <section class="slide" id="slide-12" data-slide="12 / 20" aria-labelledby="title-12">
-          <div>
-            <p class="kicker">Tell, Don't Ask</p>
-            <h2 id="title-12">데이터를 캐묻고 대신 판단하면 책임이 누수된다</h2>
-            <div class="two-column">
-              <div class="panel red"><h3>Ask 중심</h3><pre>hp = target.getHp()
-shield = target.getShield()
-effects = target.getEffects()
-계산 후 target.setHp(...)</pre><ul class="lecture-points"><li>호출자가 대상의 내부 구조와 규칙을 모두 알아야 한다.</li></ul></div>
-              <div class="panel teal"><h3>Tell 중심</h3><pre>result = target
-  .receive(damage)</pre><ul class="lecture-points"><li>호출자는 대상에게 의도를 전달하고 대상은 자신의 규칙으로 결과를 만든다.</li></ul></div>
-            </div>
-            <ul class="lecture-points"><li><strong>Tell, Don't Ask</strong>는 모든 조회 기능을 금지하는 절대 규칙이 아니다.</li><li>다른 객체의 데이터를 연속해서 읽고 대신 판단하는 코드는 책임 누수의 신호다.</li><li>책임 누수가 발견되면 해당 판단을 정보를 소유한 객체로 이동할지 검토한다.</li></ul>
-          </div>
-        </section>
+<section class="slide" id="slide-12" data-slide="12 / 30" aria-labelledby="title-12"><div><p class="kicker">First Attempt · Public Data</p><h2 id="title-12">HP를 밖에서 바꾸면 규칙이 흩어진다</h2><pre><code>defender.Hp -= damage;
+if (defender.Hp &lt; 0) defender.Hp = 0;
+if (defender.Hp == 0) HandleDeath(defender);</code></pre><div class="two"><div class="panel teal"><h3>지금 호출자는</h3><p>방어자의 HP 범위와 사망 조건까지 알아야 한다. 다른 공격 코드에서도 같은 검사를 반복한다.</p></div><div class="panel amber"><h3>변경이 생기면</h3><p>보호막이나 최소 HP 규칙을 더할 때 모든 호출 위치를 찾아 수정해야 한다. 하나를 놓치면 규칙이 달라진다.</p></div></div><p class="source">객체지향 개념을 설명하는 RPG 설계 예시. 아래 클래스와 기능 전체가 1차시 게임에 구현되어 있다는 뜻은 아니다.</p></div></section>
 
-        <section class="slide" id="slide-13" data-slide="13 / 20" aria-labelledby="title-13">
-          <div>
-            <p class="kicker">Abstraction &amp; Interface</p>
-            <h2 id="title-13">추상화는 중요한 차이를 남기고 불필요한 차이를 감춘다</h2>
-            <ul class="lecture-points"><li>전투 진행자에게 검의 재료나 활의 애니메이션 파일은 중요하지 않다.</li><li>전투 진행자에게는 모든 무기가 공격 효과를 제공한다는 공통 역할이 중요하다.</li><li>인터페이스는 객체를 사용하는 쪽에 필요한 공통 약속을 표현한다.</li></ul>
-            <div class="implementation-map" aria-label="Sword, Bow, Staff가 동일한 Weapon 인터페이스를 구현하는 구조">
-              <div class="node role"><span><span class="accent">Weapon 인터페이스</span><br>공격 효과 제공</span></div>
-              <div class="connector">▲<br><small>구현</small></div><div class="connector">▲<br><small>구현</small></div><div class="connector">▲<br><small>구현</small></div>
-              <div class="impl">Sword</div><div class="impl">Bow</div><div class="impl">Staff</div>
-            </div>
-            <div class="callout"><ul class="lecture-points"><li>Battle은 Weapon의 약속만 알기 때문에 구체 무기가 바뀌어도 전투 흐름을 유지한다.</li><li>추상화는 복잡성을 제거하는 기술이 아니라 <strong>복잡성이 퍼질 경계를 정하는 기술</strong>이다.</li></ul></div>
-          </div>
-        </section>
+<section class="slide" id="slide-13" data-slide="13 / 30" aria-labelledby="title-13"><div><p class="kicker">Encapsulation</p><h2 id="title-13">캡슐화는 상태를 바꾸는 통로를 관리한다</h2><pre><code>public int Hp { get; private set; }
 
-        <section class="slide" id="slide-14" data-slide="14 / 20" aria-labelledby="title-14">
-          <div>
-            <p class="kicker">Useful Abstraction</p>
-            <h2 id="title-14">좋은 추상화는 사용자의 필요와 실제 변화에서 출발한다</h2>
-            <table class="comparison">
-              <caption>실제 변화에 근거한 추상화와 과잉 추상화의 차이</caption>
-              <thead><tr><th scope="col">좋은 추상화의 신호</th><th scope="col">과잉 추상화의 신호</th></tr></thead>
-              <tbody>
-                <tr><td>서로 다른 구현을 같은 역할로 다룬다.</td><td>구현이 하나뿐인데 미래를 추측해 층을 만든다.</td></tr>
-                <tr><td>사용자가 필요한 작은 약속만 공개한다.</td><td>구현 클래스의 모든 기능을 거대한 인터페이스에 복사한다.</td></tr>
-                <tr><td>교체·테스트·변화 격리라는 실제 목적이 있다.</td><td>호출 흐름만 길어지고 해결한 문제가 설명되지 않는다.</td></tr>
-              </tbody>
-            </table>
-            <ul class="lecture-points"><li>인터페이스의 수가 많다고 확장성이 자동으로 높아지는 것은 아니다.</li><li>추상화에는 새로운 개념을 배우고 객체의 연결과 실행 흐름을 추적하는 비용이 따른다.</li><li>반복되는 변화나 교체 가능성이 확인될 때 추상화의 비용을 정당화할 수 있다.</li></ul>
-            <div class="callout warning"><ul class="lecture-points"><li>이 추상화를 제거했을 때 어려워지는 변경이 없다면 아직 추상화가 필요하지 않을 수 있다.</li></ul></div>
-          </div>
-        </section>
+public void TakeDamage(int damage)
+{
+    if (damage &lt;= 0) return;
+    Hp = Math.Max(0, Hp - damage);
+}</code></pre><div class="callout "><p>외부는 HP를 읽을 수 있지만 마음대로 대입할 수 없다. TakeDamage라는 통로로 요청하면 객체 안에서 한 가지 규칙으로 변경한다.</p></div><p class="source">객체지향 개념을 설명하는 RPG 설계 예시. 아래 클래스와 기능 전체가 1차시 게임에 구현되어 있다는 뜻은 아니다.</p></div></section>
 
-        <section class="slide" id="slide-15" data-slide="15 / 20" aria-labelledby="title-15">
-          <div>
-            <p class="kicker">Inheritance</p>
-            <h2 id="title-15">상속은 코드 복사 방지보다 <span class="violet">타입 관계</span>를 표현한다</h2>
-            <div class="two-column">
-              <div><ul class="lecture-points"><li>상속은 공통 행동을 재사용하면서 안정적인 “A는 B의 한 종류다”라는 타입 관계를 표현한다.</li><li>상속 계층이 깊어지면 부모의 상태와 호출 순서에 대한 결합이 커져 작은 변경도 여러 자식에게 전파될 수 있다.</li></ul></div>
-              <div class="panel amber"><h3>대체 가능성 점검</h3><ul class="lecture-points"><li>하위 타입은 상위 타입의 자리에 놓였을 때 기존 프로그램의 약속을 깨뜨리지 않아야 한다.</li><li>하위 타입은 더 까다로운 입력 조건을 요구하거나 상위 타입이 보장한 결과를 약화해서는 안 된다.</li></ul></div>
-            </div>
-            <div class="callout warning"><ul class="lecture-points"><li>“전사는 검 사용자다”를 상속으로 표현하면 전사가 활을 장착하는 순간 모델이 깨진다.</li><li>무기 사용은 캐릭터의 본질적 타입보다 교체 가능한 능력에 가깝다.</li></ul></div>
-          </div>
-        </section>
+<section class="slide" id="slide-14" data-slide="14 / 30" aria-labelledby="title-14"><div><p class="kicker">Invariant</p><h2 id="title-14">불변 조건은 모든 정상 상태에서 지켜야 한다</h2><div class="question"><p class="big">HP가 3인 캐릭터가 피해 8을 받았다.<br>HP는 <span class="amber">−5일까, 0일까?</span></p></div><table class="compare"><thead><tr><th>계산 단계</th><th>결과</th></tr></thead><tbody><tr><td>단순 뺄셈</td><td>3 − 8 = −5</td></tr><tr><td>HP의 유효 범위를 적용</td><td>최소 0으로 제한</td></tr><tr><td>호출이 끝난 상태</td><td>HP = 0, 생존하지 않음</td></tr></tbody></table><div class="callout "><p>불변 조건은 “정상적인 객체라면 항상 성립해야 하는 규칙”이다. 이 예시에서는 0 ≤ HP ≤ 최대 HP를 각 변경 메서드가 지킨다.</p></div></div></section>
 
-        <section class="slide compact" id="slide-16" data-slide="16 / 20" aria-labelledby="title-16">
-          <div>
-            <p class="kicker">Composition</p>
-            <h2 id="title-16">합성은 독립적으로 변하는 행동을 부품처럼 조립한다</h2>
-            <div class="two-column">
-              <div>
-                <ul class="lecture-points"><li>캐릭터는 Sword를 상속하는 대신 Weapon 역할의 객체를 보유하고 공격 행동을 위임한다.</li><li>합성을 사용하면 실행 중에 검을 활로 교체할 수 있다.</li><li>직업, 무기, AI, 원소와 상태 효과를 상속하면 조합 수만큼 클래스가 증가한다.</li><li>합성은 독립적으로 변하는 행동을 각각의 구성요소로 분리한다.</li></ul>
-              </div>
-              <pre>Battle / CombatResolver
- └ DamagePolicy
+<section class="slide" id="slide-15" data-slide="15 / 30" aria-labelledby="title-15"><div><p class="kicker">State Transition</p><h2 id="title-15">처음 죽을 때와 이미 죽어 있을 때를 구분한다</h2><div class="two"><div class="panel teal"><h3>살아 있음 → 죽음</h3><p>이전 HP가 양수이고 새 HP가 0이면 사망 전이가 일어났다. 사망 처리와 보상은 이 변화에 맞춰 수행한다.</p></div><div class="panel amber"><h3>죽음 → 죽음</h3><p>이미 HP가 0인데 다시 피해를 받았다고 사망 보상을 또 주면 안 된다. 현재 값뿐 아니라 이전 상태도 판단에 필요하다.</p></div></div><div class="callout "><p>상태는 지금의 값이고, 전이는 이전 상태에서 새 상태로 바뀌는 과정이다. 같은 HP 0이라도 어떻게 도달했는지에 따라 처리할 일이 다르다.</p></div></div></section>
 
-Character
- ├ Weapon
- ├ SkillSet
- └ StatusEffects
-    ├ Poison
-    ├ Stun
-    └ Shield</pre>
-            </div>
-            <div class="callout"><ul class="lecture-points"><li>전투 전체의 피해 정책은 Battle 또는 CombatResolver가 사용한다.</li><li>캐릭터가 무기, 스킬과 상태 효과를 합성할 때는 소유 기준을 일관되게 유지해야 한다.</li></ul></div>
-          </div>
-        </section>
+<section class="slide" id="slide-16" data-slide="16 / 30" aria-labelledby="title-16"><div><p class="kicker">Tell, Don’t Ask</p><h2 id="title-16">정보를 꺼내 대신 판단하기보다 행동을 요청한다</h2><div class="two"><div class="panel amber"><h3>호출자가 대신 결정</h3><p>HP를 읽고 피해를 빼고 0으로 보정한 뒤 사망을 처리한다. 호출자마다 방어자의 규칙을 알아야 한다.</p></div><div class="panel teal"><h3>상태의 주인에게 요청</h3><p>defender.TakeDamage(8)를 부른다. 방어자가 유효 범위와 사망 전이를 관리한다.</p></div></div><div class="callout "><p>값 조회를 모두 금지하자는 뜻은 아니다. UI처럼 현재 HP를 표시하는 일은 조회가 자연스럽다. 상태를 바꾸는 판단이 여러 곳에 퍼지는지 살핀다.</p></div></div></section>
 
-        <section class="slide" id="slide-17" data-slide="17 / 20" aria-labelledby="title-17">
-          <div>
-            <p class="kicker">Polymorphism</p>
-            <h2 id="title-17">다형성은 같은 메시지에 각 객체가 다르게 응답하게 한다</h2>
-            <div class="two-column">
-              <div class="panel red"><h3>종류 판별 중심</h3><ul class="lecture-points"><li>Battle은 검, 활과 지팡이의 종류를 직접 판별한다.</li><li>새 무기를 추가할 때마다 중앙 전투 코드를 수정해야 한다.</li></ul></div>
-              <div class="panel teal"><h3>다형성 중심</h3><ul class="lecture-points"><li>Battle은 Weapon에게 공격 효과를 요청하고 각 무기는 자신의 규칙으로 응답한다.</li><li>새로운 Weapon 구현을 추가해도 Battle의 요청 방식은 유지된다.</li></ul></div>
-            </div>
-            <ul class="lecture-points"><li>다형성은 모든 조건문을 없애는 기법이 아니라 구체적인 종류에 관한 지식을 해당 객체로 이동시켜 수정 범위를 줄이는 방법이다.</li></ul>
-            <div class="callout warning"><ul class="lecture-points"><li>단순한 조건문은 유지하되 종류가 계속 증가하고 동일한 판별이 반복될 때 다형성을 검토한다.</li></ul></div>
-          </div>
-        </section>
+<section class="slide" id="slide-17" data-slide="17 / 30" aria-labelledby="title-17"><div><p class="kicker">Abstraction</p><h2 id="title-17">무기 종류가 달라도 필요한 요청은 같다</h2><div class="two"><div class="panel teal"><h3>Battle이 필요한 것</h3><p>선택한 무기의 사거리를 확인하고 공격 효과를 얻고 싶다. 검인지 활인지에 따른 세부 구현은 무기가 맡으면 된다.</p></div><div class="panel violet"><h3>Weapon이 공개할 약속</h3><p>사거리와 공격 효과를 제공한다. 칼날 효과, 화살 생성, 지팡이의 원소 처리처럼 다른 부분은 각 구현 안에 둔다.</p></div></div><div class="callout "><p>추상화는 사용하는 쪽에 필요한 공통 역할을 드러내는 것이다. 중요하지 않은 세부 차이를 경계 안에 두어 변경이 퍼지는 범위를 줄인다.</p></div></div></section>
 
-        <section class="slide" id="slide-18" data-slide="18 / 20" aria-labelledby="title-18">
-          <div>
-            <p class="kicker">Dependency Inversion</p>
-            <h2 id="title-18">의존성 역전은 핵심 전투 규칙을 세부 기술에서 보호한다</h2>
-            <div class="two-column">
-              <div>
-                <ul class="lecture-points"><li>Battle이 특정 화면 로그를 직접 사용하면 UI 없이 전투 규칙을 테스트하기 어렵다.</li><li>Battle이 실제 난수 생성기를 직접 사용하면 테스트 결과를 일정하게 재현하기 어렵다.</li><li>핵심 정책이 구체적인 기술을 직접 사용하면 세부 구현의 형태에 끌려간다.</li><li>BattleLog와 RandomSource의 역할은 핵심 전투 규칙 쪽에서 정의한다.</li><li>게임에서는 화면 로그와 실제 난수를 연결한다.</li><li>테스트에서는 메모리 기록기와 고정 난수를 연결한다.</li></ul>
-              </div>
-              <div class="flow">BattleRules ─▶ BattleLog ◀─ UI Log
-                       ◀─ Test Log
+<section class="slide" id="slide-18" data-slide="18 / 30" aria-labelledby="title-18"><div><p class="kicker">Interface Contract</p><h2 id="title-18">인터페이스는 사용할 수 있는 약속을 적는다</h2><pre><code>public interface IWeapon
+{
+    int Range { get; }
+    AttackEffect CreateEffect();
+}</code></pre><div class="callout "><p>IWeapon은 구현 방법 대신 사거리 조회와 효과 생성이 가능하다고 약속한다. Sword와 Bow는 각자 방법으로 이 약속을 구현한다.</p></div><p>AttackEffect는 여기서 무기가 만들어 전달하는 공격 효과를 뜻하는 설계 예시 타입이다.</p><p class="source">객체지향 개념을 설명하는 RPG 설계 예시. 아래 클래스와 기능 전체가 1차시 게임에 구현되어 있다는 뜻은 아니다.</p></div></section>
 
-BattleRules ─▶ RandomSource
-                       ◀─ Real Random
-                       ◀─ Fixed Test</div>
-            </div>
-            <div class="callout"><p><strong>의존 방향의 역전:</strong> 상위 정책이 하위 도구에 맞추는 대신, 하위 구현이 상위 정책이 정한 안정적인 약속에 맞춘다.</p></div>
-          </div>
-        </section>
+<section class="slide" id="slide-19" data-slide="19 / 30" aria-labelledby="title-19"><div><p class="kicker">Polymorphism</p><h2 id="title-19">다형성은 같은 요청에 구현별로 응답하는 것이다</h2><table class="compare"><thead><tr><th>같은 호출</th><th>연결된 실제 객체</th><th>그 객체의 응답</th></tr></thead><tbody><tr><td>weapon.CreateEffect()</td><td>Sword</td><td>근접 피해 효과 생성</td></tr><tr><td>weapon.CreateEffect()</td><td>Bow</td><td>원거리 공격 효과 생성</td></tr><tr><td>weapon.CreateEffect()</td><td>IceStaff</td><td>피해와 빙결 효과 생성</td></tr></tbody></table><div class="callout "><p>호출자는 IWeapon이라는 약속으로 요청한다. 어떤 구현의 메서드가 실행되는지는 연결된 객체가 정한다. 새 무기를 더해도 호출하는 코드는 같은 요청을 쓸 수 있다.</p></div></div></section>
 
-        <section class="slide" id="slide-19" data-slide="19 / 20" aria-labelledby="title-19">
-          <div>
-            <p class="kicker">Final Architecture</p>
-            <h2 id="title-19">완성된 전투 시스템: 책임은 나뉘고 협력은 명확해진다</h2>
-            <div class="two-column">
-              <div class="flow">Input
-  ▼
-Battle ── 턴과 협력 조정
-  ├▶ Character ─ 상태·불변 조건
-  ├▶ Weapon/Skill ─ 효과 생성
-  ├▶ DamagePolicy ─ 피해 계산
-  ├▶ StatusEffect ─ 지속 효과
-  └▶ BattleLog ─ 결과 전달</div>
-              <div>
-                <ul class="lecture-points"><li>독 묻은 검은 물리 피해와 독 상태 효과를 생성한다.</li><li>피해 정책은 공격자, 방어자와 치명타 조건을 조합한다.</li><li>방어자는 자신의 불변 조건을 지키면서 피해를 받는다.</li><li>독 객체는 다음 턴부터 피해량과 지속 시간을 관리한다.</li><li>얼음 지팡이는 새 Weapon과 빙결 효과를 연결하여 추가한다.</li><li><strong>응집도</strong>가 높은 객체는 한 목적의 규칙을 모으고, <strong>결합도</strong>가 낮은 객체는 협력자의 작은 공개 약속만 안다.</li></ul>
-              </div>
-            </div>
-          </div>
-        </section>
+<section class="slide" id="slide-20" data-slide="20 / 30" aria-labelledby="title-20"><div><p class="kicker">Think · Inheritance</p><h2 id="title-20">전사가 활을 들면 타입도 바뀌어야 할까?</h2><div class="two"><div class="question"><p class="big">“전사는 검 사용자”를<br>상속으로 고정했다.<br><span class="amber">활을 장착한다면?</span></p></div><div class="panel amber"><h3>모델의 한계</h3><p>장착 무기는 전투 중 바뀔 수 있다. 직업과 무기를 같은 상속 계층으로 묶으면 전사+검, 전사+활처럼 조합마다 타입이 늘어난다.</p></div></div><div class="callout "><p>상속은 안정적인 “한 종류다” 관계를 표현할 때 적합하다. 교체할 수 있는 능력까지 타입으로 고정하는지 확인한다.</p></div></div></section>
 
-        <section class="slide" id="slide-20" data-slide="20 / 20" aria-labelledby="title-20">
-          <div>
-            <p class="kicker">Conclusion</p>
-            <h2 id="title-20">좋은 객체지향 설계는 좋은 질문에서 시작한다</h2>
-            <div class="two-column">
-              <div class="panel teal"><h3>설계할 때 반복할 질문</h3><ul class="lecture-points"><li>이 규칙을 가장 잘 아는 객체는 누구인가?</li><li>이 객체가 변경되는 이유는 몇 개인가?</li><li>다른 객체의 내부 상태를 대신 판단하고 있지 않은가?</li><li>새로운 종류를 추가할 때 중앙 분기를 수정해야 하는가?</li><li>이 추상화가 해결하는 실제 변화가 존재하는가?</li></ul></div>
-              <div><p class="quote">객체지향은 변화하는 규칙을 적절한 객체에 배치하고 안정적인 메시지를 통한 협력으로 시스템을 구성하는 방법이다.</p><ul class="lecture-points"><li>처음부터 완벽한 설계를 기대하기보다 반복되는 변경을 관찰하고 책임을 다시 배치하면서 모델을 발전시켜야 한다.</li></ul></div>
-            </div>
-            <p class="meta">좋은 설계의 기준은 패턴의 수가 아니라, 다음 변경을 예측 가능한 범위에서 수행할 수 있는가이다.</p>
-          </div>
-        </section>
+<section class="slide" id="slide-21" data-slide="21 / 30" aria-labelledby="title-21"><div><p class="kicker">Substitution</p><h2 id="title-21">상속한 타입은 부모의 약속을 지켜야 한다</h2><div class="two"><div class="panel teal"><h3>상속으로 표현하는 관계</h3><p>하위 타입을 상위 타입 자리에 넣어도 기존 호출자가 사용하는 규칙이 성립해야 한다.</p></div><div class="panel amber"><h3>약속이 깨지는 예</h3><p>부모는 모든 유효 대상에 공격할 수 있다고 약속했는데 자식은 특정 대상만 받아들이면 기존 호출이 실패한다.</p></div></div><div class="callout "><p>부모의 코드를 재사용할 수 있다는 이유만으로 상속하지 않는다. 하위 타입이 더 까다로운 입력을 요구하거나 보장된 결과를 줄이는지 확인한다.</p></div></div></section>
+
+<section class="slide" id="slide-22" data-slide="22 / 30" aria-labelledby="title-22"><div><p class="kicker">Composition</p><h2 id="title-22">합성은 교체할 부품을 객체가 가지게 한다</h2><pre><code>IWeapon weapon = new Sword();
+weapon = new Bow();
+AttackEffect effect = weapon.CreateEffect();</code></pre><div class="two"><div class="panel teal"><h3>바뀌는 것</h3><p>같은 캐릭터가 가진 무기 참조를 검에서 활로 바꾼다. 다음 공격은 Bow의 구현을 사용한다.</p></div><div class="panel violet"><h3>함께 나눌 수 있는 것</h3><p>무기, 스킬, 상태 효과를 독립된 부품으로 가진다. 전투 전체의 피해 정책은 Battle 쪽에서 사용할 수 있다.</p></div></div><p class="source">객체지향 개념을 설명하는 RPG 설계 예시. 아래 클래스와 기능 전체가 1차시 게임에 구현되어 있다는 뜻은 아니다.</p></div></section>
+
+<section class="slide" id="slide-23" data-slide="23 / 30" aria-labelledby="title-23"><div><p class="kicker">Compare</p><h2 id="title-23">상속과 합성은 해결하는 변화가 다르다</h2><table class="compare"><thead><tr><th>기준</th><th>상속</th><th>합성</th></tr></thead><tbody><tr><td>관계</td><td>A는 B의 한 종류</td><td>A가 B 역할의 부품을 가짐</td></tr><tr><td>변경 방식</td><td>타입의 행동을 확장하거나 재정의</td><td>연결한 객체를 교체하거나 조합</td></tr><tr><td>검토할 비용</td><td>부모 상태와 호출 규칙에 대한 의존</td><td>객체 생성·연결·소유 책임</td></tr></tbody></table><div class="callout "><p>상속과 합성 중 하나가 항상 정답은 아니다. 장착 무기처럼 독립적으로 교체되는 요소인지, 안정적인 타입 관계인지가 선택 기준이다.</p></div></div></section>
+
+<section class="slide" id="slide-24" data-slide="24 / 30" aria-labelledby="title-24"><div><p class="kicker">Dependency Problem</p><h2 id="title-24">화면 로그가 없어도 전투 규칙을 실행하려면?</h2><div class="two"><div class="panel amber"><h3>구체적인 UI에 직접 의존</h3><p>Battle이 화면 텍스트와 애니메이션 도구를 직접 다루면, 피해 계산을 확인할 때도 그 화면 구성이 필요해진다.</p></div><div class="panel teal"><h3>전투 쪽에서 필요한 역할</h3><p>Battle은 “이 결과를 기록한다”는 작은 약속만 필요하다. 화면에 그릴지 메모리에 모을지는 별도 구현이 맡을 수 있다.</p></div></div><div class="callout "><p>의존성이란 한 코드가 다른 코드의 타입이나 동작을 알아야 하는 관계다. 어떤 세부 기술을 알고 있는지 보면 변경이 퍼지는 방향을 알 수 있다.</p></div></div></section>
+
+<section class="slide" id="slide-25" data-slide="25 / 30" aria-labelledby="title-25"><div><p class="kicker">Dependency Inversion</p><h2 id="title-25">의존성 역전은 규칙 쪽에서 약속을 정한다</h2><pre><code>public interface IBattleLog
+{
+    void Write(string message);
+}</code></pre><table class="compare"><thead><tr><th>핵심 규칙이 사용하는 약속</th><th>실행 환경에 연결할 구현</th></tr></thead><tbody><tr><td>IBattleLog</td><td>게임: 화면 로그 / 검증: 메모리 기록기</td></tr><tr><td>난수 제공 역할</td><td>게임: 실제 난수 / 검증: 고정된 값</td></tr></tbody></table><div class="callout "><p>핵심 규칙을 UI 도구에 맞추는 대신, UI 도구가 핵심 규칙에 필요한 약속을 구현한다. 작은 인터페이스만 추가하는 것으로 끝내지 않고 실제 연결도 바꾸어야 한다.</p></div><p class="source">객체지향 개념을 설명하는 RPG 설계 예시. 아래 클래스와 기능 전체가 1차시 게임에 구현되어 있다는 뜻은 아니다.</p></div></section>
+
+<section class="slide" id="slide-26" data-slide="26 / 30" aria-labelledby="title-26"><div><p class="kicker">Trace the Collaboration</p><h2 id="title-26">독 묻은 검의 공격을 책임별로 따라간다</h2><div class="flow"><div class="node">Weapon<br>피해·독 효과</div><div class="arrow">→</div><div class="node">Battle의 계산기<br>최종 피해량</div><div class="arrow">→</div><div class="node">Character<br>HP 변경</div><div class="arrow">→</div><div class="node">StatusEffect<br>독 시간 관리</div></div><div class="callout "><p>무기가 효과를 만들고, 피해 정책이 공격·방어 조건을 계산한다. 방어자는 HP 규칙을 지킨다. 이후 턴의 독 피해와 남은 시간은 독 효과가 맡는다.</p></div><p>Battle은 이 협력의 순서를 조정하고 결과를 로그 역할에 전달한다. 원래 한 전투 함수가 알던 세부 규칙을 각 담당자가 소유하게 된다.</p></div></section>
+
+<section class="slide" id="slide-27" data-slide="27 / 30" aria-labelledby="title-27"><div><p class="kicker">Cohesion and Coupling</p><h2 id="title-27">한 목적의 규칙은 모으고 공개 약속은 작게 한다</h2><div class="two"><div class="panel teal"><h3>응집도</h3><p>한 목적을 위해 함께 바뀌는 상태와 규칙이 한 객체에 모인 정도다. HP와 피해·회복 규칙이 함께 있으면 변경 위치가 분명하다.</p></div><div class="panel violet"><h3>결합도</h3><p>객체가 다른 객체의 세부 사항에 얼마나 의존하는지다. 필요한 작은 약속만 알면 상대 구현을 바꾸기 쉬워진다.</p></div></div><div class="callout "><p>작은 클래스가 많다고 좋은 설계가 되는 것은 아니다. 한 행동을 이해하려고 지나치게 많은 객체를 오간다면 경계를 다시 묶는 편이 낫다.</p></div></div></section>
+
+<section class="slide" id="slide-28" data-slide="28 / 30" aria-labelledby="title-28"><div><p class="kicker">Judgment</p><h2 id="title-28">모든 기능을 미리 추상화할 필요는 없다</h2><div class="two"><div class="panel teal"><h3>분리할 근거가 있는 경우</h3><p>같은 종류 판별이 반복된다. 한 객체가 서로 다른 이유로 자주 바뀐다. 실제로 교체할 구현이 둘 이상 필요하다.</p></div><div class="panel amber"><h3>비용이 더 큰 경우</h3><p>변화가 거의 없는데 인터페이스와 중간 객체만 늘어난다. 어떤 변경을 쉽게 만들었는지 설명할 수 없다.</p></div></div><div class="callout "><p>처음의 짧은 피해 함수도 합리적인 출발점이었다. 반복되는 변경을 관찰하면서 책임을 옮기고 필요한 경계를 만든다.</p></div></div></section>
+
+<section class="slide" id="slide-29" data-slide="29 / 30" aria-labelledby="title-29"><div><p class="kicker">Mini Tactics Connection</p><h2 id="title-29">1차시 게임에서도 선택·판정·이동의 주인을 찾는다</h2><div class="role-map"><div class="role"><b>입력</b><span>어느 유닛과 셀을 눌렀는지 전달한다.</span></div><div class="role"><b>BattleController</b><span>선택한 유닛과 이동 요청을 조정한다.</span></div><div class="role"><b>BoardView</b><span>좌표 변환과 이동 가능 여부를 제공한다.</span></div><div class="role"><b>Unit</b><span>MoveTo로 실제 위치를 바꾼다.</span></div></div><div class="callout "><p>앞의 RPG 무기·전투 예시는 책임을 나누는 원리를 설명했다. 실제 1차시에서는 작은 이동 기능에서 같은 질문을 적용하고, 2차시에서 Undo라는 새 요구를 만난다.</p></div></div></section>
+
+<section class="slide" id="slide-30" data-slide="30 / 30" aria-labelledby="title-30"><div><p class="kicker">Takeaway</p><h2 id="title-30">새 기능을 더할 때 먼저 책임을 묻는다</h2><ol><li>객체는 관련된 상태와 행동을 가지며 자기 규칙을 지킨다.</li><li>객체끼리는 공개된 행동을 요청하며 협력한다.</li><li>함께 바뀌는 규칙은 모으고 독립적으로 바뀌는 부분은 나눈다.</li><li>상속·합성·추상화는 실제 변화와 비용을 보고 선택한다.</li></ol><div class="question"><p class="big">체력 바의 색을 바꾸는데 피해 함수를 고쳐야 한다면?<br><span class="amber">표시와 피해 처리의 책임이 섞였는지 살핀다.</span></p></div><div class="callout "><p>좋은 설계의 기준은 사용한 패턴의 수가 아니라, 다음 변경을 이해할 수 있는 범위에서 수행할 수 있는가이다.</p></div></div></section>
       </div>
     </main>
 
     <nav class="controls" aria-label="슬라이드 탐색">
-      <button class="control-btn" id="prevBtn" type="button" aria-label="이전 슬라이드">← 이전</button>
-      <button class="control-btn" id="tocBtn" type="button" aria-label="전체 목차 열기">목차</button>
-      <span id="slideCounter" aria-live="polite">1 / 20</span>
-      <button class="control-btn" id="nextBtn" type="button" aria-label="다음 슬라이드">다음 →</button>
+      <button class="control-btn" id="prevBtn" type="button" aria-label="이전 슬라이드">←</button>
+      <button class="control-btn" id="tocBtn" type="button">목차</button>
+      <span id="slideCounter" aria-live="polite">1 / 30</span>
+      <button class="control-btn" id="nextBtn" type="button" aria-label="다음 슬라이드">→</button>
     </nav>
   </div>
 
   <dialog id="tocDialog" aria-labelledby="tocTitle">
-    <div class="toc-header"><h2 id="tocTitle">전체 목차</h2><button class="control-btn" id="tocCloseBtn" type="button" aria-label="목차 닫기">닫기</button></div>
-    <nav class="toc-grid" aria-label="슬라이드 목차">
-      <a class="toc-link" href="#slide-1"><span>01</span>제목</a>
-      <a class="toc-link" href="#slide-2"><span>02</span>객체지향을 배우는 이유</a>
-      <a class="toc-link" href="#slide-3"><span>03</span>반복되는 변화</a>
-      <a class="toc-link" href="#slide-4"><span>04</span>하나의 전투 함수</a>
-      <a class="toc-link" href="#slide-5"><span>05</span>조건문과 결합</a>
-      <a class="toc-link" href="#slide-6"><span>06</span>객체</a>
-      <a class="toc-link" href="#slide-7"><span>07</span>클래스와 인스턴스</a>
-      <a class="toc-link" href="#slide-8"><span>08</span>책임</a>
-      <a class="toc-link" href="#slide-9"><span>09</span>메시지와 협력</a>
-      <a class="toc-link" href="#slide-10"><span>10</span>캡슐화</a>
-      <a class="toc-link" href="#slide-11"><span>11</span>불변 조건과 상태 전이</a>
-      <a class="toc-link" href="#slide-12"><span>12</span>Tell, Don't Ask</a>
-      <a class="toc-link" href="#slide-13"><span>13</span>추상화와 인터페이스</a>
-      <a class="toc-link" href="#slide-14"><span>14</span>좋은 추상화</a>
-      <a class="toc-link" href="#slide-15"><span>15</span>상속</a>
-      <a class="toc-link" href="#slide-16"><span>16</span>합성</a>
-      <a class="toc-link" href="#slide-17"><span>17</span>다형성</a>
-      <a class="toc-link" href="#slide-18"><span>18</span>의존성 역전</a>
-      <a class="toc-link" href="#slide-19"><span>19</span>최종 전투 구조</a>
-      <a class="toc-link" href="#slide-20"><span>20</span>결론</a>
-    </nav>
+    <div class="toc-head"><h2 id="tocTitle">전체 목차</h2><button class="control-btn" id="tocCloseBtn" type="button">닫기</button></div>
+    <div class="toc-grid">
+<a class="toc-link" href="#slide-1"><span>01</span>객체지향 프로그래밍</a><a class="toc-link" href="#slide-2"><span>02</span>처음에는 피해 계산 하나면 충분하다</a><a class="toc-link" href="#slide-3"><span>03</span>전투에 새 무기와 효과를 더하고 싶다</a><a class="toc-link" href="#slide-4"><span>04</span>첫 생각: 전투 함수에 분기를 추가하자</a><a class="toc-link" href="#slide-5"><span>05</span>독 묻은 활을 더하면 어떤 분기를 바꿀까?</a><a class="toc-link" href="#slide-6"><span>06</span>필요한 정보를 가진 쪽이 판단을 맡는다</a><a class="toc-link" href="#slide-7"><span>07</span>객체지향은 책임을 가진 객체들의 협력이다</a><a class="toc-link" href="#slide-8"><span>08</span>객체에는 상태·행동·정체성이 있다</a><a class="toc-link" href="#slide-9"><span>09</span>클래스는 정의이고 인스턴스는 실제 객체다</a><a class="toc-link" href="#slide-10"><span>10</span>값만 중요한 정보는 값으로 다룰 수 있다</a><a class="toc-link" href="#slide-11"><span>11</span>메시지는 다른 객체에게 행동을 요청하는 것이다</a><a class="toc-link" href="#slide-12"><span>12</span>HP를 밖에서 바꾸면 규칙이 흩어진다</a><a class="toc-link" href="#slide-13"><span>13</span>캡슐화는 상태를 바꾸는 통로를 관리한다</a><a class="toc-link" href="#slide-14"><span>14</span>불변 조건은 모든 정상 상태에서 지켜야 한다</a><a class="toc-link" href="#slide-15"><span>15</span>처음 죽을 때와 이미 죽어 있을 때를 구분한다</a><a class="toc-link" href="#slide-16"><span>16</span>정보를 꺼내 대신 판단하기보다 행동을 요청한다</a><a class="toc-link" href="#slide-17"><span>17</span>무기 종류가 달라도 필요한 요청은 같다</a><a class="toc-link" href="#slide-18"><span>18</span>인터페이스는 사용할 수 있는 약속을 적는다</a><a class="toc-link" href="#slide-19"><span>19</span>다형성은 같은 요청에 구현별로 응답하는 것이다</a><a class="toc-link" href="#slide-20"><span>20</span>전사가 활을 들면 타입도 바뀌어야 할까?</a><a class="toc-link" href="#slide-21"><span>21</span>상속한 타입은 부모의 약속을 지켜야 한다</a><a class="toc-link" href="#slide-22"><span>22</span>합성은 교체할 부품을 객체가 가지게 한다</a><a class="toc-link" href="#slide-23"><span>23</span>상속과 합성은 해결하는 변화가 다르다</a><a class="toc-link" href="#slide-24"><span>24</span>화면 로그가 없어도 전투 규칙을 실행하려면?</a><a class="toc-link" href="#slide-25"><span>25</span>의존성 역전은 규칙 쪽에서 약속을 정한다</a><a class="toc-link" href="#slide-26"><span>26</span>독 묻은 검의 공격을 책임별로 따라간다</a><a class="toc-link" href="#slide-27"><span>27</span>한 목적의 규칙은 모으고 공개 약속은 작게 한다</a><a class="toc-link" href="#slide-28"><span>28</span>모든 기능을 미리 추상화할 필요는 없다</a><a class="toc-link" href="#slide-29"><span>29</span>1차시 게임에서도 선택·판정·이동의 주인을 찾는다</a><a class="toc-link" href="#slide-30"><span>30</span>새 기능을 더할 때 먼저 책임을 묻는다</a>
+</div>
   </dialog>
 
-  <p class="sr-only" id="keyboardHelp">좌우 방향키와 페이지 업·다운으로 이동하고, Home과 End로 처음과 끝으로 이동합니다.</p>
   <script>
     const slides = [...document.querySelectorAll('.slide')];
-    const prevBtn = document.querySelector('#prevBtn');
-    const nextBtn = document.querySelector('#nextBtn');
-    const tocBtn = document.querySelector('#tocBtn');
-    const tocDialog = document.querySelector('#tocDialog');
-    const tocCloseBtn = document.querySelector('#tocCloseBtn');
-    const slideCounter = document.querySelector('#slideCounter');
-    let currentIndex = 0;
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const tocBtn = document.getElementById('tocBtn');
+    const tocDialog = document.getElementById('tocDialog');
+    const tocCloseBtn = document.getElementById('tocCloseBtn');
+    const slideCounter = document.getElementById('slideCounter');
+    let current = 0;
+
+    function showSlide(index, updateHash = true) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      slides.forEach((slide, slideIndex) => slide.classList.toggle('is-active', slideIndex === current));
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current === slides.length - 1;
+      slideCounter.textContent = `${current + 1} / ${slides.length}`;
+      if (updateHash) history.replaceState(null, '', `#slide-${current + 1}`);
+    }
 
     function indexFromHash() {
       const match = location.hash.match(/^#slide-(\d+)$/);
@@ -523,47 +258,37 @@ Battle ── 턴과 협력 조정
       return 0;
     }
 
-    function showSlide(index, updateHash = true) {
-      currentIndex = Math.max(0, Math.min(index, slides.length - 1));
-      slides.forEach((slide, position) => {
-        const active = position === currentIndex;
-        slide.classList.toggle('is-active', active);
-        slide.setAttribute('aria-hidden', String(!active));
-      });
-      prevBtn.disabled = currentIndex === 0;
-      nextBtn.disabled = currentIndex === slides.length - 1;
-      slideCounter.textContent = `${currentIndex + 1} / ${slides.length}`;
-      document.title = `${currentIndex + 1}. ${slides[currentIndex].querySelector('h1,h2').textContent.trim()} — 객체지향 발표`;
-      if (updateHash) history.replaceState(null, '', `#slide-${currentIndex + 1}`);
-      slides[currentIndex].scrollTop = 0;
-    }
-
     function openToc() { if (!tocDialog.open) tocDialog.showModal(); }
     function closeToc() { if (tocDialog.open) tocDialog.close(); }
 
-    prevBtn.addEventListener('click', () => showSlide(currentIndex - 1));
-    nextBtn.addEventListener('click', () => showSlide(currentIndex + 1));
+    prevBtn.addEventListener('click', () => showSlide(current - 1));
+    nextBtn.addEventListener('click', () => showSlide(current + 1));
     tocBtn.addEventListener('click', openToc);
     tocCloseBtn.addEventListener('click', closeToc);
     tocDialog.addEventListener('click', (event) => { if (event.target === tocDialog) closeToc(); });
-    tocDialog.querySelectorAll('a').forEach((link) => link.addEventListener('click', (event) => {
+    tocDialog.querySelectorAll('.toc-link').forEach((link) => link.addEventListener('click', (event) => {
       event.preventDefault();
       const index = Number(link.hash.replace('#slide-', '')) - 1;
       closeToc();
       showSlide(index);
     }));
-    addEventListener('hashchange', () => showSlide(indexFromHash(), false));
-    addEventListener('keydown', (event) => {
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
-      if (event.key === 'Escape' && tocDialog.open) { closeToc(); return; }
-      const actions = {
-        ArrowRight: () => showSlide(currentIndex + 1), PageDown: () => showSlide(currentIndex + 1),
-        ArrowLeft: () => showSlide(currentIndex - 1), PageUp: () => showSlide(currentIndex - 1),
-        Home: () => showSlide(0), End: () => showSlide(slides.length - 1),
-      };
-      if (actions[event.key] && !tocDialog.open) { event.preventDefault(); actions[event.key](); }
+    window.addEventListener('hashchange', () => showSlide(indexFromHash(), false));
+    window.addEventListener('keydown', (event) => {
+      if (tocDialog.open) return;
+      const tag = document.activeElement?.tagName;
+      if (['ArrowRight','ArrowLeft','PageDown','PageUp','Home','End'].includes(event.key)) event.preventDefault();
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (event.key === 'ArrowRight' || event.key === 'PageDown') showSlide(current + 1);
+      else if (event.key === 'ArrowLeft' || event.key === 'PageUp') showSlide(current - 1);
+      else if (event.key === 'Home') showSlide(0);
+      else if (event.key === 'End') showSlide(slides.length - 1);
     });
-    showSlide(indexFromHash(), false);
+
+    const initialIndex = indexFromHash();
+    showSlide(initialIndex);
   </script>
-</body>
+<noscript><style>
+    html,body{height:auto;overflow:visible}.app,.stage,.deck{display:block;width:100%;height:auto;max-height:none;aspect-ratio:auto;overflow:visible;container-type:normal}
+    .slide,.slide.is-active{position:relative;display:block;overflow:visible;animation:none;margin-bottom:20px}.controls,dialog{display:none}
+    </style></noscript></body>
 </html>

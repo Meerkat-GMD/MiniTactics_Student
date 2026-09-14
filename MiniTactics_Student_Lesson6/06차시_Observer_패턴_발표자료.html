@@ -1,107 +1,332 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>6차시 · Observer 패턴 발표자료</title>
-<style>
-:root{color-scheme:dark;--bg:#111d2a;--panel:#1b2b3b;--ink:#f2f4f7;--muted:#b9c8d5;--accent:#6edbc4;--warm:#ffbd80;--line:#405367}*{box-sizing:border-box}html{scroll-behavior:auto}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;line-height:1.65;overflow-wrap:anywhere}header{max-width:1160px;margin:auto;padding:24px 30px 8px;display:flex;gap:12px;justify-content:space-between;align-items:center;color:var(--muted);font-size:13px;letter-spacing:.06em}header a{color:var(--accent)}main{max-width:1160px;margin:auto;padding:12px 30px 30px}.slide{min-height:620px;padding:42px 48px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(130deg,#213448,#142333);position:relative}.slide[hidden]{display:none}.eyebrow{color:var(--accent);font-size:14px;font-weight:700;letter-spacing:.1em;margin:0 0 16px}h1,h2,h3{line-height:1.3;word-break:keep-all;overflow-wrap:anywhere}h1{font-size:clamp(32px,4.5vw,60px);margin:10px 0 24px;max-width:900px}h2{font-size:clamp(27px,3vw,40px);margin:0 0 24px}h3{font-size:20px;margin:0 0 12px;color:var(--accent)}p{margin:14px 0;font-size:20px}strong{color:#fff}em{font-style:normal;color:var(--warm)}.lead{font-size:24px;max-width:900px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:24px 0}.card{min-width:0;padding:22px;border:1px solid var(--line);border-radius:16px;background:#111d2a80}.card p,.card li{font-size:18px}.card p:last-child{margin-bottom:0}ul,ol{padding-left:1.35em;margin:16px 0}li{font-size:20px;margin:8px 0}.note{border-left:4px solid var(--warm);padding:10px 18px;margin-top:24px;font-size:17px;color:#dbe4eb;background:#111d2a88}.flow{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin:24px 0}.flow span{padding:12px 16px;border-radius:12px;background:#15222e;border:1px solid var(--line);font-size:18px}.flow b{color:var(--accent)}code{font-family:Consolas,monospace;font-size:.9em;color:#bdeade}pre{font-family:Consolas,monospace;font-size:17px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;background:#0c1620;padding:20px;border:1px solid var(--line);border-radius:14px;max-width:100%;tab-size:2}pre code{font-size:inherit}table{border-collapse:collapse;width:100%;table-layout:fixed;margin:20px 0;font-size:18px}th,td{border-bottom:1px solid var(--line);padding:12px;text-align:left;vertical-align:top}th{color:var(--accent)}.question{font-size:19px;color:var(--warm);margin-top:24px}footer{max-width:1160px;margin:auto;padding:0 30px 28px}.controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}button,select{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:10px 15px;min-height:44px;max-width:100%}button{cursor:pointer}button:hover{border-color:var(--accent)}button:disabled{opacity:.4;cursor:default}button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--warm);outline-offset:4px}select{flex:1;min-width:160px;font-size:14px}#counter{font-variant-numeric:tabular-nums;min-width:68px;text-align:center}progress{width:100%;height:6px;margin-top:18px;accent-color:var(--accent)}.help{color:var(--muted);font-size:12px;margin:10px 0 0}.tag{display:inline-block;background:#12443f;color:#a5efd8;border-radius:30px;padding:5px 12px;font-size:14px;margin-right:8px}@media(max-width:620px){header{padding:18px 18px 6px;font-size:11px;align-items:flex-start}main{padding:10px 14px 20px}.slide{padding:26px 22px;min-height:0;border-radius:18px}.grid{grid-template-columns:1fr;gap:14px;margin:20px 0}h1{font-size:36px}h2{font-size:29px}p,.lead{font-size:18px}li{font-size:17px}.card{padding:18px}.card p,.card li{font-size:16px}pre{font-size:13px;padding:14px}.flow span{font-size:15px;padding:9px 12px}table{font-size:14px}th,td{padding:9px 6px}.note,.question{font-size:15px}footer{padding:0 18px 24px}select{flex-basis:100%;order:2}.help{line-height:1.6}}@media print{:root{color-scheme:light}body{background:white;color:#172432}header,footer{display:none}main{max-width:none;padding:0}.slide,.slide[hidden]{display:block!important;background:white;border:0;border-radius:0;min-height:0;padding:16mm;break-after:page}.slide:last-child{break-after:auto}h1{font-size:34pt}h2{font-size:26pt}p,li{font-size:14pt}.grid{break-inside:avoid}.card,pre,.note,.flow span{background:#f0f4f6;color:#172432;border-color:#b9c7d0}strong,code,h3,.eyebrow,th,.question{color:#155f58}.help{display:none}@page{size:A4 landscape;margin:8mm}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>6차시 — Observer 패턴 | 미니 택틱스</title>
+  <style>
+    :root {
+      --bg:#040a13; --slide:#091526; --panel:#10233a; --panel2:#142b45;
+      --text:#eef5ff; --muted:#afbed1; --teal:#55e4cf; --violet:#b8a4ff;
+      --amber:#ffd16f; --red:#ff8c99; --line:#2a405b; --green:#83e58f;
+    }
+    * { box-sizing:border-box; }
+    html, body { width:100%; height:100%; margin:0; overflow:hidden; }
+    body { background:var(--bg); color:var(--text); font-family:"Pretendard","Noto Sans KR",system-ui,sans-serif; word-break:keep-all; overflow-wrap:break-word; }
+    button, a { font:inherit; }
+    button { color:inherit; }
+    .app { min-height:100%; display:grid; grid-template-rows:1fr auto; }
+    .stage { min-height:0; display:grid; place-items:center; padding:14px 18px 6px; }
+    .deck { position:relative; width:min(100%,calc((100vh - 80px) * 16 / 9)); max-height:calc(100vh - 80px); aspect-ratio:16/9; overflow:hidden; border:1px solid #263b56; border-radius:18px; background:var(--slide); box-shadow:0 28px 88px #000a; container-type:inline-size; }
+    .slide { position:absolute; inset:0; display:none; overflow:auto; padding:clamp(28px,3.6cqw,56px) clamp(36px,5cqw,78px); background:radial-gradient(circle at 94% 7%,#253969 0,transparent 27%),linear-gradient(145deg,#0c1a2d 0%,#07121f 74%); }
+    .slide.is-active { display:grid; align-content:center; animation:reveal .24s ease-out; }
+    .slide::after { content:attr(data-slide); position:absolute; right:26px; top:20px; color:#7189a6; font-size:.76rem; font-weight:850; letter-spacing:.13em; }
+    @keyframes reveal { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:none; } }
+    h1,h2,h3,p { margin-top:0; }
+    h1 { max-width:78cqw; margin-bottom:20px; font-size:clamp(2.3rem,5.1cqw,4.9rem); line-height:1.08; letter-spacing:-.05em; }
+    h2 { max-width:82cqw; margin-bottom:clamp(16px,2.2cqw,30px); font-size:clamp(1.75rem,3.35cqw,3.15rem); line-height:1.17; letter-spacing:-.035em; }
+    h3 { margin-bottom:8px; color:var(--teal); font-size:clamp(.98rem,1.38cqw,1.3rem); }
+    p,li { font-size:clamp(.83rem,1.23cqw,1.13rem); line-height:1.53; }
+    p { margin-bottom:.72em; }
+    ul,ol { margin:.1em 0 0; padding-left:1.25em; }
+    li { margin:.38em 0; }
+    li::marker { color:var(--teal); font-weight:800; }
+    strong { color:#fff; }
+    .kicker { margin:0 0 7px; color:var(--teal); font-size:clamp(.68rem,1cqw,.9rem); font-weight:900; letter-spacing:.13em; text-transform:uppercase; }
+    .subtitle { max-width:72cqw; color:var(--muted); font-size:clamp(1rem,1.68cqw,1.5rem); line-height:1.5; }
+    .accent { color:var(--teal); } .violet { color:var(--violet); } .amber { color:var(--amber); } .red { color:var(--red); } .green { color:var(--green); }
+    .big { max-width:78cqw; font-size:clamp(1.28rem,2.3cqw,2.12rem); line-height:1.45; letter-spacing:-.02em; }
+    .quote { max-width:76cqw; margin:12px 0; padding-left:22px; border-left:5px solid var(--violet); font-size:clamp(1.2rem,2.25cqw,2rem); line-height:1.43; font-weight:760; }
+    .two { display:grid; grid-template-columns:1fr 1fr; gap:clamp(15px,2.2cqw,30px); align-items:stretch; }
+    .wide { display:grid; grid-template-columns:1.3fr .85fr; gap:clamp(18px,2.6cqw,36px); align-items:center; }
+    .panel { padding:clamp(14px,1.8cqw,23px); border:1px solid var(--line); border-radius:14px; background:#0f2138d9; }
+    .panel.teal { border-top:4px solid var(--teal); } .panel.violet { border-top:4px solid var(--violet); } .panel.amber { border-top:4px solid var(--amber); } .panel.redline { border-top:4px solid var(--red); }
+    .callout { margin-top:15px; padding:13px 18px; border-left:4px solid var(--teal); border-radius:8px; background:#10243c; }
+    .callout.warning { border-left-color:var(--amber); } .callout.danger { border-left-color:var(--red); }
+    .callout p:last-child,.panel p:last-child { margin-bottom:0; }
+    pre { margin:10px 0 0; padding:clamp(13px,1.65cqw,21px); overflow:auto; border:1px solid var(--line); border-radius:12px; background:#030a13; color:#dceafa; white-space:pre; font:clamp(.68rem,1.04cqw,.96rem)/1.58 Consolas,"D2Coding",monospace; }
+    p code,li code { padding:.08em .32em; border:1px solid #344d69; border-radius:5px; background:#081522; color:var(--amber); font-family:Consolas,"D2Coding",monospace; font-size:.92em; }
+    .code-focus { color:var(--amber); font-weight:800; }
+    .source { margin-top:10px; color:#7f94ad; font-size:clamp(.62rem,.82cqw,.76rem); }
+    .flow { display:grid; grid-template-columns:repeat(7,auto); align-items:center; justify-content:center; gap:9px; margin-top:22px; }
+    .node { min-width:9cqw; min-height:66px; display:grid; place-items:center; padding:10px 12px; border:1px solid #3b5575; border-radius:12px; background:var(--panel); text-align:center; font-size:clamp(.7rem,.95cqw,.9rem); font-weight:800; }
+    .arrow { color:var(--teal); font-size:1.35rem; font-weight:900; }
+    .state-board { display:grid; grid-template-columns:1fr auto 1fr; gap:18px; align-items:center; margin-top:14px; }
+    .coord { min-height:140px; display:grid; place-items:center; padding:22px; border:1px solid var(--line); border-radius:14px; background:#07111e; text-align:center; font:800 clamp(1rem,1.7cqw,1.55rem)/1.6 Consolas,monospace; }
+    .missing { color:var(--red); text-decoration:line-through; text-decoration-thickness:3px; }
+    .compare { width:100%; border-collapse:collapse; font-size:clamp(.72rem,1cqw,.94rem); line-height:1.42; }
+    .compare th,.compare td { padding:10px 13px; border:1px solid var(--line); vertical-align:top; text-align:left; }
+    .compare th { color:var(--teal); background:#071321; }
+    .stack { width:min(440px,70cqw); margin:14px auto 0; display:grid; gap:8px; }
+    .stack-item { padding:11px 16px; border:1px solid #405c7d; border-radius:9px; background:var(--panel); text-align:center; font-weight:800; }
+    .stack-item.top { border-color:var(--amber); color:var(--amber); }
+    .question { padding:clamp(20px,2.7cqw,38px); border:1px solid #5b4e25; border-radius:15px; background:linear-gradient(135deg,#221d10,#101c2d); }
+    .question .big { margin-bottom:0; }
+    .role-map { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:18px; }
+    .role { min-height:125px; padding:15px; border-top:4px solid var(--teal); border-radius:12px; background:var(--panel); }
+    .role:nth-child(2) { border-color:var(--violet); } .role:nth-child(3) { border-color:var(--amber); } .role:nth-child(4) { border-color:var(--red); }
+    .role b { display:block; margin-bottom:7px; font-size:clamp(.82rem,1.12cqw,1rem); }
+    .role span { color:var(--muted); font-size:clamp(.7rem,.92cqw,.86rem); line-height:1.45; }
+    .controls { min-height:60px; display:flex; align-items:center; justify-content:center; gap:9px; padding:7px 14px 10px; }
+    .control-btn { min-width:44px; min-height:40px; padding:7px 15px; border:1px solid #354c68; border-radius:10px; background:#0d1d30; cursor:pointer; }
+    .control-btn:hover:not(:disabled) { border-color:var(--teal); color:var(--teal); }
+    .control-btn:focus-visible,.toc-link:focus-visible { outline:3px solid var(--amber); outline-offset:2px; }
+    .control-btn:disabled { opacity:.35; cursor:not-allowed; }
+    #slideCounter { min-width:76px; color:var(--muted); text-align:center; font-weight:850; font-variant-numeric:tabular-nums; }
+    dialog { width:min(780px,calc(100% - 32px)); max-height:min(80vh,740px); padding:0; border:1px solid #405b7a; border-radius:18px; background:#091526; color:var(--text); box-shadow:0 30px 100px #000d; }
+    dialog::backdrop { background:#020710df; backdrop-filter:blur(4px); }
+    .toc-head { position:sticky; top:0; z-index:2; display:flex; align-items:center; justify-content:space-between; padding:18px 21px; border-bottom:1px solid var(--line); background:#091526; }
+    .toc-head h2 { margin:0; font-size:1.4rem; }
+    .toc-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; padding:16px; }
+    .toc-link { display:grid; grid-template-columns:34px 1fr; gap:8px; padding:9px 11px; border:1px solid transparent; border-radius:8px; color:var(--muted); text-decoration:none; font-size:.88rem; }
+    .toc-link:hover { color:var(--text); background:var(--panel); border-color:var(--line); }
+    .toc-link span { color:var(--teal); font-weight:900; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @media (max-height:650px) and (min-width:721px) {
+      .slide { padding:24px 40px; }
+      h1 { font-size:3rem; } h2 { font-size:1.72rem; margin-bottom:12px; } h3 { font-size:.91rem; }
+      p,li { font-size:.76rem; line-height:1.38; } li { margin:.25em 0; }
+      .panel { padding:10px 13px; } .callout { margin-top:8px; padding:8px 13px; }
+      pre { margin-top:6px; padding:9px 12px; font-size:.64rem; line-height:1.4; }
+      .node { min-height:48px; padding:6px 9px; font-size:.65rem; }
+      .role { min-height:90px; padding:10px; } .coord { min-height:105px; padding:14px; }
+    }
+    @media (max-width:720px) {
+      .stage { padding:0; }
+      .deck { width:100%; height:calc(100vh - 60px); max-height:none; aspect-ratio:auto; border:0; border-radius:0; }
+      .slide { padding:48px 21px 28px; }
+      .slide.is-active { align-content:start; }
+      .two,.wide,.state-board,.role-map { grid-template-columns:1fr; }
+      .flow { grid-template-columns:1fr; }
+      .flow .arrow { transform:rotate(90deg); }
+      .toc-grid { grid-template-columns:1fr; }
+      h1 { font-size:clamp(2.05rem,10.5cqw,3.25rem); }
+      h2 { font-size:clamp(1.6rem,7.2cqw,2.25rem); }
+      p,li { font-size:1rem; }
+      pre { font-size:.75rem; white-space:pre-wrap; overflow-wrap:anywhere; }
+    }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; } }
+    @media print {
+      html,body { height:auto; overflow:visible; background:#fff; color:#111; }
+      .app,.stage,.deck { display:block; width:auto; height:auto; max-height:none; padding:0; overflow:visible; border:0; box-shadow:none; }
+      .slide,.slide.is-active { position:relative; display:grid; width:100%; min-height:175mm; padding:15mm; break-after:page; overflow:hidden; background:#fff; color:#111; animation:none; }
+      .slide:last-child { break-after:auto; }
+      .controls,dialog { display:none !important; }
+      h1,h2,h3,p,li,strong,.subtitle,.kicker,.accent,.violet,.amber,.red,.green,.source { color:#111; }
+      .panel,.callout,pre,.node,.coord,.role,.stack-item,.question,.compare th,.compare td { background:#fff; color:#111; border-color:#777; }
+    }
+  </style>
+<style id="layout-safety">
+    .slide > div,.two > div,.wide > div,.role,.node { min-width:0; }
+    .compare { table-layout:fixed; overflow-wrap:anywhere; }
+    .role b,.role span { overflow-wrap:anywhere; }
+    @media (max-width:720px) { .state-board > .arrow { transform:rotate(90deg); justify-self:center; } .flow > .arrow { justify-self:center; } }
+    @media print { .deck { container-type:normal; aspect-ratio:auto; } .slide,.slide.is-active { height:auto; overflow:visible; break-inside:avoid; } }
+    </style>
 </head>
 <body>
-<header><span>MINI TACTICS · LESSON 06</span><a href="06차시_Observer_패턴_강의자료.html">교재 열기 ↗</a></header>
-<main id="deck" aria-label="Observer 패턴 발표자료">
-<section class="slide" id="slide-1" data-title="오늘의 전투">
-<p class="eyebrow">01 · 상태의 변화가 화면과 규칙으로 이어진다</p><h1>Observer 패턴<br>한 번의 피해, 여러 반응</h1><p class="lead">유닛은 HP를 바꾸고 사건을 알립니다.<br>HP 바는 화면을, GameManager는 승패를 책임집니다.</p><div class="grid"><div class="card"><h3>180분의 흐름</h3><p>0–30 개념과 구조<br>30–150 전체 전투 구현<br>150–180 Play 미션과 복습</p></div><div class="card"><h3>완성할 경험</h3><p>이동 → 공격 → HP 바 변화 → 사망 → 전멸 결과. 지형 방어와 적의 공격까지 하나의 게임으로 연결합니다.</p></div></div><p class="note">Student 시작 상태: Lesson05의 이동·턴·Enter 종료·목표·Undo·R 재시작은 작동합니다. 이번 차시의 전투와 관찰 부분을 완성합니다.</p>
-</section>
-<section class="slide" id="slide-2" data-title="직접 호출의 부담">
-<p class="eyebrow">02 · 문제에서 출발하기</p><h2>Unit이 모든 반응을 알아야 할까?</h2><p>피해를 받을 때 HP 바, 승패, 효과음, 전투 로그를 Unit에서 직접 호출한다면 새 반응을 추가할 때마다 Unit을 고치게 됩니다.</p><div class="grid"><div class="card"><h3>변하지 않는 사실</h3><p>어느 유닛의 HP가 바뀌었다.<br>어느 유닛이 사망했다.</p></div><div class="card"><h3>달라질 수 있는 반응</h3><p>바를 줄인다. 결과를 계산한다.<br>소리를 낸다. 로그를 남긴다.</p></div></div><p class="question">생각해 보기: 소리를 끈 게임에서도 HP 계산은 그대로 작동해야 합니다. 두 책임을 어디서 나눌까요?</p>
-</section>
-<section class="slide" id="slide-3" data-title="발행자와 구독자">
-<p class="eyebrow">03 · Observer의 역할</p><h2>사실을 알리고, 필요한 곳에서 듣는다</h2><div class="flow"><span>발행자 Unit</span><b>→</b><span>HpChanged / Died</span><b>→</b><span>구독자 HP 바 · GameManager</span></div><p>발행자는 사건을 만들고 구독자는 콜백을 등록합니다. Unit은 구독자의 구체 타입이나 화면 표현을 몰라도 됩니다.</p><div class="grid"><div class="card"><h3>효과</h3><p>새 구독자를 추가해도 Unit의 HP 계산과 UI가 얽히지 않습니다.</p></div><div class="card"><h3>책임</h3><p>구독 수명과 알림 순서를 관리해야 합니다. 참조 연결 자체가 사라지는 것은 아닙니다.</p></div></div>
-</section>
-<section class="slide" id="slide-4" data-title="이전 패턴과 연결">
-<p class="eyebrow">04 · 패턴은 서로 다른 문제를 맡는다</p><h2>Singleton · State · Command · Observer</h2><table><thead><tr><th>패턴</th><th>이번 장면에서 맡는 일</th></tr></thead><tbody><tr><td>Singleton</td><td>GameManager의 유일한 전투 결과와 수명</td></tr><tr><td>State</td><td>선택·이동·공격 단계별 클릭 의미</td></tr><tr><td>Command</td><td>이동 실행과 위치·HasMoved 복구</td></tr><tr><td>Observer</td><td>HP·이동·사망 사실을 여러 반응에 전달</td></tr></tbody></table><p class="note">Unit이 GameManager.Instance를 불러 전멸을 판단하지 않습니다. GameManager가 Unit.Died를 관찰합니다.</p>
-</section>
-<section class="slide" id="slide-5" data-title="C# event 계약">
-<p class="eyebrow">05 · 알림의 이름과 데이터</p><h2>C# event는 발행 권한을 지킨다</h2><pre><code>public event Action&lt;Unit&gt; HpChanged;
-public event Action&lt;Unit, Vector2Int, Vector2Int&gt; Moved;
-public event Action&lt;Unit&gt; Died;</code></pre><p>외부는 <code>+=</code>로 듣고 <code>-=</code>로 듣기를 멈춥니다. <code>Invoke</code>는 이벤트를 선언한 Unit 내부에서만 합니다.</p><p>HpChanged는 변경된 Unit을 전달합니다. 구독자는 이미 갱신된 <code>CurrentHp</code>를 읽습니다. Moved는 출발 셀과 도착 셀까지 전달합니다.</p><p class="question">왜 Died의 인수에 사망한 Unit이 필요할까요?</p>
-</section>
-<section class="slide" id="slide-6" data-title="구독과 해제">
-<p class="eyebrow">06 · 반응에는 시작과 끝이 있다</p><h2>+=와 -=는 한 쌍이다</h2><pre><code>_unit.HpChanged += HandleHpChanged;
-_unit.HpChanged -= HandleHpChanged;</code></pre><div class="grid"><div class="card"><h3>이름 있는 콜백</h3><p>등록할 때와 해제할 때 같은 메서드를 사용합니다. 서로 새로 만든 람다는 같은 구독을 가리키지 않을 수 있습니다.</p></div><div class="card"><h3>중복 구독</h3><p>OnEnable과 Bind가 모두 불릴 수 있습니다. 구독 플래그로 중복을 막고 실제 대상이 바뀌기 전에 해제합니다.</p></div></div><p class="note">이번 이벤트는 동기 호출입니다. 발행 중 구독자들이 호출되며, 긴 처리나 예외는 발행 흐름에도 영향을 줍니다.</p>
-</section>
-<section class="slide" id="slide-7" data-title="상태가 먼저">
-<p class="eyebrow">07 · 알림은 이미 일어난 사실이다</p><h2>HP를 먼저 저장하고 알린다</h2><div class="flow"><span>유효 피해 확인</span><b>→</b><span>CurrentHp 저장</span><b>→</b><span>HpChanged</span></div><p>피해가 0 이하이거나 이미 사망한 유닛이면 아무 변화도 없습니다. HP는 0 아래로 내려가지 않습니다.</p><pre><code>_currentHp = Mathf.Max(0, previousHp - damage);
-HpChanged?.Invoke(this);</code></pre><p class="question">순서를 뒤집으면 HP 바가 읽는 값은 이전 HP일까요, 새 HP일까요?</p>
-</section>
-<section class="slide" id="slide-8" data-title="사망 전이">
-<p class="eyebrow">08 · 사망은 한 번의 상태 전이</p><h2>HP 0과 비활성화 사이의 순간</h2><div class="flow"><span>HP → 0</span><b>→</b><span>HpChanged</span><b>→</b><span>Died</span><b>→</b><span>SetActive(false)</span></div><p><code>이전 HP &gt; 0 &amp;&amp; 현재 HP == 0</code>인 경우에만 사망 사건을 발행합니다. 사망 후 다시 피해를 받아도 Died가 반복되지 않습니다.</p><p>Died를 받는 동안 유닛 오브젝트는 아직 활성일 수 있습니다. 생존 판단에는 <em>IsAlive</em>가 필요합니다.</p><p class="note">HP 바와 승패 구독자의 등록 순서에 의존하지 않습니다. 두 구독자는 이미 저장된 HP라는 같은 사실을 읽습니다.</p>
-</section>
-<section class="slide" id="slide-9" data-title="이동 이벤트">
-<p class="eyebrow">09 · 기존 이동도 사실을 알린다</p><h2>Moved: 어디에서 어디로 갔는가</h2><pre><code>Vector2Int sourceCell = board.WorldToCell(transform.position);
+  <div class="app">
+    <main class="stage">
+      <div class="deck" id="deck">
+        <section class="slide is-active" id="slide-1" data-slide="01 / 39" aria-labelledby="title-1"><div><p class="kicker">Mini Tactics · Lesson 06</p><h1 id="title-1">미니 택틱스로 이해하는<br><span class="accent">Observer 패턴</span></h1><p class="subtitle">유닛 하나의 HP가 바뀌면, 체력 바와 승패 판정은 어떻게 함께 반응할까?</p></div></section>
+
+<section class="slide" id="slide-2" data-slide="02 / 39" aria-labelledby="title-2"><div><p class="kicker">Yesterday’s Success</p><h2 id="title-2">5차시는 턴 순서와 이동을 완성했다</h2><div class="two"><ul><li>플레이어가 아군을 한 번씩 이동한다.</li><li>적은 순서대로 이동하고 차례를 넘긴다.</li><li>GameManager가 결과를 보관한다.</li><li>Command가 이동의 실행과 Undo를 맡는다.</li></ul><div class="panel teal"><h3>오늘 더해지는 변화</h3><p>이동만 하던 유닛이 이제 공격을 받아 HP를 잃는다. HP 변화는 화면 표시와 전투 종료에도 영향을 준다.</p></div></div></div></section>
+
+<section class="slide" id="slide-3" data-slide="03 / 39" aria-labelledby="title-3"><div><p class="kicker">New Requirement</p><h2 id="title-3">한 번의 공격에 여러 반응이 필요하다</h2><div class="question"><p class="big">“적을 공격하면 체력 바가 줄어들고,<br>마지막 적이 죽으면 승리하게 해 주세요.”</p></div><div class="callout "><p>HP를 바꾸는 규칙과, 바뀐 HP를 보고 반응하는 기능을 어떻게 연결할지 정해야 한다.</p></div></div></section>
+
+<section class="slide" id="slide-4" data-slide="04 / 39" aria-labelledby="title-4"><div><p class="kicker">First Attempt</p><h2 id="title-4">첫 생각: 피해 함수에서 모두 직접 호출하자</h2><pre><code>hp = Math.Max(0, hp - damage);
+healthBar.Refresh(hp);
+if (hp == 0)
+    gameManager.CheckVictory();</code></pre><div class="callout warning"><p>이 연결 예시는 작은 게임에서 동작할 수 있다. 하지만 Unit이 체력 바와 승패 관리자의 구체적인 기능까지 알아야 한다.</p></div><p class="source">설계 비교용 가상 코드. 실제 Unit.TakeDamage는 이벤트로 알린다.</p></div></section>
+
+<section class="slide" id="slide-5" data-slide="05 / 39" aria-labelledby="title-5"><div><p class="kicker">Think · Change</p><h2 id="title-5">피격 로그까지 생기면 어디를 고칠까?</h2><div class="two"><div class="question"><p class="big">체력 바, 승패 판정에 이어<br><span class="amber">전투 로그</span>도 추가된다면?</p></div><div class="panel amber"><h3>직접 호출 구조의 결과</h3><p>새 반응이 생길 때마다 피해 함수에 필드와 호출이 늘어난다. UI를 교체하는 일에도 Unit을 함께 수정하게 된다.</p></div></div><div class="callout "><p>공통으로 필요한 사실은 “이 유닛의 HP가 바뀌었다”이다. 각 반응의 세부 구현은 듣는 쪽으로 옮길 수 있다.</p></div></div></section>
+
+<section class="slide" id="slide-6" data-slide="06 / 39" aria-labelledby="title-6"><div><p class="kicker">Responsibility Boundary</p><h2 id="title-6">HP를 바꾸는 책임과 반응하는 책임을 나눈다</h2><div class="two"><div class="panel teal"><h3>Unit이 맡을 것</h3><p>현재 HP를 보관하고 피해를 적용한다. 실제로 HP가 바뀌거나 사망했을 때 그 사실을 알린다.</p></div><div class="panel violet"><h3>관찰자가 맡을 것</h3><p>체력 바는 길이를 갱신한다. GameManager는 사망을 듣고 남은 전투원을 센다.</p></div></div><div class="callout "><p>Unit은 누가 체력 바인지 몰라도 된다. 관찰자는 필요한 알림에 자신이 실행할 함수를 등록한다.</p></div></div></section>
+
+<section class="slide" id="slide-7" data-slide="07 / 39" aria-labelledby="title-7"><div><p class="kicker">Observer Pattern</p><h2 id="title-7">Observer는 변화에 반응할 함수를 등록한다</h2><p class="quote">상태를 가진 객체가 변화를 알리면, 등록된 관찰자들이 각자의 일을 수행한다.</p><div class="flow"><div class="node">관찰자<br>등록</div><div class="arrow">→</div><div class="node">Unit<br>HP 변경</div><div class="arrow">→</div><div class="node">변화 알림<br>발행</div><div class="arrow">→</div><div class="node">관찰자<br>반응</div></div><div class="callout "><p>관찰자 수와 반응 종류가 달라져도 HP를 깎는 규칙을 유지할 수 있다. 등록·해제 시점은 별도로 관리해야 한다.</p></div></div></section>
+
+<section class="slide" id="slide-8" data-slide="08 / 39" aria-labelledby="title-8"><div><p class="kicker">Mini Tactics Mapping</p><h2 id="title-8">이 프로젝트에서는 C# 이벤트로 연결한다</h2><div class="role-map"><div class="role"><b>발행자 · Unit</b><span>HP와 생존 상태를 소유한다.</span></div><div class="role"><b>이벤트</b><span>HpChanged, Died로 변화를 알린다.</span></div><div class="role"><b>체력 바</b><span>HP 비율을 읽고 화면을 갱신한다.</span></div><div class="role"><b>GameManager</b><span>사망을 듣고 전멸 여부를 판단한다.</span></div></div><div class="callout "><p>Observer는 역할을 나누는 패턴의 이름이고, event는 이 연결을 구현하는 C# 문법이다.</p></div></div></section>
+
+<section class="slide" id="slide-9" data-slide="09 / 39" aria-labelledby="title-9"><div><p class="kicker">Event Contract</p><h2 id="title-9">Action은 등록할 함수의 모양을 정한다</h2><pre><code>public event Action&lt;Unit&gt; HpChanged;
+public event Action&lt;Unit&gt; Died;
+public event Action&lt;Unit, Vector2Int, Vector2Int&gt; Moved;</code></pre><table class="compare"><thead><tr><th>선언</th><th>등록할 함수가 받는 값</th></tr></thead><tbody><tr><td>Action&lt;Unit&gt;</td><td>변화가 일어난 Unit 하나. 반환값은 없다.</td></tr><tr><td>Moved</td><td>움직인 Unit, 출발 셀, 도착 셀. 반환값은 없다.</td></tr></tbody></table><div class="callout "><p>event로 공개하면 외부는 등록과 해제만 할 수 있다. 이 이벤트를 직접 발행하는 일은 선언한 Unit 내부에서 맡는다.</p></div><p class="source">실제 선언: Unit.cs</p></div></section>
+
+<section class="slide" id="slide-10" data-slide="10 / 39" aria-labelledby="title-10"><div><p class="kicker">Read the Syntax</p><h2 id="title-10">등록·해제·발행은 서로 다른 동작이다</h2><pre><code>unit.HpChanged += HandleHpChanged; // 관찰자 등록
+unit.HpChanged -= HandleHpChanged; // 같은 함수 해제
+
+HpChanged?.Invoke(this);          // Unit 내부에서 발행</code></pre><div class="two"><div class="panel teal"><h3>+= 와 -=</h3><p>같은 대상에 같은 함수를 등록하고 해제한다. 반복 등록하면 한 번의 변화에 같은 함수가 여러 번 실행될 수 있다.</p></div><div class="panel violet"><h3>?.Invoke(this)</h3><p>듣는 함수가 있으면 호출하고, 없으면 건너뛴다. this는 변화를 일으킨 현재 Unit이다.</p></div></div></div></section>
+
+<section class="slide" id="slide-11" data-slide="11 / 39" aria-labelledby="title-11"><div><p class="kicker">Actual Code · Unit</p><h2 id="title-11">HP를 먼저 저장하고 그다음 알린다</h2><pre><code>int previousHp = _currentHp;
+_currentHp = Mathf.Max(0, previousHp - damage);
+bool didDie = previousHp &gt; 0 &amp;&amp; _currentHp == 0;
+HpChanged?.Invoke(this);</code></pre><div class="callout "><p>관찰자는 알림을 받자마자 CurrentHp를 읽는다. HP를 바꾸기 전에 알리면 관찰자가 이전 값을 읽어 화면이 한 단계 늦어진다.</p></div><p class="source">Unit.TakeDamage 일부. 피해가 0 이하이거나 이미 죽은 유닛이면 앞에서 반환한다.</p></div></section>
+
+<section class="slide" id="slide-12" data-slide="12 / 39" aria-labelledby="title-12"><div><p class="kicker">Think · Trace HP</p><h2 id="title-12">HP 10인 유닛이 피해 4를 받으면?</h2><div class="two"><div class="question"><p class="big">시작 HP <span class="amber">10</span><br>피해 <span class="amber">4</span><br>체력 바는 무엇을 읽을까?</p></div><div class="panel teal"><h3>결과를 순서대로 읽기</h3><p>1. Unit이 10 − 4 = 6을 저장한다.<br>2. HpChanged가 등록된 함수를 호출한다.<br>3. 체력 바가 CurrentHp = 6을 읽는다.<br>4. 아직 살아 있으므로 Died는 발생하지 않는다.</p></div></div><div class="callout "><p>알림에 피해량 4를 보내지 않아도, 전달받은 Unit에서 결과 HP 6을 읽을 수 있다.</p></div></div></section>
+
+<section class="slide" id="slide-13" data-slide="13 / 39" aria-labelledby="title-13"><div><p class="kicker">Death Order</p><h2 id="title-13">치명타에서는 HP 알림 뒤 사망을 알린다</h2><pre><code>if (didDie)
+{
+    Died?.Invoke(this);
+    gameObject.SetActive(false);
+}</code></pre><div class="flow"><div class="node">HP 0<br>저장</div><div class="arrow">→</div><div class="node">HpChanged<br>발행</div><div class="arrow">→</div><div class="node">Died<br>발행</div><div class="arrow">→</div><div class="node">유닛<br>비활성화</div></div><div class="callout "><p>HP 6에서 피해 20을 받아도 HP는 0까지만 내려간다. 사망 콜백이 실행될 때 아직 오브젝트가 활성일 수 있지만, IsAlive는 HP가 0이므로 false이다.</p></div><p class="source">Unit.TakeDamage의 실제 사망 분기</p></div></section>
+
+<section class="slide" id="slide-14" data-slide="14 / 39" aria-labelledby="title-14"><div><p class="kicker">Call Order</p><h2 id="title-14">이벤트 콜백은 호출 도중 바로 실행된다</h2><div class="two"><div class="panel teal"><h3>현재 구현의 실행 순서</h3><p>TakeDamage → HpChanged의 등록 함수들 → 필요하면 Died의 등록 함수들 → TakeDamage 종료</p></div><div class="panel amber"><h3>왜 알아야 할까?</h3><p>사망 콜백 안에서 승리가 확정될 수 있다. 호출한 쪽은 TakeDamage가 끝난 뒤 전투가 계속 중인지 다시 확인해야 한다.</p></div></div><div class="callout "><p>C# 이벤트는 자동으로 다음 프레임이나 별도 스레드로 넘어가지 않는다. 등록된 함수가 예외를 던지면 뒤의 처리도 중단될 수 있다.</p></div></div></section>
+
+<section class="slide" id="slide-15" data-slide="15 / 39" aria-labelledby="title-15"><div><p class="kicker">Observer · Health Bar</p><h2 id="title-15">체력 바는 HP를 소유하지 않고 읽는다</h2><pre><code>scale.x = _unit.MaxHp &gt; 0
+    ? Mathf.Clamp01(_unit.CurrentHp / (float)_unit.MaxHp)
+    : 0f;
+_fill.localScale = scale;</code></pre><div class="two"><div class="panel teal"><h3>수치의 의미</h3><p>현재 HP 6 / 최대 HP 10 = 0.6이므로 채움 부분의 가로 길이를 60%로 표시한다.</p></div><div class="panel amber"><h3>float로 바꾸는 이유</h3><p>정수끼리 6 / 10을 계산하면 0이다. (float)로 소수 계산을 해야 0.6을 얻는다.</p></div></div><p class="source">UnitHealthBar.Refresh 일부. scale은 기존 localScale을 읽어 둔 값이다.</p></div></section>
+
+<section class="slide" id="slide-16" data-slide="16 / 39" aria-labelledby="title-16"><div><p class="kicker">First Refresh</p><h2 id="title-16">늦게 나타난 체력 바는 현재 값을 직접 읽는다</h2><div class="question"><p class="big">HP가 이미 10에서 6으로 줄었다.<br>그다음 체력 바가 켜지면 과거 알림을 받을까?</p></div><pre><code>private void OnEnable()
+{
+    Subscribe();
+    Refresh();
+}</code></pre><div class="callout "><p>받지 못한다. 이벤트는 지난 알림을 저장하지 않는다. 그래서 등록 직후 Refresh를 호출해 현재 HP 6을 즉시 표시한다.</p></div><p class="source">UnitHealthBar의 실제 활성화 처리</p></div></section>
+
+<section class="slide" id="slide-17" data-slide="17 / 39" aria-labelledby="title-17"><div><p class="kicker">Subscription Lifetime</p><h2 id="title-17">구독은 관찰자의 수명에 맞춰 정리한다</h2><div class="two"><div class="panel teal"><h3>체력 바가 켜질 때</h3><p>OnEnable에서 등록하고 현재 HP를 표시한다. _isSubscribed와 활성 상태 검사가 중복 등록을 막는다.</p></div><div class="panel violet"><h3>체력 바가 꺼질 때</h3><p>OnDisable에서 HpChanged와 Died에 등록한 함수를 모두 해제한다. 사망 알림을 받은 바도 비활성화되며 해제된다.</p></div></div><div class="callout "><p>발행자는 등록된 함수의 대상을 참조한다. 해제를 빠뜨리면 더 이상 표시하지 않는 바가 계속 알림을 받거나 참조가 남을 수 있다.</p></div></div></section>
+
+<section class="slide" id="slide-18" data-slide="18 / 39" aria-labelledby="title-18"><div><p class="kicker">Rebind</p><h2 id="title-18">표시할 유닛을 바꾸면 이전 연결부터 끊는다</h2><pre><code>public void Bind(Unit unit)
+{
+    Unsubscribe();
+    _unit = unit;
+    Subscribe();
+    Refresh();
+}</code></pre><div class="callout "><p>A를 표시하던 바가 B를 표시하게 되었다면, 먼저 A의 이벤트에서 해제한다. 그다음 B에 등록하고 B의 현재 HP를 읽어야 A가 맞을 때 B의 바가 반응하는 오류를 피한다.</p></div><p class="source">UnitHealthBar.Bind 실제 코드</p></div></section>
+
+<section class="slide" id="slide-19" data-slide="19 / 39" aria-labelledby="title-19"><div><p class="kicker">Observer · Game Result</p><h2 id="title-19">GameManager는 사망한 팀의 생존자를 센다</h2><div class="two"><div class="panel teal"><h3>듣는 사건</h3><p>GameManager는 Start의 ObserveUnits에서 전투원의 Died에 등록한다. HP가 조금 줄어든 것만으로는 승패를 검사하지 않는다.</p></div><div class="panel violet"><h3>사망을 들은 뒤</h3><p>죽은 유닛의 팀에서 활성·생존 상태인 전투원을 센다. 마지막 적이면 PlayerWon, 마지막 아군이면 PlayerLost를 기록한다.</p></div></div><div class="callout "><p>사망한 유닛은 아직 활성 상태여도 IsAlive가 false여서 생존자 수에 포함되지 않는다.</p></div><p class="source">GameManager.ObserveUnits / HandleObservedUnitDied / CountAliveCombatUnits</p></div></section>
+
+<section class="slide" id="slide-20" data-slide="20 / 39" aria-labelledby="title-20"><div><p class="kicker">Compare Lifetimes</p><h2 id="title-20">모든 관찰자의 해제 시점이 같지는 않다</h2><table class="compare"><thead><tr><th>관찰자</th><th>등록</th><th>해제</th></tr></thead><tbody><tr><td>UnitHealthBar</td><td>OnEnable 또는 Bind</td><td>OnDisable 또는 이전 대상 Bind 해제</td></tr><tr><td>GameManager</td><td>Start → ObserveUnits</td><td>관찰 목록 교체 또는 OnDestroy</td></tr></tbody></table><div class="callout "><p>두 클래스 모두 구독을 관리하지만 같은 생명주기 함수를 쓰지는 않는다. GameManager는 관찰 목록을 바꿀 때 기존 전투원에서 먼저 해제한다.</p></div><p>구독한 객체와 함수, 해제할 책임자가 누구인지 한 쌍으로 확인하면 연결의 수명을 따라갈 수 있다.</p></div></section>
+
+<section class="slide" id="slide-21" data-slide="21 / 39" aria-labelledby="title-21"><div><p class="kicker">Connect to State</p><h2 id="title-21">이제 이동 뒤의 클릭은 공격이 될 수 있다</h2><div class="flow"><div class="node">아군 선택</div><div class="arrow">→</div><div class="node">이동 명령<br>실행</div><div class="arrow">→</div><div class="node">인접한 적<br>있는가?</div><div class="arrow">→</div><div class="node">AttackState<br>대상 선택</div></div><div class="callout "><p>목표 점령으로 전투가 끝났는지 먼저 확인한다. 계속 진행 중이고 인접한 적이 있으면 공격 상태로, 없으면 그 유닛의 행동 완료로 넘어간다.</p></div><p>AttackState는 4차시 State 구조에 더한 새로운 입력 상태다. 같은 클릭이라도 이 상태에서는 이동 목적지 대신 공격 대상을 해석한다.</p></div></section>
+
+<section class="slide" id="slide-22" data-slide="22 / 39" aria-labelledby="title-22"><div><p class="kicker">Attack Rule</p><h2 id="title-22">인접 공격은 상하좌우 한 칸이다</h2><div class="two"><pre><code>거리 = |공격자.x - 대상.x|
+     + |공격자.y - 대상.y|
+
+(3,2) → (4,2): 1  공격 가능
+(3,2) → (4,3): 2  대각선, 불가</code></pre><div class="panel violet"><h3>대상 조건</h3><p>거리가 1이고 상대 팀인 활성·생존 전투원이어야 한다. 같은 팀이나 쓰러진 유닛은 공격 대상에서 제외한다.</p></div></div><div class="callout "><p>맨해튼 거리는 x 차이와 y 차이의 절댓값을 더한 수다. 대각선 한 칸도 이 기준에서는 거리가 2다.</p></div></div></section>
+
+<section class="slide" id="slide-23" data-slide="23 / 39" aria-labelledby="title-23"><div><p class="kicker">Think · Attack Click</p><h2 id="title-23">잘못 고른 적과 빈칸은 다르게 처리한다</h2><table class="compare"><thead><tr><th>AttackState에서 누른 곳</th><th>처리</th><th>다음 상태</th></tr></thead><tbody><tr><td>인접한 유효 적</td><td>피해 적용 후 행동 완료</td><td>Idle</td></tr><tr><td>멀리 있는 적 또는 아군</td><td>공격 거부</td><td>AttackState 유지</td></tr><tr><td>유닛이 없는 곳</td><td>공격 건너뛰기, 행동 완료</td><td>Idle</td></tr></tbody></table><div class="callout "><p>대상을 잘못 골랐을 때는 다시 고를 수 있다. 빈칸 클릭은 공격을 생략하겠다는 입력으로 해석한다.</p></div><p class="source">AttackState.HandleBoardClick의 조건과 실제 결과</p></div></section>
+
+<section class="slide" id="slide-24" data-slide="24 / 39" aria-labelledby="title-24"><div><p class="kicker">Damage Rule</p><h2 id="title-24">피해는 방어자가 서 있는 지형도 읽는다</h2><pre><code>int terrainDefense = terrain.DefenseBonus;
+return Mathf.Max(1,
+    attacker.AttackPower - defender.Defense - terrainDefense);</code></pre><table class="compare"><thead><tr><th>공격력 6, 방어력 1</th><th>지형 방어</th><th>피해</th></tr></thead><tbody><tr><td>평지의 적</td><td>0</td><td>6 − 1 − 0 = 5</td></tr><tr><td>숲의 적</td><td>1</td><td>6 − 1 − 1 = 4</td></tr><tr><td>산의 적</td><td>2</td><td>6 − 1 − 2 = 3</td></tr></tbody></table><div class="callout "><p>현재 TileData 에셋의 방어 보너스를 RuntimeTerrain으로 공유한다. 이동 비용과 방어 보너스는 별개이며, 피해는 최소 1이다.</p></div><p class="source">CombatCalculator.CalculateDamage / TileData.RuntimeTerrain</p></div></section>
+
+<section class="slide" id="slide-25" data-slide="25 / 39" aria-labelledby="title-25"><div><p class="kicker">Trace One Attack</p><h2 id="title-25">숲의 적을 공격한 결과를 끝까지 따라간다</h2><div class="flow"><div class="node">계산기<br>피해 4</div><div class="arrow">→</div><div class="node">Unit<br>HP 10 → 6</div><div class="arrow">→</div><div class="node">HpChanged<br>알림</div><div class="arrow">→</div><div class="node">체력 바<br>60%</div></div><div class="two"><div class="panel teal"><h3>수치의 주인</h3><p>CombatCalculator는 피해량만 계산한다. Unit이 HP를 변경하며, 체력 바는 Unit의 결과를 읽는다.</p></div><div class="panel violet"><h3>행동의 마무리</h3><p>실제 HP가 줄면 이동 이력을 지운다. 공격이 끝나면 행동을 완료하고 다음 입력 상태로 돌아간다.</p></div></div><div class="callout "><p>한 공격을 설명할 때 “누가 계산했는가, 누가 저장했는가, 누가 반응했는가”를 구분하면 흐름이 보인다.</p></div></div></section>
+
+<section class="slide" id="slide-26" data-slide="26 / 39" aria-labelledby="title-26"><div><p class="kicker">Undo Boundary</p><h2 id="title-26">공격 전에는 방금 이동을 되돌릴 수 있다</h2><div class="two"><div class="panel teal"><h3>피해 적용 전</h3><p>공격 대상 선택 중이고 보류 중인 이동 명령이 있으면 Undo로 출발 위치를 복원한다. PlayerMoveCommand가 HasMoved도 false로 되돌린다.</p></div><div class="panel amber"><h3>피해 적용 후</h3><p>현재 명령은 이동만 복원한다. HP·죽음·승패까지 복구할 정보가 없으므로 피해가 확정된 공격의 이동 이력을 지운다.</p></div></div><div class="callout "><p>이동 Undo가 곧 전투 전체 Undo가 되는 것은 아니다. 되돌리려는 변화마다 저장하고 복구할 상태가 필요하다.</p></div></div></section>
+
+<section class="slide" id="slide-27" data-slide="27 / 39" aria-labelledby="title-27"><div><p class="kicker">Command and Notification</p><h2 id="title-27">이동 명령과 이동 알림은 역할이 다르다</h2><div class="two"><div class="panel teal"><h3>Command · 실행 요청</h3><p>MoveUnitCommand는 Unit.MoveTo를 호출해 위치를 바꾼다. Undo는 같은 메서드에 원래 출발 셀을 전달한다.</p></div><div class="panel violet"><h3>Moved · 결과 알림</h3><p>Unit은 위치를 바꾼 뒤, 출발 셀과 도착 셀이 다를 때만 Moved를 알린다. 알림을 듣는 관찰자가 실제 이동을 실행하는 것은 아니다.</p></div></div><pre><code>Vector2Int sourceCell = board.WorldToCell(transform.position);
 transform.position = board.CellToWorld(targetCell);
-// 다른 셀로 이동했을 때만 출발·도착을 알린다.
-Moved?.Invoke(this, sourceCell, targetCell);</code></pre><p>실제 구현에서는 null 보드와 같은 셀을 걸러 냅니다. 위치가 먼저 바뀌므로 콜백에서 읽는 위치와 도착 셀이 일치합니다.</p><p>MoveUnitCommand와 Undo도 MoveTo를 이용합니다. Moved를 구독한 연출은 이동 방향과 되돌아가는 이동을 함께 관찰할 수 있습니다.</p>
-</section>
-<section class="slide" id="slide-10" data-title="지형 피해 계산">
-<p class="eyebrow">10 · 전투 규칙을 계산으로 분리</p><h2>방어자가 서 있는 지형을 읽는다</h2><p class="lead"><code>피해 = max(1, 공격력 − 방어력 − 지형 방어)</code></p><table><thead><tr><th>방어 지형</th><th>방어 보너스</th><th>공격 6 · 방어 1</th></tr></thead><tbody><tr><td>평지</td><td>0</td><td>5 피해</td></tr><tr><td>숲</td><td>1</td><td>4 피해</td></tr><tr><td>산</td><td>2</td><td>3 피해</td></tr></tbody></table><p class="note">이동 비용은 평지 1·숲 2·산 3입니다. 이동 비용과 방어 보너스를 혼동하지 마세요. 강은 이동 불가이며 방어 보너스는 0입니다.</p>
-</section>
-<section class="slide" id="slide-11" data-title="HP 바의 표현">
-<p class="eyebrow">11 · 모델의 값을 화면의 비율로</p><h2>HP 바는 HP를 소유하지 않는다</h2><div class="grid"><div class="card"><h3>Unit</h3><p>MaxHp 10, CurrentHp 5.<br>게임의 실제 상태를 저장합니다.</p></div><div class="card"><h3>UnitHealthBar</h3><p>5 / 10 = 0.5.<br>Fill Transform의 localScale.x를 바꿉니다.</p></div></div><pre><code>scale.x = Mathf.Clamp01(_unit.CurrentHp / (float)_unit.MaxHp);
-_fill.localScale = scale;</code></pre><p>float 변환이 없으면 정수 나눗셈으로 5/10이 0이 됩니다. x만 변경하여 바의 높이와 깊이를 유지합니다.</p>
-</section>
-<section class="slide" id="slide-12" data-title="HP 바 생명주기">
-<p class="eyebrow">12 · 켜질 때 듣고, 꺼질 때 정리한다</p><h2>OnEnable · OnDisable · Bind</h2><table><thead><tr><th>진입점</th><th>해야 하는 일</th></tr></thead><tbody><tr><td>OnEnable</td><td>Subscribe → Refresh</td></tr><tr><td>OnDisable</td><td>Unsubscribe</td></tr><tr><td>Bind(newUnit)</td><td>옛 대상 해제 → 새 대상 저장 → 구독 → Refresh</td></tr><tr><td>HandleDied</td><td>바 오브젝트 비활성화</td></tr></tbody></table><p>잠시 꺼져 있던 동안 놓친 변화는 OnEnable의 Refresh로 회복합니다. 콜백에서는 구독 상태와 전달된 Unit이 실제 바인딩 대상인지 확인합니다.</p><p class="question">Bind에서 _unit을 먼저 바꾸면 누구에게서 구독을 해제하게 될까요?</p>
-</section>
-<section class="slide" id="slide-13" data-title="전멸 관찰">
-<p class="eyebrow">13 · 같은 사건, 다른 관심사</p><h2>GameManager는 Died를 듣는다</h2><div class="flow"><span>Unit.Died</span><b>→</b><span>HandleObservedUnitDied</span><b>→</b><span>생존 팀원 수</span><b>→</b><span>TryFinish</span></div><p>적 팀 생존 전투 유닛이 0이면 PlayerWon, 아군 팀이 0이면 PlayerLost입니다. 현재 결과가 Playing일 때만 새 결과를 확정합니다.</p><p>집계 조건은 활성 상태, <code>IsAlive</code>, <code>IsTurnUnit</code>, 같은 <code>Team</code>입니다. Fixed Blocker는 제외합니다.</p><p class="note">관찰은 Start에서 직렬화 목록 5명으로 시작합니다. 대상 교체와 OnDestroy에서 해제합니다. HP 바의 OnDisable 수명과는 다릅니다.</p>
-</section>
-<section class="slide" id="slide-14" data-title="기존 결과 보존">
-<p class="eyebrow">14 · 승리 조건이 추가되어도 결과는 하나</p><h2>전멸과 목표 점령이 공존한다</h2><table><thead><tr><th>사건</th><th>결과</th></tr></thead><tbody><tr><td>마지막 적 사망</td><td>PlayerWon</td></tr><tr><td>마지막 아군 사망</td><td>PlayerLost</td></tr><tr><td>아군이 적 소유 목표 (11,6) 진입</td><td>PlayerWon</td></tr><tr><td>적이 아군 소유 목표 (0,4) 진입</td><td>PlayerLost</td></tr></tbody></table><p>GameManager.TryFinish는 최초 결과를 보존합니다. TurnManager가 Finished로 전환하면 HUD가 결과를 보여 주고 플레이어 입력이 막힙니다.</p><p class="note">R은 결과 이후에도 새 장면을 불러옵니다. HP·유닛 활성 상태·턴·구독이 새 장면 수명으로 시작합니다.</p>
-</section>
-<section class="slide" id="slide-15" data-title="공격 대상의 조건">
-<p class="eyebrow">15 · 유효한 대상부터 정한다</p><h2>상하좌우 한 칸의 살아 있는 적</h2><p class="lead"><code>|dx| + |dy| == 1</code></p><div class="grid"><div class="card"><h3>대상이 되는 경우</h3><p>다른 팀, 활성 상태, HP 양수,<br>현재 보드에서 직교 인접.</p></div><div class="card"><h3>대상이 아닌 경우</h3><p>자기 자신·동료·대각선·사망·비활성.<br>전투 목록에 없는 고정 장애물.</p></div></div><p>AttackTargeting은 후보를 모으는 제공 도우미입니다. BattleController와 EnemyAI는 자기 행동의 소유권·전투 참여 조건도 확인합니다.</p>
-</section>
-<section class="slide" id="slide-16" data-title="공격 상태 흐름">
-<p class="eyebrow">16 · 이동 다음 클릭의 의미가 바뀐다</p><h2>AttackState로 공격 선택을 유지한다</h2><div class="flow"><span>Idle</span><b>→</b><span>UnitSelected</span><b>→</b><span>이동·목표 확인</span><b>→</b><span>AttackState</span><b>→</b><span>Idle</span></div><p>이동 뒤 인접 적이 있으면 공격 대상을 보여 줍니다. 없으면 바로 행동을 완료합니다. 목표로 게임이 종료되었다면 공격 선택을 열지 않습니다.</p><p>PlayerMoveCommand가 이동 시 HasMoved를 true로 만듭니다. 공격을 기다리는 <em>보류 행동</em>은 그와 별도로 관리합니다.</p><p class="note">학생판의 이동 전용 경로는 바로 완료됩니다. 전투를 완성하면서 ExecuteMove의 후속 흐름을 AttackState에 연결합니다.</p>
-</section>
-<section class="slide" id="slide-17" data-title="클릭과 완료">
-<p class="eyebrow">17 · 공격과 건너뛰기의 경계</p><h2>유효한 공격 또는 빈 공간 클릭</h2><table><thead><tr><th>AttackState의 입력</th><th>처리</th></tr></thead><tbody><tr><td>유효한 인접 적</td><td>TryAttack 성공 → CompletePlayerAction</td></tr><tr><td>빈 공간</td><td>공격을 건너뛰고 CompletePlayerAction</td></tr><tr><td>동료·유효하지 않은 대상</td><td>공격 선택 상태 유지</td></tr><tr><td>피해 전 Undo</td><td>보류한 이동만 복구 → 표시·보류 정리 → Idle</td></tr><tr><td>Enter (기본·숫자패드)</td><td>공격 건너뛰기·행동 완료 → 아군 턴 종료</td></tr><tr><td>다른 아군 선택</td><td>보류 행동 중에는 실행하지 않음</td></tr></tbody></table><p>완료는 보류 중인 실제 유닛에게 한 번만 적용합니다. 마지막 아군 행동이면 적 턴으로 넘어가므로 중복 완료를 막아야 합니다.</p>
-</section>
-<section class="slide" id="slide-18" data-title="공격과 Undo">
-<p class="eyebrow">18 · 되돌릴 수 있는 범위를 분명하게</p><h2>피해를 준 뒤에는 이동 이력을 비운다</h2><p>이동 Command의 Undo는 위치와 HasMoved만 복구합니다. 적의 HP·사망·승패까지 복구하는 전투 Undo는 이번 범위가 아닙니다.</p><div class="grid"><div class="card"><h3>공격이 적용됨</h3><p>실제 HP 감소를 확인하고 history.Clear. 위치만 되돌리는 모순을 막습니다.</p></div><div class="card"><h3>아직 피해가 없음</h3><p>공격 대기 중 Undo는 그 이동의 셀·HasMoved=false를 복구합니다. 다른 유닛 이력은 보존합니다. 적 턴 진입 시 이력은 비워집니다.</p></div></div><p class="note">피해 알림 중 추가 입력이 재진입하지 않도록 처리 중 상태를 둡니다. 피해 적용과 이력 정리가 끝난 뒤 행동 완료를 처리합니다.</p>
-</section>
-<section class="slide" id="slide-19" data-title="적의 공격 우선">
-<p class="eyebrow">19 · 적도 동일한 피해 규칙을 사용</p><h2>인접 적이 있으면 제자리에서 공격</h2><p>ChooseAttackTarget은 살아 있는 아군 전투 유닛 중 인접 대상을 고릅니다. 여러 명이면 다음 순서로 비교합니다.</p><div class="flow"><span>현재 HP 낮은 순</span><b>→</b><span>y 작은 순</span><b>→</b><span>x 작은 순</span></div><p>공격 대상이 이미 있으면 이동하지 않습니다. 공격은 방어자의 셀에서 지형을 읽고 CombatCalculator와 TakeDamage를 사용합니다.</p><p class="question">두 아군의 HP가 같아도 실행할 때마다 결과가 달라지지 않으려면 무엇이 필요할까요?</p>
-</section>
-<section class="slide" id="slide-20" data-title="이동 후 공격">
-<p class="eyebrow">20 · 이동한 뒤 상황을 다시 읽는다</p><h2>멀리 있으면 접근 → 재검색 → 한 번 공격</h2><ol><li>가까운 아군을 거리 → y → x로 선택합니다.</li><li>ChooseDestination의 거리 → 이동 비용 → y → x 규칙으로 이동합니다.</li><li>취소·게임 종료·생존 상태를 다시 확인합니다.</li><li>현재 위치에서 인접 대상을 다시 찾고 최대 한 번 공격합니다.</li></ol><p class="note">더 가까워지는 칸이 없으면 제자리에 머뭅니다. 이 AI는 결정 가능한 탐욕 규칙이며 복잡한 장애물을 돌아가는 장기 계획은 하지 않습니다.</p>
-</section>
-<section class="slide" id="slide-21" data-title="순차 턴과 취소">
-<p class="eyebrow">21 · 적 한 명의 행동이 끝난 뒤 다음 적으로</p><h2>UniTask는 순서와 수명을 연결한다</h2><pre><code>await enemyAi.TakeCombatTurnAsync(unit, _units, cancellationToken);
-// 전멸 결과와 목표 도착을 확인한 뒤 다음 유닛으로 진행한다.</code></pre><p>사망한 적은 차례에서 제외됩니다. 게임이 종료되면 다음 적을 실행하지 않습니다. 이동 직후·대기 중에도 취소와 종료를 확인합니다.</p><p>위치 변경은 즉시 일어나며 350ms는 행동 사이의 대기입니다. R로 장면을 바꾸면 이전 턴 작업의 수명을 끝냅니다.</p><p class="note">학생 시작 경로는 완성된 TakeTurnAsync로 적을 목표 쪽에 이동시킵니다. 전투 구현 후 호출을 바꿉니다.</p>
-</section>
-<section class="slide" id="slide-22" data-title="장면 참조 지도">
-<p class="eyebrow">22 · 코드를 움직이는 직렬화 참조</p><h2>다섯 전투 유닛, 다섯 HP 바</h2><table><thead><tr><th>소유 컴포넌트</th><th>연결해야 하는 대상</th></tr></thead><tbody><tr><td>GameManager / BattleController</td><td>동일한 전투 유닛 5명</td></tr><tr><td>UnitHealthBar</td><td>자기 부모 Unit, 자식 Fill Transform</td></tr><tr><td>TurnManager</td><td>전체 6명, 적 AI 2개 순서, 목표 2개, GameManager·보드</td></tr><tr><td>BattleController / HUD</td><td>보드·카메라·OverlayRoot / TurnManager·GameManager·Text</td></tr></tbody></table><p>Fixed Blocker는 (6,4)에 남아 점유만 담당합니다. 바의 배경과 채움은 SpriteRenderer 정렬 순서 11·12로 유닛 위에 보입니다.</p>
-</section>
-<section class="slide" id="slide-23" data-title="실패 진단">
-<p class="eyebrow">23 · 사실이 끊어진 지점을 찾기</p><h2>값 → 알림 → 구독 → 반응 순서로 좁힌다</h2><table><thead><tr><th>증상</th><th>먼저 확인할 연결</th></tr></thead><tbody><tr><td>HP가 줄지 않음</td><td>유효 대상·계산 결과·TakeDamage</td></tr><tr><td>HP만 줄고 바는 그대로</td><td>HpChanged 발행·Unit/Fill 참조·구독·float 비율</td></tr><tr><td>다시 켠 뒤 반응이 여러 번</td><td>OnDisable 해제·Bind 이전 대상·구독 플래그</td></tr><tr><td>마지막 적 사망 후 Playing</td><td>Died 구독·전투 목록·IsAlive·팀별 집계</td></tr><tr><td>적은 계속 이동만 함</td><td>TakeCombatTurnAsync 완성과 TurnManager 호출</td></tr></tbody></table><p class="question">Console의 첫 오류와 실제 CurrentHp 중 어느 근거부터 볼지 조원에게 설명해 보세요.</p>
-</section>
-<section class="slide" id="slide-24" data-title="통합 Play 미션">
-<p class="eyebrow">24 · 150–170분의 전술 실험</p><h2>예측한 피해와 실제 게임을 비교한다</h2><ol><li>Player 3 (8,6) → (9,7) → Enemy 1 (9,8): 평지 피해 5, HP 10→5, 바 절반.</li><li>R 후 같은 이동에서 피해 전 Undo, 빈 공간 건너뛰기, Enter 턴 종료를 비교합니다.</li><li>방어자를 숲·산에 배치해 피해 4·3을 비교합니다. 유효하고 비어 있는 셀을 사용합니다.</li><li>적의 제자리 공격과 이동 후 공격, 사망 유닛 제외, 전멸 VICTORY·DEFEAT를 관찰합니다.</li></ol><p class="note">기록: 행동 전 HP / 방어 지형 / 예측 피해 / 실제 HP / 바 변화 / 턴 결과. 짝과 조작자·관찰자 역할을 바꿉니다.</p>
-</section>
-<section class="slide" id="slide-25" data-title="기존 기능과 회복">
-<p class="eyebrow">25 · 새 기능이 기존 게임을 이어 간다</p><h2>목표·입력·재시작도 함께 확인</h2><ul><li>아군이 적 소유 목표 (11,6)에 들어가면 승리합니다.</li><li>적이 아군 소유 목표 (0,4)에 들어가면 패배합니다.</li><li>Enter로 남은 아군 행동을 넘깁니다. 적 턴·종료·피해 처리 중에는 Enter와 Undo가 차단됩니다.</li><li>R로 HP 10/10, 유닛 활성 상태, 플레이어 턴이 새로 시작됩니다.</li><li>바 재활성화·대상 교체 때 옛 구독이 정리되고 현재 값으로 회복됩니다.</li></ul><p class="note">전체 전멸 미션을 빠르게 관찰하려면 Play 전 현재 HP를 낮춰 상황을 만들 수 있습니다. 미션 뒤 원래 10으로 복원합니다.</p>
-</section>
-<section class="slide" id="slide-26" data-title="복습과 확장">
-<p class="eyebrow">26 · 170–180분의 설계 설명</p><h2>변화의 소유자와 반응의 소유자를 설명하자</h2><div class="grid"><div class="card"><h3>종료 질문</h3><p>HP 저장이 알림보다 먼저인 이유는?<br>Died 순간 IsAlive가 필요한 이유는?<br>구독 해제와 공격 후 이력 정리가 필요한 이유는?</p></div><div class="card"><h3>다음 확장</h3><p>전투 로그·사망 효과음·이동 카메라.<br>새 구독자를 추가하면서 Unit의 UI 의존성이 늘어나는지 살펴봅니다.</p></div></div><p class="lead">Unit은 사실을 만들고,<br>관찰자는 자기 책임에 따라 반응합니다.</p><p class="note">선택 확장은 필수 전투·HP 바·전멸·지형·적 AI가 모두 연결된 다음에 진행합니다. 자세한 해설과 연습 답은 교재에서 이어집니다.</p>
-</section>
-</main>
-<footer><nav class="controls" aria-label="슬라이드 이동"><button type="button" id="prev" aria-label="이전 슬라이드">← 이전</button><output id="counter" aria-live="polite">1 / 26</output><button type="button" id="next" aria-label="다음 슬라이드">다음 →</button><select id="jump" aria-label="슬라이드 목차"></select><button type="button" id="print">인쇄</button></nav><progress id="progress" value="1" max="26" aria-label="발표 진행률"></progress><p class="help">← → / PageUp PageDown: 이동 · Home End: 처음과 끝 · 목차로 바로 이동 · 인쇄하면 전체 26장이 출력됩니다.</p></footer>
-<script>
-(()=>{'use strict';const slides=[...document.querySelectorAll('.slide')];const prev=document.getElementById('prev'),next=document.getElementById('next'),counter=document.getElementById('counter'),jump=document.getElementById('jump'),progress=document.getElementById('progress');let current=0;slides.forEach((slide,i)=>{const option=document.createElement('option');option.value=String(i);option.textContent=String(i+1).padStart(2,'0')+' · '+slide.dataset.title;jump.append(option)});function show(index,updateHash=true){current=Math.min(slides.length-1,Math.max(0,index));slides.forEach((slide,i)=>{slide.hidden=i!==current;slide.setAttribute('aria-label',`${i+1} / ${slides.length} · ${slide.dataset.title}`)});counter.textContent=`${current+1} / ${slides.length}`;progress.value=current+1;prev.disabled=current===0;next.disabled=current===slides.length-1;jump.value=String(current);if(updateHash)history.replaceState(null,'','#'+slides[current].id);window.scrollTo(0,0)}function fromHash(){const found=slides.findIndex(slide=>'#'+slide.id===location.hash);show(found<0?0:found,false)}prev.addEventListener('click',()=>show(current-1));next.addEventListener('click',()=>show(current+1));jump.addEventListener('change',()=>show(Number(jump.value)));document.getElementById('print').addEventListener('click',()=>window.print());document.addEventListener('keydown',event=>{if(event.target.matches('select,input,textarea')||event.ctrlKey||event.metaKey||event.altKey)return;const keys={ArrowLeft:current-1,PageUp:current-1,ArrowRight:current+1,PageDown:current+1,Home:0,End:slides.length-1};if(Object.hasOwn(keys,event.key)){event.preventDefault();show(keys[event.key])}});window.addEventListener('hashchange',fromHash);fromHash()})();
-</script>
-</body>
+if (sourceCell != targetCell)
+    Moved?.Invoke(this, sourceCell, targetCell);</code></pre><div class="callout "><p>A에서 B로 이동하면 Moved(Unit, A, B), 그 이동을 Undo하면 Moved(Unit, B, A)가 발생한다. 위치 변화마다 알리므로 Undo도 관찰자에게 새로운 이동 사실로 전달된다.</p></div><p class="source">Unit.MoveTo 핵심 발췌. Board가 없는 경우의 앞쪽 반환문과 중괄호 일부를 생략했다.</p></div></section>
+
+<section class="slide" id="slide-28" data-slide="28 / 39" aria-labelledby="title-28"><div><p class="kicker">Re-entry Guard</p><h2 id="title-28">알림이 처리되는 동안 중복 행동을 막는다</h2><pre><code>_isResolvingAttack = true;
+try { defender.TakeDamage(damage); }
+finally
+{
+    _attackApplied = defender.CurrentHp &lt; previousHp;
+    if (_attackApplied) { _history.Clear(); _pendingMove = null; }
+    _isResolvingAttack = false;
+}</code></pre><div class="callout "><p>TakeDamage 도중 관찰자가 다른 행동을 요청할 수 있다. 처리 중에는 입력과 행동 완료를 막고, HP 감소 여부를 확인해 이력을 정리한 다음 잠금을 푼다.</p></div><p class="source">BattleController.TryAttack 순서를 보존한 축약. 실제 코드는 성공 여부도 반환한다.</p></div></section>
+
+<section class="slide" id="slide-29" data-slide="29 / 39" aria-labelledby="title-29"><div><p class="kicker">Action and Phase</p><h2 id="title-29">공격 한 번이 끝나도 플레이어 턴은 계속될 수 있다</h2><table class="compare"><thead><tr><th>행동을 완료한 뒤</th><th>다음 흐름</th></tr></thead><tbody><tr><td>아직 행동할 수 있는 아군이 있음</td><td>Player 단계에서 다른 아군 선택</td></tr><tr><td>모든 활성 아군이 행동 완료</td><td>Enemy 단계 요청, 이동 이력 정리</td></tr><tr><td>이번 공격으로 승패 확정</td><td>Finished로 전환, 추가 입력 차단</td></tr></tbody></table><div class="callout "><p>HasMoved는 해당 유닛의 행동 여부이고 Phase는 전체 차례다. 공격을 건너뛰어도 그 유닛의 행동은 끝나지만, 다른 아군의 행동까지 끝나는 것은 아니다.</p></div></div></section>
+
+<section class="slide" id="slide-30" data-slide="30 / 39" aria-labelledby="title-30"><div><p class="kicker">Enemy Decision</p><h2 id="title-30">적도 공격할 수 있다면 공격을 먼저 고른다</h2><div class="flow"><div class="node">인접한 아군<br>검색</div><div class="arrow">→</div><div class="node">있으면<br>대상 선택</div><div class="arrow">→</div><div class="node">없으면 이동<br>후 다시 검색</div><div class="arrow">→</div><div class="node">공격 또는<br>행동 완료</div></div><div class="callout "><p>5차시의 목표 방향 이동에 공격 선택을 더한다. 이동 후에는 현재 위치에서 대상을 다시 검사하므로, 멀리 있던 아군을 사거리 밖에서 공격하지 않는다.</p></div><p>공격은 플레이어와 같은 인접·생존·팀 규칙과 같은 피해 계산기를 사용한다.</p></div></section>
+
+<section class="slide" id="slide-31" data-slide="31 / 39" aria-labelledby="title-31"><div><p class="kicker">Think · AI Target</p><h2 id="title-31">인접한 적의 공격 대상은 누가 될까?</h2><table class="compare"><thead><tr><th>적 (3,3) 옆의 아군</th><th>HP</th><th>판정</th></tr></thead><tbody><tr><td>A (2,3)</td><td>6</td><td>HP가 더 많아 뒤로</td></tr><tr><td>B (3,2)</td><td>4</td><td>선택: HP 동점에서 y가 더 작음</td></tr><tr><td>C (4,3)</td><td>4</td><td>HP 동점, y가 더 큼</td></tr></tbody></table><div class="callout "><p>우선순위는 현재 HP, y 좌표, x 좌표의 오름차순이다. 동점 규칙이 있으므로 같은 상황을 다시 실행해도 대상을 일관되게 선택한다.</p></div><p>이 예시는 세 아군이 모두 활성·생존 상태이며 공격 가능한 전투원이라고 가정한다.</p></div></section>
+
+<section class="slide" id="slide-32" data-slide="32 / 39" aria-labelledby="title-32"><div><p class="kicker">AI Movement</p><h2 id="title-32">공격할 수 없으면 가까운 아군 쪽으로 이동한다</h2><table class="compare"><thead><tr><th>목표까지 현재 거리 5</th><th>도착 뒤 거리</th><th>이동 비용</th></tr></thead><tbody><tr><td>후보 A</td><td>2</td><td>3</td></tr><tr><td>후보 B</td><td>2</td><td>2</td></tr><tr><td>선택 결과</td><td>B: 같은 거리에서 비용이 작음</td><td>2</td></tr></tbody></table><div class="callout "><p>가장 가까운 아군을 목표로 삼고, 도착 후보를 목표 거리 → 이동 비용 → y → x 순으로 고른다. 현재보다 가까워지는 칸이 없으면 기다린다.</p></div><p>이는 매 차례 가까워지는 선택이다. 잠시 멀어져야 하는 우회 경로까지 계획하지는 않는다.</p></div></section>
+
+<section class="slide" id="slide-33" data-slide="33 / 39" aria-labelledby="title-33"><div><p class="kicker">Sequential Turns</p><h2 id="title-33">적 하나의 비동기 행동이 끝나야 다음 적으로 간다</h2><pre><code>EnemyTurnStarted?.Invoke(unit);
+await enemyAi.TakeCombatTurnAsync(
+    unit, _units, cancellationToken);</code></pre><div class="two"><div class="panel teal"><h3>await의 역할</h3><p>이 적의 행동과 짧은 대기가 완료될 때까지 다음 적의 실행을 미룬다. Unity의 화면 처리는 계속 진행된다.</p></div><div class="panel amber"><h3>알림 뒤 재확인</h3><p>이동·사망 관찰자가 전투를 끝내거나 취소를 요청할 수 있다. AI는 후속 공격 전에 진행 가능 여부를 다시 확인한다.</p></div></div><p class="source">TurnManager.RunEnemyPhaseAsync 일부 / EnemyAI.TakeCombatTurnAsync</p></div></section>
+
+<section class="slide" id="slide-34" data-slide="34 / 39" aria-labelledby="title-34"><div><p class="kicker">Cancellation</p><h2 id="title-34">취소는 남은 행동을 중단하라는 요청이다</h2><div class="two"><div class="panel teal"><h3>취소 토큰</h3><p>장면의 수명이 끝났을 때 비동기 대기와 다음 행동을 중단하도록 전달한다. 이미 실행한 이동이나 피해를 자동으로 복원하지 않는다.</p></div><div class="panel violet"><h3>전투가 끝난 경우</h3><p>AI의 대기는 결과 확정도 감지한다. TurnManager는 결과를 다시 읽고 Finished로 끝내므로 남은 적과 새 Player 턴을 진행하지 않는다.</p></div></div><div class="callout "><p>비동기 작업의 완료, 취소, 전투 결과는 다른 사실이다. 기다림이 끝났다는 이유만으로 무조건 다음 행동을 시작하면 안 된다.</p></div></div></section>
+
+<section class="slide" id="slide-35" data-slide="35 / 39" aria-labelledby="title-35"><div><p class="kicker">Game Result</p><h2 id="title-35">목표 점령과 전멸은 하나의 결과로 모인다</h2><table class="compare"><thead><tr><th>종료 원인</th><th>판정하는 곳</th><th>결과</th></tr></thead><tbody><tr><td>마지막 적 또는 아군 사망</td><td>GameManager의 Died 관찰</td><td>PlayerWon 또는 PlayerLost</td></tr><tr><td>상대 목표 도달</td><td>TurnManager.CheckGoal</td><td>목표 규칙에 맞는 승패</td></tr><tr><td>결과가 확정된 뒤</td><td>TurnManager와 입력 검사</td><td>Finished, 플레이어 입력 차단</td></tr></tbody></table><div class="callout "><p>Result는 누가 이겼는지, Phase는 누가 행동할 차례인지를 나타낸다. 두 값이 연결되어야 승리한 뒤 적 턴이 새로 시작되는 일을 막는다.</p></div></div></section>
+
+<section class="slide" id="slide-36" data-slide="36 / 39" aria-labelledby="title-36"><div><p class="kicker">Limits</p><h2 id="title-36">이벤트 하나로 모든 변화가 자동 전달되지는 않는다</h2><div class="two"><div class="panel teal"><h3>이 구조가 제공하는 것</h3><p>변화가 일어나는 순간 등록된 함수들을 호출한다. 반응 종류를 추가해도 HP 변경 코드와 분리할 수 있다.</p></div><div class="panel amber"><h3>따로 정해야 하는 것</h3><p>과거 사건 저장, 예외 격리, 등록·해제 시점, 알림을 발생시키는 경로를 정해야 한다.</p></div></div><div class="callout "><p>예를 들어 ConfigureCombat은 값을 설정하지만 HpChanged를 발행하지 않는다. 초기 Refresh처럼 현재 값을 읽는 절차가 여전히 필요하다.</p></div></div></section>
+
+<section class="slide" id="slide-37" data-slide="37 / 39" aria-labelledby="title-37"><div><p class="kicker">Judgment</p><h2 id="title-37">Observer가 필요한 변화인지 판단한다</h2><div class="two"><div class="panel teal"><h3>도입 가치가 큰 경우</h3><p>한 상태 변화에 UI·로그·승패 등 독립적인 기능 여러 개가 반응한다. 반응하는 대상이 켜지거나 교체될 수 있다.</p></div><div class="panel amber"><h3>감수할 비용</h3><p>실행 흐름을 찾으려면 등록 위치까지 따라가야 한다. 해제 누락과 중복 등록, 콜백 도중 상태 변화를 관리해야 한다.</p></div></div><div class="callout "><p>반응이 하나뿐이고 연결이 고정되어 있다면 직접 메서드 호출도 단순한 선택이다. 패턴의 가치는 실제로 분리할 책임이 있을 때 커진다.</p></div></div></section>
+
+<section class="slide" id="slide-38" data-slide="38 / 39" aria-labelledby="title-38"><div><p class="kicker">Connect the Course</p><h2 id="title-38">한 번의 공격에서 각 패턴의 역할이 드러난다</h2><div class="role-map"><div class="role"><b>State</b><span>클릭이 선택·이동·공격 중 무엇인지 정한다.</span></div><div class="role"><b>Command</b><span>이동 한 건을 실행하고 가능한 범위에서 취소한다.</span></div><div class="role"><b>Flyweight</b><span>같은 지형 에셋의 규칙을 여러 셀이 공유한다.</span></div><div class="role"><b>Observer</b><span>Unit의 변화에 표시와 승패 판정이 반응한다.</span></div></div><div class="callout "><p>GameManager는 결과를 보관하고 TurnManager는 차례를 진행한다. 패턴 이름마다 하나의 질문과 담당 책임을 연결해 설명할 수 있어야 한다.</p></div></div></section>
+
+<section class="slide" id="slide-39" data-slide="39 / 39" aria-labelledby="title-39"><div><p class="kicker">Takeaway</p><h2 id="title-39">상태의 주인은 바꾸고, 관찰자는 반응한다</h2><ol><li>Unit은 HP를 먼저 변경한 뒤 HpChanged를 발행한다.</li><li>관찰자는 등록된 함수로 알림을 받고 현재 상태를 읽는다.</li><li>구독을 시작할 때 현재 값을 표시하고, 수명이 끝나면 해제한다.</li><li>사망 알림으로 승패가 바뀔 수 있으므로 후속 행동 전에 결과를 확인한다.</li></ol><div class="question"><p class="big">HP 6인 유닛의 체력 바가 새로 켜졌다.<br>필요한 동작은 <span class="amber">등록 + 현재 값 읽기</span>다.</p></div><div class="callout "><p>이벤트에는 과거 기록이 없기 때문이다. 이것을 설명할 수 있다면 알림과 상태의 차이를 이해한 것이다.</p></div></div></section>
+      </div>
+    </main>
+
+    <nav class="controls" aria-label="슬라이드 탐색">
+      <button class="control-btn" id="prevBtn" type="button" aria-label="이전 슬라이드">←</button>
+      <button class="control-btn" id="tocBtn" type="button">목차</button>
+      <span id="slideCounter" aria-live="polite">1 / 39</span>
+      <button class="control-btn" id="nextBtn" type="button" aria-label="다음 슬라이드">→</button>
+    </nav>
+  </div>
+
+  <dialog id="tocDialog" aria-labelledby="tocTitle">
+    <div class="toc-head"><h2 id="tocTitle">전체 목차</h2><button class="control-btn" id="tocCloseBtn" type="button">닫기</button></div>
+    <div class="toc-grid">
+<a class="toc-link" href="#slide-1"><span>01</span>Observer 패턴</a><a class="toc-link" href="#slide-2"><span>02</span>5차시는 턴 순서와 이동을 완성했다</a><a class="toc-link" href="#slide-3"><span>03</span>한 번의 공격에 여러 반응이 필요하다</a><a class="toc-link" href="#slide-4"><span>04</span>첫 생각: 피해 함수에서 모두 직접 호출하자</a><a class="toc-link" href="#slide-5"><span>05</span>피격 로그까지 생기면 어디를 고칠까?</a><a class="toc-link" href="#slide-6"><span>06</span>HP를 바꾸는 책임과 반응하는 책임을 나눈다</a><a class="toc-link" href="#slide-7"><span>07</span>Observer는 변화에 반응할 함수를 등록한다</a><a class="toc-link" href="#slide-8"><span>08</span>이 프로젝트에서는 C# 이벤트로 연결한다</a><a class="toc-link" href="#slide-9"><span>09</span>Action은 등록할 함수의 모양을 정한다</a><a class="toc-link" href="#slide-10"><span>10</span>등록·해제·발행은 서로 다른 동작이다</a><a class="toc-link" href="#slide-11"><span>11</span>HP를 먼저 저장하고 그다음 알린다</a><a class="toc-link" href="#slide-12"><span>12</span>HP 10인 유닛이 피해 4를 받으면?</a><a class="toc-link" href="#slide-13"><span>13</span>치명타에서는 HP 알림 뒤 사망을 알린다</a><a class="toc-link" href="#slide-14"><span>14</span>이벤트 콜백은 호출 도중 바로 실행된다</a><a class="toc-link" href="#slide-15"><span>15</span>체력 바는 HP를 소유하지 않고 읽는다</a><a class="toc-link" href="#slide-16"><span>16</span>늦게 나타난 체력 바는 현재 값을 직접 읽는다</a><a class="toc-link" href="#slide-17"><span>17</span>구독은 관찰자의 수명에 맞춰 정리한다</a><a class="toc-link" href="#slide-18"><span>18</span>표시할 유닛을 바꾸면 이전 연결부터 끊는다</a><a class="toc-link" href="#slide-19"><span>19</span>GameManager는 사망한 팀의 생존자를 센다</a><a class="toc-link" href="#slide-20"><span>20</span>모든 관찰자의 해제 시점이 같지는 않다</a><a class="toc-link" href="#slide-21"><span>21</span>이제 이동 뒤의 클릭은 공격이 될 수 있다</a><a class="toc-link" href="#slide-22"><span>22</span>인접 공격은 상하좌우 한 칸이다</a><a class="toc-link" href="#slide-23"><span>23</span>잘못 고른 적과 빈칸은 다르게 처리한다</a><a class="toc-link" href="#slide-24"><span>24</span>피해는 방어자가 서 있는 지형도 읽는다</a><a class="toc-link" href="#slide-25"><span>25</span>숲의 적을 공격한 결과를 끝까지 따라간다</a><a class="toc-link" href="#slide-26"><span>26</span>공격 전에는 방금 이동을 되돌릴 수 있다</a><a class="toc-link" href="#slide-27"><span>27</span>이동 명령과 이동 알림은 역할이 다르다</a><a class="toc-link" href="#slide-28"><span>28</span>알림이 처리되는 동안 중복 행동을 막는다</a><a class="toc-link" href="#slide-29"><span>29</span>공격 한 번이 끝나도 플레이어 턴은 계속될 수 있다</a><a class="toc-link" href="#slide-30"><span>30</span>적도 공격할 수 있다면 공격을 먼저 고른다</a><a class="toc-link" href="#slide-31"><span>31</span>인접한 적의 공격 대상은 누가 될까?</a><a class="toc-link" href="#slide-32"><span>32</span>공격할 수 없으면 가까운 아군 쪽으로 이동한다</a><a class="toc-link" href="#slide-33"><span>33</span>적 하나의 비동기 행동이 끝나야 다음 적으로 간다</a><a class="toc-link" href="#slide-34"><span>34</span>취소는 남은 행동을 중단하라는 요청이다</a><a class="toc-link" href="#slide-35"><span>35</span>목표 점령과 전멸은 하나의 결과로 모인다</a><a class="toc-link" href="#slide-36"><span>36</span>이벤트 하나로 모든 변화가 자동 전달되지는 않는다</a><a class="toc-link" href="#slide-37"><span>37</span>Observer가 필요한 변화인지 판단한다</a><a class="toc-link" href="#slide-38"><span>38</span>한 번의 공격에서 각 패턴의 역할이 드러난다</a><a class="toc-link" href="#slide-39"><span>39</span>상태의 주인은 바꾸고, 관찰자는 반응한다</a>
+</div>
+  </dialog>
+
+  <script>
+    const slides = [...document.querySelectorAll('.slide')];
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const tocBtn = document.getElementById('tocBtn');
+    const tocDialog = document.getElementById('tocDialog');
+    const tocCloseBtn = document.getElementById('tocCloseBtn');
+    const slideCounter = document.getElementById('slideCounter');
+    let current = 0;
+
+    function showSlide(index, updateHash = true) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      slides.forEach((slide, slideIndex) => slide.classList.toggle('is-active', slideIndex === current));
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current === slides.length - 1;
+      slideCounter.textContent = `${current + 1} / ${slides.length}`;
+      if (updateHash) history.replaceState(null, '', `#slide-${current + 1}`);
+    }
+
+    function indexFromHash() {
+      const match = location.hash.match(/^#slide-(\d+)$/);
+      const index = match ? Number(match[1]) - 1 : -1;
+      if (index >= 0 && index < slides.length) return index;
+      history.replaceState(null, '', '#slide-1');
+      return 0;
+    }
+
+    function openToc() { if (!tocDialog.open) tocDialog.showModal(); }
+    function closeToc() { if (tocDialog.open) tocDialog.close(); }
+
+    prevBtn.addEventListener('click', () => showSlide(current - 1));
+    nextBtn.addEventListener('click', () => showSlide(current + 1));
+    tocBtn.addEventListener('click', openToc);
+    tocCloseBtn.addEventListener('click', closeToc);
+    tocDialog.addEventListener('click', (event) => { if (event.target === tocDialog) closeToc(); });
+    tocDialog.querySelectorAll('.toc-link').forEach((link) => link.addEventListener('click', (event) => {
+      event.preventDefault();
+      const index = Number(link.hash.replace('#slide-', '')) - 1;
+      closeToc();
+      showSlide(index);
+    }));
+    window.addEventListener('hashchange', () => showSlide(indexFromHash(), false));
+    window.addEventListener('keydown', (event) => {
+      if (tocDialog.open) return;
+      const tag = document.activeElement?.tagName;
+      if (['ArrowRight','ArrowLeft','PageDown','PageUp','Home','End'].includes(event.key)) event.preventDefault();
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (event.key === 'ArrowRight' || event.key === 'PageDown') showSlide(current + 1);
+      else if (event.key === 'ArrowLeft' || event.key === 'PageUp') showSlide(current - 1);
+      else if (event.key === 'Home') showSlide(0);
+      else if (event.key === 'End') showSlide(slides.length - 1);
+    });
+
+    const initialIndex = indexFromHash();
+    showSlide(initialIndex);
+  </script>
+<noscript><style>
+    html,body{height:auto;overflow:visible}.app,.stage,.deck{display:block;width:100%;height:auto;max-height:none;aspect-ratio:auto;overflow:visible;container-type:normal}
+    .slide,.slide.is-active{position:relative;display:block;overflow:visible;animation:none;margin-bottom:20px}.controls,dialog{display:none}
+    </style></noscript></body>
 </html>
