@@ -62,12 +62,8 @@ namespace MiniTactics.Lesson06.Editor
         private static void ConfigureBoard(BoardView board)
         {
             SerializedObject serializedBoard = new SerializedObject(board);
-            serializedBoard.FindProperty("_mapText").objectReferenceValue =
-                AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/Lesson06/Maps/map01.txt");
-            serializedBoard.FindProperty("_plainTile").objectReferenceValue = LoadTile(0);
-            serializedBoard.FindProperty("_forestTile").objectReferenceValue = LoadTile(2);
-            serializedBoard.FindProperty("_mountainTile").objectReferenceValue = LoadTile(4);
-            serializedBoard.FindProperty("_riverTile").objectReferenceValue = LoadTile(5);
+            serializedBoard.FindProperty("_mapData").objectReferenceValue =
+                AssetDatabase.LoadAssetAtPath<MapData>("Assets/Lesson06/Maps/map01.asset");
             serializedBoard.ApplyModifiedPropertiesWithoutUndo();
             board.LoadBoard();
             EditorUtility.SetDirty(board);

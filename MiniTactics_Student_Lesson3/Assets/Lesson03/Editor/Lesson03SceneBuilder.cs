@@ -16,6 +16,13 @@ namespace MiniTactics.Lesson03.Editor
         public static void BuildTeacherScene()
         {
             EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            BoardView board = Object.FindAnyObjectByType<BoardView>();
+            var serializedBoard = new SerializedObject(board);
+            serializedBoard.FindProperty("_mapData").objectReferenceValue =
+                AssetDatabase.LoadAssetAtPath<MapData>("Assets/Lesson03/Maps/map01.asset");
+            serializedBoard.ApplyModifiedPropertiesWithoutUndo();
+            board.PaintTerrain();
+            EditorUtility.SetDirty(board);
             BattleController controller = Object.FindAnyObjectByType<BattleController>();
             Button undoButton = GetOrCreateUndoButton();
 

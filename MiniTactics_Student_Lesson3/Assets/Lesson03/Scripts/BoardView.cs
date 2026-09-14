@@ -27,6 +27,22 @@ namespace MiniTactics.Lesson03
         };
 
         [SerializeField] private Tilemap _tilemap;
+        [SerializeField] private MapData _mapData;
+
+        // Asset-backed visuals are provided; weighted movement remains the lesson exercise.
+        private void Awake() => PaintTerrain();
+
+        public void PaintTerrain()
+        {
+            if (_tilemap == null || _mapData == null) return;
+            _mapData.Validate();
+            _tilemap.ClearAllTiles();
+            for (int y = 0; y < _mapData.Height; y++)
+            for (int x = 0; x < _mapData.Width; x++)
+                _tilemap.SetTile(new Vector3Int(x, y, 0),
+                    _mapData.GetTile(new Vector2Int(x, y)).Tile);
+        }
+
 
         public BoundsInt CellBounds
         {

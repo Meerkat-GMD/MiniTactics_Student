@@ -679,11 +679,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MiniTactics.Lesson01.Runtime::MiniTactics.Lesson01.BoardView
   _tilemap: {fileID: 1100000013}
-  _mapText: {fileID: 4900000, guid: 08ea774ea20df8a4cb2abebab307aa54, type: 3}
-  _plainTile: {fileID: 11400000, guid: a4d64058f52f49246a0cb3d31755ef5a, type: 2}
-  _forestTile: {fileID: 11400000, guid: ae642b6241928554a83169cbd31d9807, type: 2}
-  _mountainTile: {fileID: 11400000, guid: 5397891e7d339f641a2dc8b671a967db, type: 2}
-  _riverTile: {fileID: 11400000, guid: e04a9679f01c93445a173aed3935c2aa, type: 2}
+  _mapData: {fileID: 11400000, guid: df1c024e97cc4f2898d26ff40d209a8e, type: 2}
 --- !u!4 &760978246
 Transform:
   m_ObjectHideFlags: 0

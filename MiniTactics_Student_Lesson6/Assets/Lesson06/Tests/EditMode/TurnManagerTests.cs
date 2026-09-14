@@ -350,16 +350,12 @@ namespace MiniTactics.Lesson06.Tests
             tilemapObject.transform.SetParent(gridObject.transform, false);
             BoardView board = Track(new GameObject("Board")).AddComponent<BoardView>();
             _testTile = ScriptableObject.CreateInstance<Tile>();
-            TextAsset mapText = new TextAsset(map);
+            MapData mapText = MapTestData.Create(map);
 
             SerializedObject serializedBoard = new SerializedObject(board);
             serializedBoard.FindProperty("_tilemap").objectReferenceValue =
                 tilemapObject.GetComponent<Tilemap>();
-            serializedBoard.FindProperty("_plainTile").objectReferenceValue = _testTile;
-            serializedBoard.FindProperty("_forestTile").objectReferenceValue = _testTile;
-            serializedBoard.FindProperty("_mountainTile").objectReferenceValue = _testTile;
-            serializedBoard.FindProperty("_riverTile").objectReferenceValue = _testTile;
-            serializedBoard.FindProperty("_mapText").objectReferenceValue = mapText;
+            serializedBoard.FindProperty("_mapData").objectReferenceValue = mapText;
             serializedBoard.ApplyModifiedPropertiesWithoutUndo();
             board.LoadBoard();
             return board;

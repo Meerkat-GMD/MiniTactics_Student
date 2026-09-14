@@ -20,15 +20,16 @@ namespace MiniTactics.Lesson05
     public sealed class BoardView : MonoBehaviour
     {
         [SerializeField] private Tilemap _tilemap;
-        [SerializeField] private TextAsset _mapText;
-        [SerializeField] private TileBase _plainTile;
-        [SerializeField] private TileBase _forestTile;
-        [SerializeField] private TileBase _mountainTile;
-        [SerializeField] private TileBase _riverTile;
+        [SerializeField] private MapData _mapData;
 
         private Board _board;
 
         public Board Board => _board ?? LoadBoard();
+
+        private void Awake()
+        {
+            if (_mapData != null) LoadBoard();
+        }
 
         public BoundsInt CellBounds
         {
@@ -99,9 +100,9 @@ namespace MiniTactics.Lesson05
 
         public Board LoadBoard()
         {
-            if (_mapText != null)
+            if (_mapData != null)
             {
-                _board = MapLoader.Parse(_mapText.text);
+                _board = MapLoader.Load(_mapData);
                 PaintTerrain();
                 return _board;
             }
@@ -149,7 +150,7 @@ namespace MiniTactics.Lesson05
 
         public bool IsInside(Vector2Int cell)
         {
-            return _mapText != null
+            return _mapData != null
                 ? Board.Contains(cell)
                 : _tilemap != null && _tilemap.HasTile(new Vector3Int(cell.x, cell.y, 0));
         }
@@ -202,44 +203,15 @@ namespace MiniTactics.Lesson05
             return GetOccupiedCells(selectedUnit).Contains(cell);
         }
 
-        private void PaintTerrain()
+        public void PaintTerrain()
         {
-            if (_tilemap == null ||
-                _plainTile == null ||
-                _forestTile == null ||
-                _mountainTile == null ||
-                _riverTile == null)
-            {
-                return;
-            }
-
+            if (_tilemap == null || _mapData == null) return;
+            _mapData.Validate();
             _tilemap.ClearAllTiles();
-            foreach (KeyValuePair<Vector2Int, TerrainType> cell in _board.Cells)
-            {
-                _tilemap.SetTile(
-                    new Vector3Int(cell.Key.x, cell.Key.y, 0),
-                    TileFor(cell.Value));
-            }
-        }
-
-        private TileBase TileFor(TerrainType terrain)
-        {
-            if (ReferenceEquals(terrain, TerrainTypes.Forest))
-            {
-                return _forestTile;
-            }
-
-            if (ReferenceEquals(terrain, TerrainTypes.Mountain))
-            {
-                return _mountainTile;
-            }
-
-            if (ReferenceEquals(terrain, TerrainTypes.River))
-            {
-                return _riverTile;
-            }
-
-            return _plainTile;
+            for (int y = 0; y < _mapData.Height; y++)
+            for (int x = 0; x < _mapData.Width; x++)
+                _tilemap.SetTile(new Vector3Int(x, y, 0),
+                    _mapData.GetTile(new Vector2Int(x, y)).Tile);
         }
     }
 }

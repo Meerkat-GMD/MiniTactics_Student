@@ -6,6 +6,21 @@ namespace MiniTactics.Lesson06
 {
     public static class MapLoader
     {
+        public static Board Load(MapData mapData)
+        {
+            if (mapData == null) throw new ArgumentNullException(nameof(mapData));
+            mapData.Validate();
+            var cells = new Dictionary<Vector2Int, TerrainType>();
+            for (int y = 0; y < mapData.Height; y++)
+            for (int x = 0; x < mapData.Width; x++)
+            {
+                var cell = new Vector2Int(x, y);
+                cells.Add(cell, mapData.GetTile(cell).RuntimeTerrain);
+            }
+            return new Board(cells);
+        }
+
+        // Small programmatic fixtures can still use symbols; shipped maps use Load(MapData).
         public static Board Parse(string mapText)
         {
             if (string.IsNullOrWhiteSpace(mapText))

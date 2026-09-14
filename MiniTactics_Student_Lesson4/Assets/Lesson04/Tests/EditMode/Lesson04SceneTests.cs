@@ -62,7 +62,7 @@ namespace MiniTactics.Lesson04.Tests
                 Is.SameAs(board));
 
             SerializedObject serializedBoard = new SerializedObject(board);
-            Assert.That(serializedBoard.FindProperty("_mapText").objectReferenceValue, Is.Not.Null);
+            Assert.That(serializedBoard.FindProperty("_mapData").objectReferenceValue, Is.Not.Null);
 
             string[] prefabPaths =
             {

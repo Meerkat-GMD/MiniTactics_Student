@@ -131,13 +131,9 @@ namespace MiniTactics.Lesson04.Tests
         [Test]
         public void TerrainCostLimitsDestinationAndPathIsRemembered()
         {
-            TextAsset mapText = new TextAsset("PFP");
+            MapData mapText = MapTestData.Create("PFP");
             SerializedObject serializedBoard = new SerializedObject(_board);
-            serializedBoard.FindProperty("_mapText").objectReferenceValue = mapText;
-            serializedBoard.FindProperty("_plainTile").objectReferenceValue = _testTile;
-            serializedBoard.FindProperty("_forestTile").objectReferenceValue = _testTile;
-            serializedBoard.FindProperty("_mountainTile").objectReferenceValue = _testTile;
-            serializedBoard.FindProperty("_riverTile").objectReferenceValue = _testTile;
+            serializedBoard.FindProperty("_mapData").objectReferenceValue = mapText;
             serializedBoard.ApplyModifiedPropertiesWithoutUndo();
             _board.LoadBoard();
 

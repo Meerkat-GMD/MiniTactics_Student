@@ -15,7 +15,7 @@ namespace MiniTactics.Lesson06.Tests
         private GameObject _gridObject;
         private GameObject _boardObject;
         private Tile _testTile;
-        private TextAsset _mapText;
+        private MapData _mapData;
         private BoardView _board;
         private EnemyAI _enemyAI;
 
@@ -44,10 +44,6 @@ namespace MiniTactics.Lesson06.Tests
             SerializedObject serializedBoard = new SerializedObject(_board);
             serializedBoard.FindProperty("_tilemap").objectReferenceValue =
                 tilemapObject.GetComponent<Tilemap>();
-            serializedBoard.FindProperty("_plainTile").objectReferenceValue = _testTile;
-            serializedBoard.FindProperty("_forestTile").objectReferenceValue = _testTile;
-            serializedBoard.FindProperty("_mountainTile").objectReferenceValue = _testTile;
-            serializedBoard.FindProperty("_riverTile").objectReferenceValue = _testTile;
             serializedBoard.ApplyModifiedPropertiesWithoutUndo();
         }
 
@@ -60,7 +56,7 @@ namespace MiniTactics.Lesson06.Tests
             }
 
             Object.DestroyImmediate(_testTile);
-            Object.DestroyImmediate(_mapText);
+            Object.DestroyImmediate(_mapData);
         }
 
         [Test]
@@ -135,9 +131,9 @@ namespace MiniTactics.Lesson06.Tests
 
         private void ConfigureBoard(string map)
         {
-            _mapText = new TextAsset(map);
+            _mapData = MapTestData.Create(map);
             SerializedObject serializedBoard = new SerializedObject(_board);
-            serializedBoard.FindProperty("_mapText").objectReferenceValue = _mapText;
+            serializedBoard.FindProperty("_mapData").objectReferenceValue = _mapData;
             serializedBoard.ApplyModifiedPropertiesWithoutUndo();
             _board.LoadBoard();
         }

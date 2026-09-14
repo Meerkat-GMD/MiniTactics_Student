@@ -12,7 +12,7 @@ namespace MiniTactics.Lesson04.Tests
         private GameObject _tilemapObject;
         private Tilemap _tilemap;
         private Tile _testTile;
-        private TextAsset _mapText;
+        private MapData _mapData;
         private BoardView _board;
 
         [SetUp]
@@ -48,7 +48,7 @@ namespace MiniTactics.Lesson04.Tests
             Object.DestroyImmediate(_boardObject);
             Object.DestroyImmediate(_gridObject);
             Object.DestroyImmediate(_testTile);
-            Object.DestroyImmediate(_mapText);
+            Object.DestroyImmediate(_mapData);
         }
 
         [Test]
@@ -86,15 +86,11 @@ namespace MiniTactics.Lesson04.Tests
         }
 
         [Test]
-        public void LoadBoard_ParsesTerrainMapAndReusesSharedTypes()
+        public void LoadBoard_LoadsAssetMapAndReusesSharedTypes()
         {
-            _mapText = new TextAsset("PFP\nMRP");
+            _mapData = MapTestData.Create("PFP\nMRP");
             SerializedObject serializedBoard = new SerializedObject(_board);
-            serializedBoard.FindProperty("_mapText").objectReferenceValue = _mapText;
-            serializedBoard.FindProperty("_plainTile").objectReferenceValue = _testTile;
-            serializedBoard.FindProperty("_forestTile").objectReferenceValue = _testTile;
-            serializedBoard.FindProperty("_mountainTile").objectReferenceValue = _testTile;
-            serializedBoard.FindProperty("_riverTile").objectReferenceValue = _testTile;
+            serializedBoard.FindProperty("_mapData").objectReferenceValue = _mapData;
             serializedBoard.ApplyModifiedPropertiesWithoutUndo();
 
             _board.LoadBoard();
@@ -102,13 +98,13 @@ namespace MiniTactics.Lesson04.Tests
             Assert.That(_board.Board.Cells.Count, Is.EqualTo(6));
             Assert.That(
                 _board.Board.GetTerrain(new Vector2Int(0, 1)),
-                Is.SameAs(TerrainTypes.Plain));
+                Is.SameAs(MapTestData.TileFor('P').RuntimeTerrain));
             Assert.That(
                 _board.Board.GetTerrain(new Vector2Int(2, 1)),
-                Is.SameAs(TerrainTypes.Plain));
+                Is.SameAs(MapTestData.TileFor('P').RuntimeTerrain));
             Assert.That(
                 _board.Board.GetTerrain(new Vector2Int(1, 1)),
-                Is.SameAs(TerrainTypes.Forest));
+                Is.SameAs(MapTestData.TileFor('F').RuntimeTerrain));
         }
     }
 }

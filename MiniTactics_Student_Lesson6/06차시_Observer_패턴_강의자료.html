@@ -197,10 +197,9 @@ int damage = CombatCalculator.CalculateDamage(attacker, defender, terrain);</cod
 <p class="annotation">실제 호출 앞에는 셀이 보드 안인지, 두 유닛이 유효하고 살아 있는지 검사합니다. 공격자가 숲에 있더라도 방어자가 평지라면 숲 방어를 적용하지 않습니다. 이동 후 공격에서는 변경된 현재 위치로 다시 지형을 읽어야 합니다.</p>
 <h3>7.3 같은 지형에 서로 다른 규칙이 붙는다</h3>
 <table><caption>지형 데이터의 두 해석</caption><thead><tr><th>지형</th><th>이동 비용</th><th>방어 보너스</th><th>공격 6·방어 1 피해</th></tr></thead><tbody><tr><td>평지</td><td>1</td><td>0</td><td>5</td></tr><tr><td>숲</td><td>2</td><td>1</td><td>4</td></tr><tr><td>산</td><td>3</td><td>2</td><td>3</td></tr><tr><td>강</td><td>이동 불가</td><td>0</td><td>계산상 5</td></tr></tbody></table>
-<p>TerrainType 자체에는 Name, MovementCost, IsWalkable이 있습니다. 방어 보너스라는 필드가 이미 있다고 가정하지 마세요. 이번 계산기는 공유된 TerrainTypes.Forest와 TerrainTypes.Mountain의 정체성을 보고 1과 2를 적용합니다. 강의 MovementCost 저장값은 1이지만 IsWalkable이 false이므로 경로에 들어가지 않습니다.</p>
-<p class="code-caption">발췌 ⑰ · 지형의 정체성을 읽는 비교</p><pre><code>ReferenceEquals(terrain, TerrainTypes.Forest)
-ReferenceEquals(terrain, TerrainTypes.Mountain)</code></pre>
-<p class="annotation">이 표현은 표시 문자열이 아니라 공유된 지형 객체를 비교합니다. 이름을 “숲”으로 만든 임의의 새 TerrainType이 자동으로 같은 지형이 되는 규칙은 아닙니다. MapLoader가 P/F/M/R을 어떤 공유 객체로 바꾸는지도 함께 이해합니다.</p>
+<p>6차시 TerrainType에는 Name, MovementCost, IsWalkable과 DefenseBonus가 있습니다. TileData 에셋의 Defense Bonus를 공유 모델에 옮기고 계산기는 그 값을 읽습니다. 기본 Forest.asset은 1, Mountain.asset은 2입니다. 강의 Movement Cost는 1이지만 Is Walkable이 꺼져 경로에 들어가지 않습니다.</p>
+<p class="code-caption">발췌 ⑰ · 에셋에서 전달된 방어 값 읽기</p><pre><code>int terrainDefense = terrain.DefenseBonus;</code></pre>
+<p class="annotation">방어 보너스는 표시 이름이나 특정 정적 객체와의 일치 여부로 추측하지 않습니다. MapLoader.Load가 연결된 TileData의 RuntimeTerrain을 공유하므로 에셋의 방어 값이 피해에 반영됩니다. 새 지형도 자신의 Defense Bonus를 지정하면 같은 계산 경로를 사용합니다.</p>
 <h3>7.4 정상 입력을 지키는 위치</h3>
 <p>완성 계산기는 null 공격자·방어자·지형이면 ArgumentNullException, 사망한 공격자 또는 방어자면 InvalidOperationException으로 잘못된 호출을 드러냅니다. 계산기에서 예외를 낸다고 클릭 입력 검사가 없어지는 것은 아닙니다. 사용자 입력은 실행자 쪽에서 먼저 유효하지 않은 요청을 거절하고, 계산기는 자신의 계약도 지킵니다.</p>
 <div class="exercise"><span class="label">손으로 계산하기</span>공격력 6, 방어력 1인 기본 전투에서 평지·숲·산 피해를 적으세요. 공격력 2, 방어력 5, 산 방어일 때는 얼마인가요? 산의 이동 비용 3을 잘못 빼면 기본 피해가 어떻게 달라지나요?</div><details><summary>해설 보기</summary><p>기본 피해는 5, 4, 3입니다. 공격 2·방어 5·산 2는 차이가 -5이지만 최소 피해 때문에 1입니다. 이동 비용 3을 방어로 쓰면 기본 산 피해가 2가 되어 의도한 3과 다릅니다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
@@ -234,7 +233,7 @@ await enemyAi.TakeCombatTurnAsync(unit, _units, cancellationToken);
 <p class="kicker">CHAPTER 09 · 실제 장면과 관찰</p><h2>장면 통합과 실패 진단</h2>
 <div class="objectives">학습 목표: 장면 참조를 코드의 데이터 흐름과 연결한다. 값·발행·구독·반응 중 끊어진 단계를 근거로 찾아 복구한다.</div>
 <h3>9.1 배포 장면의 구성</h3>
-<p>프로젝트 폴더는 MiniTactics_Student_Lesson6, 실제 장면은 Assets/Lesson06/Scenes/Lesson06.unity입니다. 12×10 보드는 map01.txt의 P/F/M/R을 읽고 네 가지 지형으로 구성됩니다. 카메라, Tilemap, Unit Spawner, MovementOverlayRoot, Input System EventSystem, Undo 버튼, HUD와 목표가 이미 배치되어 있습니다. 장면을 다시 만들기 위한 학생 메뉴는 Mini Tactics/Lesson 06/Build Student Scene입니다.</p>
+<p>프로젝트 폴더는 MiniTactics_Student_Lesson6, 실제 장면은 Assets/Lesson06/Scenes/Lesson06.unity입니다. 12×10 보드는 Assets/Lesson06/Maps/map01.asset의 120개 TileData 참조로 구성됩니다. BoardView의 Map Data에 이 에셋을 연결합니다. 배치는 위쪽 행부터 왼쪽→오른쪽 순서이며 인덱스는 (Height−1−y)×Width+x입니다. 지형 규칙·방어·표시 Tile은 같은 Maps 폴더의 네 TileData에서 편집하고 Play를 다시 시작해 확인합니다. 카메라, Tilemap, Unit Spawner, MovementOverlayRoot, Input System EventSystem, Undo 버튼, HUD와 목표가 이미 배치되어 있습니다. 장면을 다시 만들기 위한 학생 메뉴는 Mini Tactics/Lesson 06/Build Student Scene입니다.</p>
 <table><caption>유닛과 목표의 초기 셀</caption><thead><tr><th>요소</th><th>셀</th><th>역할</th></tr></thead><tbody><tr><td>Player 1 / 2 / 3</td><td>(2,2) / (5,4) / (8,6)</td><td>아군 전투 유닛 3명</td></tr><tr><td>Enemy 1 / 2</td><td>(9,8) / (9,3)</td><td>적 전투 유닛 2명</td></tr><tr><td>Fixed Blocker</td><td>(6,4)</td><td>점유만 담당, 바 없음</td></tr><tr><td>Player Goal</td><td>(0,4)</td><td>적 진입 시 패배</td></tr><tr><td>Enemy Goal</td><td>(11,6)</td><td>아군 진입 시 승리</td></tr></tbody></table>
 <p>다섯 전투 유닛은 HP 10/10, 공격력 6, 방어력 1로 시작합니다. GameManager와 BattleController의 전투 목록은 같은 다섯 Unit을 가리킵니다. TurnManager의 전체 목록에는 Fixed Blocker까지 여섯 개의 참조가 있지만 턴 자격으로 고정 유닛을 제외합니다. 여러 목록이 있다는 사실보다 각 목록의 목적이 무엇인지 구별하는 것이 중요합니다.</p>
 <h3>9.2 데이터 흐름으로 연결을 읽는다</h3>
