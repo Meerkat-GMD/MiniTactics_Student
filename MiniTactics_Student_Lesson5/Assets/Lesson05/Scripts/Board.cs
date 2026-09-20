@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,26 +5,19 @@ namespace MiniTactics.Lesson05
 {
     public sealed class Board
     {
-        private readonly Dictionary<Vector2Int, TerrainType> _cells;
+        private readonly Dictionary<Vector2Int, TileData> _cells;
 
-        public Board(IReadOnlyDictionary<Vector2Int, TerrainType> cells)
+        public Board(Dictionary<Vector2Int, TileData> cells)
         {
-            if (cells == null)
-            {
-                throw new ArgumentNullException(nameof(cells));
-            }
-
-            _cells = new Dictionary<Vector2Int, TerrainType>(cells);
+            _cells = cells;
         }
-
-        public IReadOnlyDictionary<Vector2Int, TerrainType> Cells => _cells;
 
         public bool Contains(Vector2Int cell)
         {
             return _cells.ContainsKey(cell);
         }
 
-        public TerrainType GetTerrain(Vector2Int cell)
+        public TileData GetTile(Vector2Int cell)
         {
             return _cells[cell];
         }

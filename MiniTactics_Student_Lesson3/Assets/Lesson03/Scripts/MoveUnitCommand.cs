@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 namespace MiniTactics.Lesson03
@@ -12,8 +11,8 @@ namespace MiniTactics.Lesson03
 
         public MoveUnitCommand(Unit unit, BoardView board, Vector2Int toCell)
         {
-            _unit = unit != null ? unit : throw new ArgumentNullException(nameof(unit));
-            _board = board != null ? board : throw new ArgumentNullException(nameof(board));
+            _unit = unit;
+            _board = board;
             _fromCell = board.WorldToCell(unit.transform.position);
             _toCell = toCell;
         }

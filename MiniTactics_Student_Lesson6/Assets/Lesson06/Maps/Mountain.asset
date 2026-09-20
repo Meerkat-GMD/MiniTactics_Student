@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dd93e783090b47d580a93d6f7f419087, type: 3}
+  m_Script: {fileID: 11500000, guid: 26084561cabb41c2b67280215423758a, type: 3}
   m_Name: Mountain
   m_EditorClassIdentifier:
   _displayName: 산

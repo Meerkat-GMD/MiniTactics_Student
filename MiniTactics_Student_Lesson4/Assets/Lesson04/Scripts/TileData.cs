@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -12,29 +11,9 @@ namespace MiniTactics.Lesson04
         [SerializeField] private bool _isWalkable = true;
         [SerializeField] private TileBase _tile;
 
-        [NonSerialized] private TerrainType _runtimeTerrain;
-
+        public string DisplayName => _displayName;
+        public int MovementCost => _movementCost;
+        public bool IsWalkable => _isWalkable;
         public TileBase Tile => _tile;
-
-        // One immutable runtime flyweight per asset, shared by all its map cells.
-        public TerrainType RuntimeTerrain
-        {
-            get
-            {
-                Validate();
-                return _runtimeTerrain ??= new TerrainType(_displayName, _movementCost, _isWalkable);
-            }
-        }
-
-        public void Validate()
-        {
-            if (string.IsNullOrWhiteSpace(_displayName) || _movementCost < 1)
-                throw new ArgumentException($"Tile data '{name}' has invalid terrain rules.");
-            if (_tile == null)
-                throw new ArgumentException($"Tile data '{name}' needs a visual tile.");
-        }
-
-        private void OnValidate() => _runtimeTerrain = null;
-        private void OnEnable() => _runtimeTerrain = null;
     }
 }

@@ -15,17 +15,19 @@ namespace MiniTactics.Lesson06
             _unit = unit;
         }
 
-        public override void Enter() => _controller.ShowSelection(_unit);
-        public override void Exit() => _controller.ClearSelection();
+        public override void Enter()
+        {
+            _controller.ShowSelection(_unit);
+        }
+
+        public override void Exit()
+        {
+            _controller.ClearSelection();
+        }
 
         public override void HandleBoardClick(Unit clickedUnit, Vector2Int cell)
         {
-            if (!_controller.CanPlayerAct(_unit))
-            {
-                _machine.ChangeState(new IdleState(_machine, _controller));
-                return;
-            }
-            if (_controller.CanPlayerAct(clickedUnit))
+            if (clickedUnit != null && _controller.CanAct(clickedUnit))
             {
                 _machine.ChangeState(new UnitSelectedState(_machine, _controller, clickedUnit));
                 return;
@@ -37,7 +39,6 @@ namespace MiniTactics.Lesson06
 
         public override void HandleUndo()
         {
-            if (!_controller.CanAcceptPlayerInput) return;
             _controller.UndoLast();
             _controller.ShowSelection(_unit);
         }

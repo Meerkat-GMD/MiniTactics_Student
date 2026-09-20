@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -5,40 +6,28 @@ namespace MiniTactics.Lesson02
 {
     public sealed class BattleController : MonoBehaviour
     {
+        private static readonly Color WalkableColor = new Color(0.2f, 1f, 0.35f, 0.55f);
+        private static readonly Color OccupiedColor = new Color(1f, 0.2f, 0.2f, 0.65f);
+
         [SerializeField] private BoardView _board;
         [SerializeField] private Camera _camera;
-        [SerializeField] private Transform _overlayRoot;
-        [SerializeField] private LayerMask _unitLayerMask = ~0;
+        [SerializeField] private SpriteRenderer _overlayPrefab;
 
-        private MovementOverlayPool _overlayPool;
+        private readonly List<SpriteRenderer> _overlays = new List<SpriteRenderer>();
 
         public Unit SelectedUnit { get; private set; }
 
-        private void Awake()
-        {
-            if (_camera == null)
-            {
-                _camera = Camera.main;
-            }
-        }
-
         private void Update()
         {
-            if (Mouse.current == null || !Mouse.current.leftButton.wasPressedThisFrame)
+            if (!Mouse.current.leftButton.wasPressedThisFrame)
             {
-                return;
-            }
-
-            if (_board == null || _camera == null)
-            {
-                Debug.LogError("BattleController requires a BoardView and Camera.", this);
                 return;
             }
 
             Vector2 screenPosition = Mouse.current.position.ReadValue();
             Vector3 worldPosition = _camera.ScreenToWorldPoint(screenPosition);
-            Collider2D hit = Physics2D.OverlapPoint(worldPosition, _unitLayerMask);
-            Unit clickedUnit = hit != null ? hit.GetComponentInParent<Unit>() : null;
+            Collider2D hit = Physics2D.OverlapPoint(worldPosition);
+            Unit clickedUnit = hit != null ? hit.GetComponent<Unit>() : null;
 
             if (clickedUnit != null && clickedUnit.CanMove)
             {
@@ -54,39 +43,43 @@ namespace MiniTactics.Lesson02
 
         public void Select(Unit unit)
         {
-            SelectedUnit = unit != null && unit.CanMove ? unit : null;
-
-            if (_board == null || _overlayRoot == null)
-            {
-                Debug.LogError("BattleController requires a BoardView and MovementOverlayRoot.", this);
-                return;
-            }
-
-            if (SelectedUnit == null)
-            {
-                _overlayPool?.Hide();
-                return;
-            }
-
-            GetOverlayPool().Show(_board.GetMovementRange(SelectedUnit));
+            SelectedUnit = unit;
+            HideRange();
+            ShowRange(unit);
         }
 
         public bool TryMoveSelectedUnit(Vector2Int targetCell)
         {
-            if (SelectedUnit == null || _board == null || !_board.CanMoveTo(SelectedUnit, targetCell))
+            if (!_board.CanMoveTo(SelectedUnit, targetCell))
             {
                 return false;
             }
 
             SelectedUnit.MoveTo(_board, targetCell);
             SelectedUnit = null;
-            _overlayPool?.Hide();
+            HideRange();
             return true;
         }
 
-        private MovementOverlayPool GetOverlayPool()
+        private void ShowRange(Unit unit)
         {
-            return _overlayPool ??= new MovementOverlayPool(_overlayRoot, _board);
+            foreach (Vector2Int cell in _board.GetMovementRange(unit))
+            {
+                SpriteRenderer overlay = Instantiate(_overlayPrefab, transform);
+                overlay.transform.position = _board.CellToWorld(cell);
+                overlay.color = _board.IsOccupiedByOther(unit, cell) ? OccupiedColor : WalkableColor;
+                _overlays.Add(overlay);
+            }
+        }
+
+        private void HideRange()
+        {
+            foreach (SpriteRenderer overlay in _overlays)
+            {
+                Destroy(overlay.gameObject);
+            }
+
+            _overlays.Clear();
         }
     }
 }

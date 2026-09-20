@@ -9,263 +9,250 @@
 </style>
 </head>
 <body>
-<header class="cover" id="top"><p class="eyebrow">MINI TACTICS · LESSON 06 · REFERENCE TEXTBOOK</p><h1>Observer 패턴<br>전투의 변화와 반응을 연결하기</h1><p>HP의 변화는 게임의 사실입니다. HP 바, 승패, 연출은 그 사실을 각자 해석하는 반응입니다. 이 교재는 두 책임을 나누는 이유부터 구독의 수명과 실제 전술 게임의 흐름까지 설명합니다.</p><p class="meta">Unity 6000.5.3f1 · MiniTactics.Lesson06 · 180분 수업<br>0–30분 개념 · 30–150분 전체 구현 · 150–180분 Play 미션과 복습</p><a href="06차시_Observer_패턴_발표자료.html">26장 발표자료로 이동 →</a></header>
+<header class="cover" id="top"><p class="eyebrow">MINI TACTICS · LESSON 06 · REFERENCE TEXTBOOK</p><h1>Observer 패턴<br>알리는 쪽과 반응하는 쪽을 나누기</h1><p>이 교재는 Observer 패턴 하나만 다룬다. 패턴이 해결하는 문제, 역할과 구조, C# event로 작성한 코드, 실행 흐름, 이득과 대가, 적용 기준을 순서대로 설명한다.</p><p class="meta">Unity 6000.5.3f1 · MiniTactics.Lesson06<br>코드 발췌의 기준은 완성본의 Unit.cs, UnitHealthBar.cs, GameManager.cs다.</p><a href="06차시_Observer_패턴_발표자료.html">26장 발표자료로 이동 →</a></header>
 <div class="layout">
-<aside id="toc" aria-label="교재 목차"><h2>차례</h2><ol><li><a href="#chapter-1">변화와 반응의 구조</a></li><li><a href="#chapter-2">C# 이벤트의 계약</a></li><li><a href="#chapter-3">HP와 사망의 순서</a></li><li><a href="#chapter-4">HP 바와 구독 수명</a></li><li><a href="#chapter-5">사망 관찰과 전멸 결과</a></li><li><a href="#chapter-6">공격 상태와 행동 경계</a></li><li><a href="#chapter-7">지형을 읽는 피해 계산</a></li><li><a href="#chapter-8">적의 결정과 비동기 턴</a></li><li><a href="#chapter-9">장면 통합과 실패 진단</a></li><li><a href="#chapter-10">Play 미션·복습·용어</a></li></ol><p class="small">개념별로 찾아 읽는 교재입니다. 코드는 핵심 부분을 발췌했으며 주변 검사·수명 처리까지 함께 해석합니다.</p><button id="print" type="button">교재 인쇄</button></aside>
+<aside id="toc" aria-label="교재 목차"><h2>차례</h2><ol><li><a href="#chapter-1">하나의 변화와 여러 반응</a></li><li><a href="#chapter-2">방향을 뒤집는 구조</a></li><li><a href="#chapter-3">C# event의 네 동작</a></li><li><a href="#chapter-4">발행자 Unit과 발행 순서</a></li><li><a href="#chapter-5">첫 번째 구독자와 구독 수명</a></li><li><a href="#chapter-6">두 번째 구독자와 전멸 판정</a></li><li><a href="#chapter-7">발행 한 번의 단계별 추적</a></li><li><a href="#chapter-8">확장, 대가, 적용 기준</a></li><li><a href="#chapter-9">복습 질문과 용어</a></li></ol><p class="small">개념별로 찾아 읽는 교재다. 실제 코드, 축약한 코드, 설계 비교용 가상 코드를 구분하여 표시했다. 기능을 구현하는 순서는 교사용 진행안에서 다룬다.</p><button id="print" type="button">교재 인쇄</button></aside>
 <main>
 <section class="chapter" id="chapter-1">
-<p class="kicker">CHAPTER 01 · 문제와 책임</p><h2>변화와 반응의 구조</h2>
-<div class="objectives">학습 목표: 직접 호출이 늘어나는 이유를 설명하고, 발행자·이벤트·구독자를 구분한다. 이전 차시의 패턴과 이번 패턴이 맡는 문제를 연결한다.</div>
-<h3>1.1 한 번의 공격에서 여러 일이 일어난다</h3>
-<p>적에게 피해 5를 주는 순간을 생각해 봅시다. 적의 HP가 10에서 5로 바뀌고 머리 위의 초록색 바가 절반으로 줄어야 합니다. HP가 0이 되었다면 그 유닛은 사라지고, 마지막 적이었다면 승리라는 결과가 확정됩니다. 전투 로그나 효과음도 같은 순간을 사용할 수 있습니다. 하나의 상태 변화에 여러 기능이 연결되는 셈입니다.</p>
-<p>가장 먼저 떠오르는 방법은 Unit의 피해 함수에 모든 호출을 적는 것입니다. 이 방식은 반응이 적을 때 이해하기 쉽지만 화면이나 연출을 바꿀 때도 Unit을 고쳐야 합니다. 게임 규칙을 검토하려고 열어 본 클래스에서 HP 바의 모양과 결과 화면의 동작까지 알아야 한다면 책임이 넓어집니다.</p>
-<div class="concept"><span class="label">핵심 구분</span>상태는 “현재 무엇인가”를 저장합니다. 사건은 “무엇이 바뀌었는가”를 알립니다. 반응은 “그 변화에 대해 무엇을 할 것인가”를 결정합니다.</div>
-<h3>1.2 Observer는 변화 전달을 분리한다</h3>
-<p><span class="term">발행자</span>는 자기 상태를 바꾸고 알림을 보냅니다. <span class="term">구독자</span>는 관심 있는 사건에 콜백을 등록합니다. Unit은 어떤 HP 바가 붙었는지, 승리 화면이 어떻게 생겼는지 몰라도 HpChanged와 Died를 발행할 수 있습니다. 새 기능은 같은 알림에 반응하는 구독자로 추가할 수 있습니다.</p>
-<div class="flow" aria-label="전투 상태에서 관찰자까지"><span>공격 판단</span><b>→</b><span>Unit 상태 저장</span><b>→</b><span>HpChanged / Died</span><b>→</b><span>HP 바 · GameManager</span></div>
-<p>이 분리는 모든 의존성을 없애는 마법이 아닙니다. 구독자는 어느 Unit을 관찰하는지 알아야 하고 이벤트의 인수와 의미를 이해해야 합니다. 장면에서 참조를 연결하는 작업도 남습니다. 줄어드는 것은 발행자가 구독자의 구체적인 표현과 동작을 알아야 하는 부담입니다.</p>
-<h3>1.3 기존 패턴 위에 놓이는 새 역할</h3>
-<table><caption>패턴과 실제 컴포넌트의 책임</caption><thead><tr><th>구조</th><th>이번 프로젝트에서의 역할</th></tr></thead><tbody><tr><td>Singleton · GameManager</td><td>하나의 현재 전투 결과와 장면 수명을 관리한다.</td></tr><tr><td>State · InputStateMachine</td><td>선택 상태와 공격 상태에 따라 클릭의 의미를 바꾼다.</td></tr><tr><td>Command · PlayerMoveCommand</td><td>이동을 실행하고 위치·HasMoved를 되돌릴 정보를 저장한다.</td></tr><tr><td>Observer · Unit 이벤트</td><td>HP·이동·사망을 관심 있는 대상에 전달한다.</td></tr></tbody></table>
-<p>GameManager만 Singleton이며 TurnManager는 일반 컴포넌트 참조로 연결됩니다. Unit에서 GameManager.Instance를 찾아 전멸을 판단하면 상태와 결과가 다시 묶입니다. 이번 구조에서는 GameManager가 Unit.Died를 듣고 결과를 판단합니다. 결과에 접근하는 문제와 변화를 전달하는 문제를 분리하는 것입니다.</p>
-<h3>1.4 Student 프로젝트의 출발점</h3>
-<p>학생판의 Lesson06은 앞 차시의 완성 동작을 바탕으로 시작합니다. 아군 선택·이동·Undo·Enter 턴 종료, 순차 적 이동, 목표 점령 결과, 턴 제한, HUD, R 재시작은 이미 작동합니다. HP 데이터와 이벤트 선언, 공격 관련 메서드의 형태, 장면의 HP 바와 참조도 제공됩니다. 다만 피해 공식과 사건 발행, 구독 반응, 공격 입력과 적 전투는 이번 차시에서 채워야 합니다.</p>
-<p>처음 실행할 때 공격이 일어나지 않고 바가 줄지 않는 것은 출발 상태입니다. 완성해야 할 부분과 연결 오류를 구별하려면 먼저 앞 차시의 이동과 목표가 정상인지 살펴봅니다. 교재의 설명은 각 부분을 완성한 뒤의 동작을 기준으로 하며, 발췌 코드는 전체 메서드에 필요한 검사를 대신하지 않습니다.</p>
-<div class="exercise"><span class="label">생각할 문제</span>피해를 받을 때 소리를 재생하는 기능을 추가하려 합니다. Unit에 오디오 컴포넌트를 직접 추가하는 방법과 별도 구독자를 만드는 방법에서, 바뀌는 책임은 무엇인가요?</div><details><summary>해설 보기</summary><p>별도 구독자는 어떤 소리를 언제 재생할지를 소유합니다. Unit은 HP 변화 사실만 계속 발행합니다. 소리를 끄거나 바꾸어도 HP 저장 코드가 바뀌지 않으며, 구독자의 활성 수명과 해제 책임은 새로 관리해야 합니다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
+<p class="kicker">CHAPTER 01 · 문제</p><h2>하나의 변화와 여러 반응</h2>
+<div class="objectives">학습 목표: 직접 호출이 잘 맞는 조건을 설명한다. 하나의 변화에 반응하는 곳이 여럿일 때 직접 호출이 어떤 한계를 갖는지 코드로 확인한다.</div>
+<h3>1.1 지금까지의 방법은 직접 호출이다</h3>
+<p>이전 차시까지는 한 객체가 다른 객체의 메서드를 직접 호출했다. 전투 결과를 확정하는 다음 호출이 그 예다.</p>
+<p class="code-caption">실제 코드 · 5차시부터 사용하고 있는 호출</p><pre><code>GameManager.Instance.Finish(result);</code></pre>
+<p>직접 호출에는 분명한 장점이 있다. 호출하는 줄을 읽으면 다음에 어떤 메서드가 실행되는지 바로 알 수 있다. 이 방법에는 두 가지 전제가 있다. 부르는 쪽이 받는 쪽의 class와 메서드 이름을 알고 있다. 그리고 받는 쪽이 하나로 정해져 있다. 이 장에서는 이 전제가 맞지 않는 상황을 살펴본다.</p>
+<h3>1.2 새 요구: 체력이 바뀌면 여러 곳이 함께 달라져야 한다</h3>
+<p>유닛의 체력이 줄었을 때 달라져야 하는 것을 적어 본다. 먼저 체력바의 길이가 줄어야 한다. 유닛이 쓰러졌다면 같은 진영에 살아 있는 유닛이 남았는지 확인하는 전멸 판정도 필요하다. 앞으로 피해 숫자, 효과음, 전투 기록이 추가될 수도 있다.</p>
+<table><caption>체력의 변화에 반응하는 곳</caption><thead><tr><th>반응하는 곳</th><th>해야 하는 일</th><th>시점</th></tr></thead><tbody><tr><td>체력바</td><td>남은 체력의 비율만큼 길이를 줄인다.</td><td>체력이 바뀔 때마다</td></tr><tr><td>전멸 판정</td><td>같은 진영에 살아 있는 유닛이 남았는지 확인한다.</td><td>유닛이 쓰러졌을 때</td></tr><tr><td>피해 숫자, 효과음, 전투 기록</td><td>아직 없지만 앞으로 추가될 수 있다.</td><td>체력이 바뀌거나 쓰러졌을 때</td></tr></tbody></table>
+<div class="concept"><span class="label">핵심 관찰</span>일어난 사실은 “체력이 바뀌었다” 하나다. 그 사실에 반응하는 곳은 여럿이고 앞으로 늘어난다.</div>
+<h3>1.3 첫 시도: Unit이 필요한 곳을 모두 직접 호출한다</h3>
+<p>가장 먼저 떠올릴 수 있는 방법은 체력을 깎는 메서드 안에서 필요한 곳을 모두 호출하는 것이다.</p>
+<p class="code-caption">설계 비교용 가상 코드 · 프로젝트에 있었던 코드가 아니다</p><pre><code>// 첫 시도: Unit이 필요한 곳을 모두 직접 호출한다.
+public void TakeDamage(int damage)
+{
+    CurrentHp = Mathf.Max(0, CurrentHp - damage);
+    _healthBar.Refresh(CurrentHp, _maxHp);
+    if (CurrentHp == 0)
+    {
+        GameManager.Instance.OnUnitDied(this);
+    }
+}</code></pre>
+<p class="annotation">5차시에는 사망 기능이 없었다. 이 코드는 오늘 사망을 추가하면서 떠올릴 수 있는 첫 시도를 적은 것이다. 이 코드는 동작한다. 반응하는 곳이 둘뿐이고 앞으로도 늘어나지 않는다면 이 방식으로 충분하다.</p>
+<h3>1.4 첫 시도의 한계</h3>
+<p>첫 시도의 Unit은 class 두 개를 알고 있다. <code>UnitHealthBar</code>의 <code>Refresh</code>와 그 인수 두 개를 알고, <code>GameManager</code>의 <code>OnUnitDied</code>를 안다. 알리는 쪽이 반응하는 쪽을 모두 알고 있기 때문에 다음과 같은 문제가 생긴다.</p>
+<table><caption>새 요구가 생겼을 때 첫 시도에서 고쳐야 하는 곳</caption><thead><tr><th>새 요구</th><th>고쳐야 하는 곳</th></tr></thead><tbody><tr><td>효과음을 추가한다.</td><td>새 class를 만들고, Unit.cs에 필드와 호출 한 줄을 추가한다.</td></tr><tr><td>피해 숫자를 추가한다.</td><td>새 class를 만들고, Unit.cs에 필드와 호출 한 줄을 추가한다.</td></tr><tr><td>체력바가 없는 유닛을 만든다.</td><td><code>_healthBar</code>가 비어 있으면 NullReferenceException이 발생한다. Unit.cs에 null 검사를 추가한다.</td></tr></tbody></table>
+<div class="warning"><span class="label">한계의 요약</span>체력을 깎는 규칙은 한 번도 바뀌지 않았다. 그런데도 Unit.cs는 요구가 생길 때마다 수정된다. 발행하는 쪽이 구독하는 쪽을 모두 알아야 하고, 기능을 추가할 때마다 발행하는 쪽을 고쳐야 한다.</div>
+<div class="exercise"><span class="label">생각할 문제</span>첫 시도의 코드에서 Unit이 알고 있는 다른 class는 몇 개인가? 효과음을 같은 방식으로 추가하면 몇 개가 되는가?</div><details><summary>해설 보기</summary><p>UnitHealthBar와 GameManager로 2개다. 효과음을 같은 방식으로 추가하면 3개가 된다. 반응하는 곳이 하나 늘 때마다 Unit이 아는 class도 하나씩 늘어난다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
 </section>
 <section class="chapter" id="chapter-2">
-<p class="kicker">CHAPTER 02 · 전달 계약</p><h2>C# 이벤트의 계약</h2>
-<div class="objectives">학습 목표: Action의 인수와 event의 발행 권한을 구분한다. 이름 있는 콜백으로 등록과 해제를 짝지으며, 동기 호출이 갖는 영향을 설명한다.</div>
-<h3>2.1 event와 Action은 무엇을 표현하는가</h3>
-<p>Action은 반환값 없이 호출할 수 있는 메서드의 모양을 표현합니다. Action&lt;Unit&gt;이라면 Unit 하나를 받아 아무 값을 반환하지 않는 메서드가 연결됩니다. 그 앞의 event는 외부 코드가 이 연결을 통째로 덮어쓰거나 마음대로 발행하지 못하게 합니다. 외부의 역할은 반응을 더하거나 빼는 것이고, 사실의 발행은 선언한 클래스의 책임입니다.</p>
-<p class="code-caption">발췌 ① · Unit이 공개하는 세 가지 사건</p><pre><code>public event Action&lt;Unit&gt; HpChanged;
-public event Action&lt;Unit, Vector2Int, Vector2Int&gt; Moved;
-public event Action&lt;Unit&gt; Died;</code></pre>
-<p class="annotation">HpChanged와 Died는 “어떤 Unit인가”를 전달합니다. Moved의 두 Vector2Int는 순서대로 출발 셀과 도착 셀입니다. 인수의 타입뿐 아니라 의미와 순서도 계약입니다.</p>
-<h3>2.2 메시지에 모든 상태를 복사해야 할까</h3>
-<p>이번 HpChanged는 이전 HP와 새 HP를 따로 전달하지 않습니다. Unit을 받은 구독자가 CurrentHp와 MaxHp를 읽습니다. 그러므로 발행자는 알림 전에 값을 저장해야 합니다. 이전 값이나 피해량이 필요한 전투 로그를 확장한다면 사건의 인수를 바꾸거나 별도 이벤트 자료형을 만들 수 있지만, 이번 수업에서는 기존 API를 유지합니다.</p>
-<p>이벤트는 결과를 조회하는 함수와도 다릅니다. “현재 HP가 몇인가”는 프로퍼티로 읽고, “HP가 바뀌었으니 다시 읽어라”는 이벤트로 받습니다. 바가 매 프레임 HP를 확인하는 방식도 가능하지만, 변화 시점과 구독 책임을 드러내는 연습에는 이벤트가 잘 맞습니다.</p>
-<h3>2.3 등록한 콜백을 정확히 해제한다</h3>
-<p class="code-caption">발췌 ② · 같은 대상, 같은 이벤트, 같은 콜백</p><pre><code>_unit.HpChanged += HandleHpChanged;
-_unit.Died += HandleDied;
-
-// 관찰을 마칠 때의 짝
-_unit.HpChanged -= HandleHpChanged;
-_unit.Died -= HandleDied;</code></pre>
-<p class="annotation">+=와 -=의 대상 Unit이 같아야 합니다. Bind에서 _unit을 새 대상으로 먼저 바꾸면 해제할 때 옛 Unit을 놓칠 수 있습니다. 또한 등록과 해제에 각각 새 람다식을 만들면 같은 콜백을 가리키지 않을 수 있어 이름 있는 메서드를 사용합니다.</p>
-<p>구독은 한 번만 이루어진다고 가정하지 않습니다. Unity에서 오브젝트를 껐다 켜거나 Bind를 다시 호출하면 등록 경로가 반복될 수 있습니다. 구독 플래그와 정확한 해제를 함께 사용해야 같은 알림을 여러 번 처리하는 문제를 피할 수 있습니다.</p>
-<h3>2.4 알림은 동기적으로 실행된다</h3>
-<p class="code-caption">발췌 ③ · 구독자가 없을 때도 안전한 발행</p><pre><code>HpChanged?.Invoke(this);</code></pre>
-<p>?.는 구독자가 없어서 이벤트가 null일 때 호출을 생략합니다. 구독자가 있다면 그 콜백들은 Invoke 흐름 안에서 동기적으로 실행됩니다. 콜백을 등록했다고 별도 스레드나 다음 프레임에서 실행되는 것은 아닙니다. 따라서 콜백에서 오래 걸리는 일을 하거나 예외를 던지면 발행자의 실행에도 영향을 줄 수 있습니다.</p>
-<div class="warning"><span class="label">설계 주의</span>서로 다른 Died 구독자의 등록 순서를 게임 규칙으로 사용하지 마세요. 모든 구독자는 이미 저장된 HP와 생존 상태를 읽어 독립적으로 판단해야 합니다. 이번 구조는 임의의 구독자 예외를 격리하는 전역 이벤트 버스가 아닙니다.</div>
-<div class="exercise"><span class="label">연습</span>Moved를 구독해 이동 기록을 남길 때, 콜백의 Unit과 두 셀은 각각 어떤 문장을 완성하나요? 같은 셀로 MoveTo를 호출했을 때도 기록을 남겨야 할까요?</div><details><summary>해설 보기</summary><p>“이 Unit이 출발 셀에서 도착 셀로 이동했다”라는 문장입니다. 이번 사건의 의미는 실제 셀 변경이므로 출발과 도착이 같으면 발행하지 않습니다. 이동 시도를 기록하는 별도 요구는 다른 사건으로 구분할 수 있습니다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
+<p class="kicker">CHAPTER 02 · 구조</p><h2>방향을 뒤집는 구조</h2>
+<div class="objectives">학습 목표: 의존의 방향을 뒤집는다는 말의 뜻을 설명한다. 발행자, 알림, 구독자의 역할을 실제 class와 대응시킨다.</div>
+<h3>2.1 알리는 쪽은 모르고, 듣는 쪽이 등록한다</h3>
+<p>첫 시도에서는 Unit이 UnitHealthBar와 GameManager를 알았다. 이 방향을 뒤집는다. Unit은 “체력이 바뀌었다”고 알리기만 한다. 그 사실에 관심이 있는 쪽이 자신의 메서드를 Unit에 등록한다.</p>
+<div class="grid"><div class="box"><h4>첫 시도의 방향</h4><p>Unit → UnitHealthBar, Unit → GameManager. 알리는 쪽이 듣는 쪽을 모두 알고 있다. 듣는 쪽이 늘어나면 알리는 쪽을 고쳐야 한다.</p></div><div class="box"><h4>뒤집은 방향</h4><p>UnitHealthBar → Unit, GameManager → Unit. 듣는 쪽이 알리는 쪽을 알고 있다. 듣는 쪽이 늘어나도 알리는 쪽은 그대로다.</p></div></div>
+<p>의존이 없어지는 것은 아니다. 구독자는 어느 Unit의 알림을 들을지 알아야 하고, 알림이 전달하는 값의 뜻도 알아야 한다. 달라지는 것은 의존의 방향이다. 발행자는 구독자의 class 이름과 메서드를 알 필요가 없게 된다.</p>
+<h3>2.2 Observer 패턴의 역할</h3>
+<p>이 구조의 이름이 Observer 패턴이다. 상태를 가진 객체가 변화를 알리면, 미리 등록한 객체들이 각자 자신의 일을 한다. <span class="term">발행</span>은 알림을 보내는 일이고, <span class="term">구독</span>은 알림을 받을 메서드를 등록하는 일이다. 구독자를 영어로 Observer라고 부르며 패턴의 이름은 여기에서 왔다.</p>
+<table><caption>Observer의 역할과 미니 택틱스의 class</caption><thead><tr><th>역할</th><th>class</th><th>책임</th></tr></thead><tbody><tr><td>발행자(Subject)</td><td>Unit</td><td>체력이 바뀌거나 쓰러졌을 때 알린다. 누가 듣는지는 알지 못한다.</td></tr><tr><td>알림</td><td>HpChanged, Died</td><td>발행자가 공개하는 알림의 통로다. C#에서는 event로 선언한다.</td></tr><tr><td>구독자 1</td><td>UnitHealthBar</td><td>HpChanged를 구독하여 자기 유닛의 체력바 길이를 바꾼다.</td></tr><tr><td>구독자 2</td><td>GameManager</td><td>Died를 구독하여 한 진영이 전멸했는지 판정한다.</td></tr></tbody></table>
+<div class="flow" aria-label="발행에서 반응까지"><span>구독자가 등록한다</span><b>→</b><span>발행자의 값이 바뀐다</span><b>→</b><span>발행자가 알린다</span><b>→</b><span>구독자가 각자 반응한다</span></div>
+<h3>2.3 흔한 오해</h3>
+<div class="warning"><span class="label">주의</span>Observer를 “GameManager에게 알리는 기능”으로 이해하면 핵심을 놓친다. 발행자는 누가 듣는지 알지 못한다. 듣는 쪽이 0개여도, 1개여도, 10개여도 발행자의 코드는 같다.</div>
+<div class="exercise"><span class="label">생각할 문제</span>뒤집은 방향에서 UnitHealthBar는 Unit을 알고 있다. 그렇다면 의존은 줄어든 것인가, 옮겨진 것인가?</div><details><summary>해설 보기</summary><p>옮겨진 것이다. 체력바가 Unit을 아는 것은 자연스럽다. 체력바는 원래 특정 유닛의 체력을 보여 주는 객체이기 때문이다. 반대로 Unit이 체력바를 알아야 할 이유는 없다. 의존이 자연스러운 쪽으로 옮겨졌다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
 </section>
 <section class="chapter" id="chapter-3">
-<p class="kicker">CHAPTER 03 · 상태와 시간</p><h2>HP와 사망의 순서</h2>
-<div class="objectives">학습 목표: HP 값의 범위를 유지하고, HP 변경과 사망을 구별한다. 사망 알림 중 생존 판정과 오브젝트 활성 상태가 다른 이유를 설명한다.</div>
-<h3>3.1 상태는 한 곳에서 보존한다</h3>
-<p>Unit은 MaxHp, CurrentHp, AttackPower, Defense를 읽기 전용 프로퍼티로 공개합니다. ConfigureCombat은 최대 HP를 최소 1로, 현재 HP를 0부터 최대 HP 사이로, 공격력과 방어력을 0 이상으로 제한합니다. 외부에서 화면을 바꾼다고 HP가 바뀌지 않으며, 전투 상태를 바꾸는 진입점은 TakeDamage입니다.</p>
-<p class="code-caption">발췌 ④ · 생존 상태는 현재 HP에서 나온다</p><pre><code>public int CurrentHp =&gt; _currentHp;
-public int MaxHp =&gt; _maxHp;
-public bool IsAlive =&gt; _currentHp &gt; 0;</code></pre>
-<p>IsAlive를 별도 bool로 저장하지 않으면 HP 0인데 살아 있다고 표시하는 불일치를 줄일 수 있습니다. 다만 오브젝트의 활성 여부는 별도 속성입니다. 잠시 비활성화된 살아 있는 유닛도 있을 수 있고, 사망 처리 도중에는 HP 0이면서 활성인 순간도 있습니다.</p>
-<h3>3.2 피해는 저장, 알림, 사망 전이로 나눈다</h3>
-<p>TakeDamage는 damage가 0 이하이거나 이미 죽은 Unit이면 종료합니다. 유효한 피해는 현재 HP에서 빼되 0 아래로 내려가지 않게 합니다. 이후 HpChanged를 발행하면 관찰자는 정확한 새 상태를 읽습니다. 사망 여부는 이전 HP가 양수였고 현재 HP가 0인지로 판단합니다.</p>
-<p class="code-caption">발췌 ⑤ · 변경 전후를 비교하는 핵심</p><pre><code>int previousHp = _currentHp;
-_currentHp = Mathf.Max(0, previousHp - damage);
-bool didDie = previousHp &gt; 0 &amp;&amp; _currentHp == 0;
-HpChanged?.Invoke(this);</code></pre>
-<p class="annotation">예를 들어 HP 3에 피해 9를 받으면 0을 저장합니다. 알림을 받은 HP 바는 0을 읽으며, didDie는 이번 호출에서 생존→사망 전이가 일어났다는 뜻입니다. 단순히 매번 CurrentHp==0만 보고 발행하면 반복 피해에 사망 알림이 중복될 수 있습니다.</p>
-<div class="flow"><span>유효 피해</span><b>→</b><span>HP 저장</span><b>→</b><span>HpChanged</span><b>→</b><span>필요 시 Died</span><b>→</b><span>비활성화</span></div>
-<h3>3.3 Died를 들을 때 오브젝트는 아직 존재한다</h3>
-<p class="code-caption">발췌 ⑥ · 사망 알림을 마친 뒤 비활성화</p><pre><code>if (didDie)
-{
-    Died?.Invoke(this);
-    gameObject.SetActive(false);
-}</code></pre>
-<p>HP 바는 Died를 받아 자기 오브젝트를 숨길 수 있고 GameManager는 남은 팀원을 셀 수 있습니다. 모든 사망 구독자는 Unit이 비활성화되기 전에 호출됩니다. 따라서 팀원을 셀 때 activeInHierarchy만 보면 방금 죽은 Unit까지 셀 수 있습니다. 반드시 IsAlive를 함께 검사해야 합니다.</p>
-<p>보드 점유와 공격 대상 탐색에도 같은 기준이 필요합니다. 사망 알림 도중에 다음 판정을 하더라도 HP가 0인 유닛은 길을 막거나 공격 대상이 되어서는 안 됩니다. 완성 Teacher의 BoardView, TurnManager, AttackTargeting, ObjectiveZone은 이 기준을 사용합니다. Unit에서 HP를 먼저 저장하는 이유가 화면 갱신을 넘어 게임 전체 판정으로 이어집니다.</p>
-<h3>3.4 이동도 저장된 사실을 알린다</h3>
-<p class="code-caption">발췌 ⑦ · MoveTo의 두 시점</p><pre><code>Vector2Int sourceCell = board.WorldToCell(transform.position);
-transform.position = board.CellToWorld(targetCell);
-if (sourceCell != targetCell)
-    Moved?.Invoke(this, sourceCell, targetCell);</code></pre>
-<p class="annotation">null 보드 검사는 이 발췌 앞에서 합니다. 이동 전 셀을 보존하고 위치를 바꾼 다음 알립니다. 같은 셀에서는 사건이 없으며, MoveUnitCommand가 되돌릴 때도 MoveTo를 사용하므로 Undo 이동 역시 관찰 가능합니다.</p>
-<table><caption>HP 10에서 시작하는 사건 추적</caption><thead><tr><th>요청</th><th>이후 HP</th><th>발행</th></tr></thead><tbody><tr><td>피해 4</td><td>6</td><td>HpChanged</td></tr><tr><td>피해 20</td><td>0</td><td>HpChanged → Died → 비활성화</td></tr><tr><td>추가 피해 3</td><td>0</td><td>없음</td></tr></tbody></table>
-<div class="exercise"><span class="label">연습</span>HP가 1인 적에게 치명 피해를 주었습니다. Died 콜백에서 activeInHierarchy는 true인데 IsAlive는 false입니다. 오류일까요? 두 값이 이렇게 나오는 순서를 설명해 보세요.</div><details><summary>해설 보기</summary><p>정해진 사망 순서입니다. HP가 먼저 0으로 바뀌어 IsAlive가 false이고, Died 콜백이 모두 끝난 다음 오브젝트를 비활성화합니다. 이 순간을 고려해 생존 집계와 점유 쿼리는 IsAlive를 검사해야 합니다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
+<p class="kicker">CHAPTER 03 · 문법</p><h2>C# event의 네 동작</h2>
+<div class="objectives">학습 목표: 선언, 발행, 구독, 해제의 네 동작을 구분한다. event 키워드가 막아 주는 것과 ?.Invoke의 뜻을 설명한다.</div>
+<h3>3.1 네 동작을 한곳에서 본다</h3>
+<p>Observer는 구조의 이름이고, C#의 event는 그 구조를 작성하는 문법이다. event는 네 동작으로 쓴다.</p>
+<p class="code-caption">서로 다른 파일의 네 줄을 한곳에 모은 것 · 선언과 발행은 Unit.cs, 구독과 해제는 UnitHealthBar.cs</p><pre><code>public event Action&lt;Unit&gt; HpChanged;   // 선언: 알림의 통로
+HpChanged?.Invoke(this);               // 발행: 듣는 쪽이 없어도 된다
+_unit.HpChanged += Refresh;            // 구독: 듣는 쪽이 등록한다
+_unit.HpChanged -= Refresh;            // 해제: 등록한 쪽이 책임진다</code></pre>
+<table><caption>네 동작과 코드를 쓰는 곳</caption><thead><tr><th>동작</th><th>코드를 쓰는 곳</th><th>뜻</th></tr></thead><tbody><tr><td>선언</td><td>발행자</td><td>알림의 통로를 만든다.</td></tr><tr><td>발행</td><td>발행자</td><td>등록된 메서드를 모두 호출한다.</td></tr><tr><td>구독 <code>+=</code></td><td>구독자</td><td>자신의 메서드를 등록한다.</td></tr><tr><td>해제 <code>-=</code></td><td>구독자</td><td>등록했던 메서드를 목록에서 뺀다.</td></tr></tbody></table>
+<h3>3.2 선언: Action&lt;Unit&gt;은 구독할 메서드의 모양을 정한다</h3>
+<p class="code-caption">실제 코드 · Unit.cs</p><pre><code>public event Action&lt;Unit&gt; HpChanged;
+public event Action&lt;Unit&gt; Died;</code></pre>
+<p><code>Action&lt;Unit&gt;</code>은 Unit 하나를 받고 반환값이 없는 메서드를 뜻한다. 구독하는 메서드는 이 모양과 같아야 한다. UnitHealthBar의 <code>void Refresh(Unit unit)</code>과 GameManager의 <code>void OnUnitDied(Unit deadUnit)</code>이 이 모양이다. 모양이 다르면 <code>+=</code>에서 컴파일 오류가 발생한다.</p>
+<p>전달되는 Unit은 변화가 일어난 바로 그 유닛이다. 구독자는 이 유닛에서 <code>CurrentHp</code>, <code>MaxHp</code>, <code>Team</code>, <code>IsAlive</code>를 읽는다. 그래서 알림에 피해량이나 새 체력을 따로 담지 않아도 된다. 대신 발행자는 알리기 전에 값을 먼저 바꾸어 두어야 한다. 이 순서는 4장에서 다룬다.</p>
+<h3>3.3 event 키워드는 바깥의 대입과 발행을 막는다</h3>
+<p class="code-caption">설명용 코드 · Unit이 아닌 class에서 작성했을 때</p><pre><code>unit.HpChanged += Refresh;       // 허용: 구독
+unit.HpChanged -= Refresh;       // 허용: 해제
+unit.HpChanged = null;           // 컴파일 오류: 대입
+unit.HpChanged.Invoke(unit);     // 컴파일 오류: 발행</code></pre>
+<p><code>=</code>로 대입하면 이미 등록된 메서드가 모두 지워진다. 구독자 하나가 실수로 대입하면 같은 알림을 듣던 다른 구독자의 등록까지 사라진다. 바깥에서 <code>Invoke</code>를 호출하면 체력이 바뀌지 않았는데도 바뀌었다는 알림이 나간다. 발행은 값을 소유한 Unit만 할 수 있어야 한다.</p>
+<div class="warning"><span class="label">흔한 실수</span>event를 빼고 <code>public Action&lt;Unit&gt; HpChanged;</code>로 선언하면 위의 네 줄이 모두 컴파일된다. 바깥에서 다른 구독자를 모두 지우거나 직접 발행할 수 있게 된다.</div>
+<h3>3.4 ?.Invoke는 구독자가 없는 정상 상황을 위한 것이다</h3>
+<p class="code-caption">첫 줄은 비교를 위한 설명용 코드 · 실제 코드는 둘째 줄의 형태만 사용한다</p><pre><code>HpChanged.Invoke(this);    // 구독자가 없으면 NullReferenceException이 발생한다
+HpChanged?.Invoke(this);   // 구독자가 없으면 아무 일도 하지 않는다</code></pre>
+<p>아무도 구독하지 않은 event의 값은 null이다. <code>?.</code>는 왼쪽이 null이면 호출을 건너뛰고, null이 아니면 호출한다. 구독자가 0개인 것은 잘못된 상태가 아니다. 체력바가 없는 유닛도 만들 수 있다. 첫 시도에서는 같은 경우에 예외가 발생했다.</p>
+<h3>3.5 구독과 해제에는 같은 메서드 이름을 쓴다</h3>
+<p><code>-=</code>는 <code>+=</code>로 등록한 것과 같은 메서드를 지정해야 동작한다. 그래서 구독하는 메서드는 이름이 있는 메서드로 작성한다. 등록할 때와 해제할 때 각각 새 람다식을 쓰면 두 람다식은 서로 다른 것으로 취급되어 해제되지 않는다.</p>
+<div class="exercise"><span class="label">연습</span>event 키워드를 빼고 선언했을 때 바깥의 코드가 할 수 있게 되는 일 두 가지는 무엇인가? 각각 어떤 문제가 생기는가?</div><details><summary>해설 보기</summary><p>첫째는 <code>=</code> 대입이다. 다른 구독자의 등록이 모두 지워진다. 둘째는 바깥에서의 발행이다. 일어나지 않은 변화를 알리게 된다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
 </section>
 <section class="chapter" id="chapter-4">
-<p class="kicker">CHAPTER 04 · 화면 관찰자</p><h2>HP 바와 구독 수명</h2>
-<div class="objectives">학습 목표: UnitHealthBar의 데이터 참조와 시각 참조를 구분한다. 활성화·비활성화·대상 변경 때 구독이 정확히 한 번 유지되도록 설계한다.</div>
-<h3>4.1 이번 HP 바는 무엇으로 이루어져 있는가</h3>
-<p>장면에는 다섯 전투 유닛마다 자식 Health Bar 오브젝트가 있습니다. 어두운 배경과 초록 채움은 SpriteRenderer이며 채움 그림은 Fill Transform 아래에 있습니다. UnitHealthBar의 _unit은 데이터 원천, _fill은 표현 대상입니다. 둘 중 하나가 없으면 올바른 상태를 화면에 반영할 수 없습니다.</p>
-<p>HP 바는 HP를 복사해서 별도 저장하지 않습니다. Refresh할 때 Unit의 현재 비율을 읽어 Fill의 가로 크기에 적용합니다. 그래서 유닛이 10/10이면 1, 5/10이면 0.5, 0/10이면 0이 됩니다. y와 z는 보존하여 바의 높이와 깊이가 갑자기 바뀌지 않도록 합니다.</p>
-<p class="code-caption">발췌 ⑧ · 현재 값을 표현으로 변환</p><pre><code>Vector3 scale = _fill.localScale;
-scale.x = _unit.MaxHp &gt; 0
-    ? Mathf.Clamp01(_unit.CurrentHp / (float)_unit.MaxHp)
-    : 0f;
-_fill.localScale = scale;</code></pre>
-<p class="annotation">앞에는 Unit과 Fill의 null 검사가 필요합니다. float 변환은 5/10을 0으로 만드는 정수 나눗셈을 피합니다. MaxHp가 양수가 되도록 데이터가 제한되어 있어도 화면 쪽의 방어 검사는 유효합니다.</p>
-<h3>4.2 OnEnable은 구독과 즉시 갱신을 함께 한다</h3>
-<p>켜진 HP 바는 변화를 들어야 하고, 과거 알림을 놓쳤더라도 현재 값에 맞게 표시해야 합니다. 따라서 OnEnable은 Subscribe 후 Refresh합니다. 단순히 다음 HpChanged를 기다리면 잠시 꺼져 있는 동안 HP가 바뀐 바가 오래된 모양으로 남을 수 있습니다.</p>
-<p class="code-caption">발췌 ⑨ · 활성 수명과 등록 수명 맞추기</p><pre><code>private void OnEnable()
+<p class="kicker">CHAPTER 04 · 발행자</p><h2>발행자 Unit과 발행 순서</h2>
+<div class="objectives">학습 목표: TakeDamage의 네 단계를 순서대로 설명한다. 값을 먼저 바꾸고 알리는 이유와 Died를 발행한 뒤에 비활성화하는 이유를 설명한다.</div>
+<h3>4.1 TakeDamage에는 구독자가 등장하지 않는다</h3>
+<p class="code-caption">실제 코드 · Unit.cs의 TakeDamage 전체</p><pre><code>public void TakeDamage(int damage)
 {
-    Subscribe();
-    Refresh();
-}
+    CurrentHp = Mathf.Max(0, CurrentHp - damage);
+    HpChanged?.Invoke(this);
 
-private void OnDisable() =&gt; Unsubscribe();</code></pre>
-<p>Subscribe는 Unit이 있고 컴포넌트가 활성화되어 있으며 아직 구독하지 않은 경우에만 등록해야 합니다. 실제로 +=를 한 뒤 _isSubscribed를 true로 바꿉니다. Unsubscribe는 같은 Unit에서 같은 핸들러를 -=하고 플래그를 false로 돌립니다. 비활성화된 바에서 Bind를 호출해도 불필요한 구독이 시작되지 않아야 합니다.</p>
-<h3>4.3 Bind의 순서는 옛 대상 정리부터</h3>
-<p class="code-caption">발췌 ⑩ · 구독 대상의 교체</p><pre><code>Unsubscribe();     // 옛 Unit의 콜백 연결을 해제한다.
-_unit = unit;      // 새 데이터 원천을 저장한다.
-Subscribe();       // 활성 상태일 때 새 Unit을 관찰한다.
-Refresh();         // 새 대상의 현재 값을 즉시 표시한다.</code></pre>
-<p>참조 저장을 먼저 하면 Unsubscribe가 새 Unit을 바라보게 됩니다. 옛 Unit에는 콜백이 남고 새 Unit에는 해제할 콜백이 없을 수 있습니다. 이 문제는 처음 실행할 때보다 재사용·재활성화·대상 변경 때 드러납니다. 따라서 정상 시작뿐 아니라 회복 경로까지 설계해야 합니다.</p>
-<h3>4.4 콜백도 자기가 받을 사건인지 확인한다</h3>
-<p>HandleHpChanged는 구독 중인지, 전달된 Unit이 null이 아닌지, 실제 _unit과 같은지 확인하고 Refresh합니다. HandleDied도 같은 조건을 확인한 뒤 바 오브젝트를 비활성화합니다. 그 비활성화는 다시 OnDisable을 불러 구독을 해제합니다. 이 과정에서 Unit의 다른 사망 구독자인 GameManager까지 해제하지는 않습니다.</p>
-<div class="grid"><div class="box"><h4>처음부터 바가 없음</h4><p>Unit/Fill 참조, 자식 활성 상태, 스프라이트, 색의 알파, 정렬 순서를 확인합니다. 장면에서는 배경 11·채움 12로 유닛 10보다 위에 표시됩니다.</p></div><div class="box"><h4>처음은 보이나 변화 없음</h4><p>HP 저장→HpChanged 발행→구독→콜백→비율 계산 순서로 따라갑니다. 스프라이트만 교체해도 끊어진 이벤트는 복구되지 않습니다.</p></div></div>
-<div class="exercise"><span class="label">연습</span>A를 보던 바를 껐습니다. 그동안 A의 HP가 10에서 6으로 바뀌었습니다. 다시 켰을 때 바가 즉시 60%가 되려면 어떤 진입점에서 무엇을 해야 하나요?</div><details><summary>해설 보기</summary><p>OnEnable에서 다시 구독하고 Refresh해야 합니다. 꺼져 있을 때 사건을 받지 않는 것은 의도한 수명입니다. 현재 상태를 다시 읽는 단계가 놓친 사건을 하나하나 재생하지 않고도 화면을 회복합니다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
+    if (!IsAlive)
+    {
+        Died?.Invoke(this);
+        gameObject.SetActive(false);
+    }
+}</code></pre>
+<p class="annotation"><code>IsAlive</code>는 <code>CurrentHp &gt; 0</code>을 계산하는 속성이다. 따로 저장하는 값이 아니므로 체력이 0인데 살아 있다고 표시되는 불일치가 생기지 않는다.</p>
+<p>이 메서드에는 체력바도 GameManager도 등장하지 않는다. 첫 시도의 직접 호출 두 줄이 발행 두 줄로 바뀌었다. 실행 순서는 다음과 같다.</p>
+<div class="flow"><span>CurrentHp 변경</span><b>→</b><span>HpChanged 발행</span><b>→</b><span>쓰러졌다면 Died 발행</span><b>→</b><span>비활성화</span></div>
+<h3>4.2 값을 먼저 바꾸고, 그다음에 알린다</h3>
+<p>구독자는 알림을 받은 순간에 발행자의 현재 값을 읽는다. 그래서 알림보다 값의 변경이 먼저여야 한다. 체력바가 알림을 받고 <code>CurrentHp</code>를 읽을 때 이미 새 값이어야 한다.</p>
+<h3>4.3 Died를 발행한 뒤에 비활성화한다</h3>
+<p>Died를 먼저 발행하고 그다음에 <code>SetActive(false)</code>를 호출한다. 구독자가 알림을 받는 동안 유닛은 아직 활성 상태다. 이 시점에 <code>IsAlive</code>는 이미 false다. 값이 먼저 바뀌었기 때문이다.</p>
+<table><caption>순서를 바꾸었다고 가정했을 때 일어나는 일</caption><thead><tr><th>바꾼 순서</th><th>일어나는 일</th></tr></thead><tbody><tr><td>HpChanged를 먼저 발행하고 값을 나중에 바꾼다.</td><td>HP 10인 유닛이 피해 5를 받는다. 체력바는 아직 10인 CurrentHp를 읽는다. 10 / 10 = 1.0이므로 체력바는 100%로 남는다. 화면이 항상 한 번씩 늦다.</td></tr><tr><td>Died를 먼저 발행하고 값을 나중에 바꾼다.</td><td>전멸 판정이 쓰러진 유닛의 IsAlive를 읽으면 아직 true다. 마지막 유닛이 쓰러졌는데도 전멸로 판정하지 않는다.</td></tr><tr><td>비활성화를 먼저 하고 Died를 나중에 발행한다.</td><td>유닛의 자식 오브젝트에 있으면서 OnDisable에서 해제하는 구독자는 비활성화되는 순간 구독이 풀린다. 그런 구독자는 Died를 받지 못한다.</td></tr></tbody></table>
+<h3>4.4 알림은 발행하는 즉시 실행된다</h3>
+<p>구독자의 메서드는 <code>Invoke</code> 안에서 바로 실행된다. 다음 프레임으로 미루어지지 않고, 별도의 스레드에서 실행되지도 않는다. 등록된 메서드가 모두 끝난 뒤에 TakeDamage의 다음 줄이 실행된다. 그러므로 <code>HpChanged</code>의 구독자가 모두 실행된 뒤에 <code>Died</code>가 발행된다.</p>
+<div class="exercise"><span class="label">연습</span>Died의 구독자가 실행되는 동안 쓰러진 유닛의 <code>gameObject.activeSelf</code>는 true인데 <code>IsAlive</code>는 false다. 오류인가?</div><details><summary>해설 보기</summary><p>오류가 아니라 정해진 순서다. 체력이 먼저 0으로 바뀌어 IsAlive가 false가 되고, Died의 구독자가 모두 끝난 다음에 유닛이 비활성화된다. 그래서 전멸 판정은 활성 여부가 아니라 IsAlive를 읽는다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
 </section>
 <section class="chapter" id="chapter-5">
-<p class="kicker">CHAPTER 05 · 규칙 관찰자</p><h2>사망 관찰과 전멸 결과</h2>
-<div class="objectives">학습 목표: GameManager가 Died로 전멸을 판단하는 과정을 설명한다. 대상 목록과 실제 구독 목록을 구분하고 기존 목표 승패와 최초 결과 보존을 유지한다.</div>
-<h3>5.1 화면과 결과는 같은 사망을 다르게 해석한다</h3>
-<p>HP 바는 사망 사건을 받으면 자신을 숨깁니다. GameManager는 그 유닛이 어느 팀인지와 남은 생존 전투 유닛 수를 확인합니다. Unit은 두 반응을 구별할 필요가 없습니다. 자기 상태를 저장하고 Died를 발행하는 것으로 역할이 끝납니다.</p>
-<p>완성 장면의 GameManager에는 _combatUnits로 다섯 명이 직렬화되어 있습니다. Start에서 ObserveUnits를 호출하여 실제 구독 목록을 만들며, null과 중복을 제외합니다. 목록을 새로 관찰할 때는 기존 구독을 먼저 해제합니다. Fixed Blocker는 장면에 Unit 컴포넌트가 있어도 전투 명단과 전멸 집계에 포함되지 않습니다.</p>
-<p class="code-caption">발췌 ⑪ · 관찰 시작과 단일 구독의 의미</p><pre><code>private void Start() =&gt; ObserveUnits(_combatUnits);
+<p class="kicker">CHAPTER 05 · 구독자 1</p><h2>첫 번째 구독자와 구독 수명</h2>
+<div class="objectives">학습 목표: UnitHealthBar가 구독하고 해제하는 위치를 설명한다. 구독을 해제하지 않았을 때 생기는 문제 세 가지를 설명한다.</div>
+<h3>5.1 체력바는 켜질 때 구독하고 꺼질 때 해제한다</h3>
+<p class="code-caption">실제 코드 · UnitHealthBar.cs</p><pre><code>[SerializeField] private Unit _unit;
+[SerializeField] private Transform _fill;
 
-// 유효하고 아직 관찰하지 않은 Unit을 찾은 뒤
-_observedUnits.Add(unit);
-unit.Died += HandleObservedUnitDied;</code></pre>
-<p class="annotation">실제 ObserveUnits에는 이전 대상 해제, null 컬렉션 처리, null 항목·중복 확인이 필요합니다. 공개 목록에 같은 유닛이 두 번 있어도 하나의 사망을 두 번 처리하면 안 됩니다.</p>
-<h3>5.2 생존 전투 유닛의 의미</h3>
-<p>집계 대상은 null이 아니고, 활성 상태이며, IsAlive가 true이고, IsTurnUnit이며, 지정한 팀인 유닛입니다. 단순히 Enemy 타입의 개수나 활성 오브젝트 개수를 세지 않습니다. IsAlive는 Died가 비활성화보다 먼저 온다는 계약을 반영하고, IsTurnUnit은 고정 장애물을 전멸 조건에서 제외합니다.</p>
-<p class="code-caption">발췌 ⑫ · 집계에서 함께 읽어야 하는 상태</p><pre><code>unit != null
-    &amp;&amp; unit.gameObject.activeInHierarchy
-    &amp;&amp; unit.IsAlive
-    &amp;&amp; unit.IsTurnUnit
-    &amp;&amp; unit.Team == team</code></pre>
-<p>HandleObservedUnitDied는 아직 Playing인지, 전달된 Unit이 관찰 목록의 대상인지, 전투 참여자인지 먼저 검사합니다. 죽은 대상이 적이면 적 생존 수가 0일 때 PlayerWon, 아군이면 아군 생존 수가 0일 때 PlayerLost를 요청합니다. 이미 끝난 전투에는 뒤늦은 알림이 새 결과를 쓰지 못합니다.</p>
-<h3>5.3 최초 결과와 목표 점령을 보존한다</h3>
-<p class="code-caption">발췌 ⑬ · Lesson05부터 유지되는 결과 확정</p><pre><code>if (!IsPlaying || result == BattleResult.Playing)
-    return;
-Result = result;</code></pre>
-<p>전멸은 새로운 승패 조건이지만 기존 목표는 사라지지 않습니다. 아군이 적 소유 목표 (11,6)에 진입하면 승리, 적이 아군 소유 목표 (0,4)에 진입하면 패배입니다. TurnManager.CheckGoal은 현재 셀과 목표 셀을 비교한 뒤 ObjectiveZone의 팀 규칙을 사용합니다. 목표가 결과를 확정했다면 공격 선택을 이어가지 않아야 합니다.</p>
-<p>GameManager가 결과를 저장하면 플레이어 공격 완료나 적 행동 뒤 TurnManager가 이를 읽고 Finished로 전환합니다. PhaseHud는 턴 변화에 따라 VICTORY 또는 DEFEAT를 표시합니다. 서로 다른 사건이 거의 연속해서 일어나도 TryFinish가 첫 결과를 지켜 줍니다.</p>
-<h3>5.4 관찰자의 수명은 컴포넌트마다 다르다</h3>
-<p>GameManager는 OnDestroy에서 StopObservingUnits로 Died 구독을 정리하고 자신이 Instance인 경우에만 Instance를 비웁니다. 같은 수명 동안 관찰 대상을 교체할 때도 StopObservingUnits를 사용합니다. HP 바와 달리 현재 GameManager는 OnDisable에서 자동 해제·OnEnable에서 자동 재구독하는 구조가 아닙니다. 화면 컴포넌트의 수명을 모든 관찰자에게 그대로 복사하지 않습니다.</p>
-<div class="warning"><span class="label">재시작과 정적 참조</span>이번 GameManager는 DontDestroyOnLoad로 영구 보존하지 않습니다. R은 Build Settings에 등록된 활성 장면을 새로 불러오며 옛 구독과 Singleton 참조는 이전 장면의 파괴 과정에서 정리됩니다.</div>
-<div class="exercise"><span class="label">연습</span>적 둘 중 하나가 죽었습니다. 나머지 적은 살아 있고 Fixed Blocker도 남아 있습니다. 결과는 무엇인가요? 두 번째 적까지 죽으면 어떤 조건 때문에 승리가 되나요?</div><details><summary>해설 보기</summary><p>첫 사망 후 생존 적 전투 유닛 수가 1이므로 Playing입니다. 두 번째 적의 HP가 0으로 저장된 뒤 Died가 오면 IsAlive 조건에서 둘 다 제외되어 0이 됩니다. Fixed Blocker는 전투 참여자가 아니므로 결과를 지연시키지 않습니다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
+private void OnEnable()
+{
+    _unit.HpChanged += Refresh;
+}
+
+private void OnDisable()
+{
+    _unit.HpChanged -= Refresh;
+}</code></pre>
+<p>구독은 듣는 쪽이 한다. Unit.cs는 체력바가 생겼다는 사실을 알지 못한다. <code>OnEnable</code>과 <code>OnDisable</code>은 Unity가 컴포넌트를 켜고 끌 때 호출하는 메서드다. 두 메서드는 항상 짝으로 호출되므로 <code>+=</code>와 <code>-=</code>를 짝지어 두기에 알맞다.</p>
+<h3>5.2 반응: 전달받은 유닛에서 값을 읽는다</h3>
+<p class="code-caption">실제 코드 · UnitHealthBar.cs</p><pre><code>private void Refresh(Unit unit)
+{
+    Vector3 scale = _fill.localScale;
+    scale.x = (float)unit.CurrentHp / unit.MaxHp;
+    _fill.localScale = scale;
+}</code></pre>
+<p><code>Refresh</code>의 모양은 <code>Action&lt;Unit&gt;</code>과 같다. 체력바는 체력을 따로 저장하지 않고, 알림을 받을 때마다 전달받은 unit에서 현재 값을 읽는다. <code>(float)</code>는 정수 나눗셈 때문에 5 / 10이 0이 되는 것을 막는다. 변환한 뒤에는 5 / 10 = 0.5가 된다.</p>
+<h3>5.3 구독을 해제하지 않으면 생기는 문제</h3>
+<table><caption>OnDisable의 해제를 빠뜨렸다고 가정했을 때</caption><thead><tr><th>상황</th><th>일어나는 일</th></tr></thead><tbody><tr><td>체력바를 껐다가 다시 켠다.</td><td>OnEnable이 다시 실행되어 같은 메서드가 두 번 등록된다. 발행 한 번에 Refresh가 두 번 실행된다.</td></tr><tr><td>체력바만 파괴되고 유닛은 남는다.</td><td>Unit의 등록 목록에 파괴된 체력바의 메서드가 남는다. 다음 발행에서 Refresh가 호출되고, 파괴된 <code>_fill</code>에 접근하여 예외가 발생한다.</td></tr><tr><td>구독자가 더 이상 필요하지 않다.</td><td>발행자가 구독자를 계속 참조한다. 구독자가 메모리에서 정리되지 않는다.</td></tr></tbody></table>
+<div class="concept"><span class="label">구독 수명의 규칙</span>발행자는 누가 구독했는지 알지 못하므로 대신 정리해 줄 수 없다. 구독한 쪽이 자신의 수명에 맞춰 해제한다. OnEnable에서 구독했으면 OnDisable에서, Start에서 구독했으면 OnDestroy에서 해제한다.</div>
+<p>현재 코드는 OnDisable에서 해제하므로 위의 문제가 없다. 유닛이 쓰러져 비활성화되면 자식인 체력바의 OnDisable도 실행되어 구독이 함께 해제된다.</p>
+<div class="exercise"><span class="label">연습</span>OnDisable의 해제를 빠뜨린 체력바를 두 번 껐다가 켰다. 발행 한 번에 Refresh는 몇 번 실행되는가?</div><details><summary>해설 보기</summary><p>3번이다. 처음 켜질 때 1번 등록되고, 다시 켜질 때마다 1번씩 더 등록된다. 1 + 2 = 3이므로 같은 메서드가 3번 등록되어 있다. 해제를 제대로 작성했다면 꺼질 때마다 등록이 0번으로 돌아가므로 항상 1번만 실행된다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
 </section>
 <section class="chapter" id="chapter-6">
-<p class="kicker">CHAPTER 06 · 입력과 행동 경계</p><h2>공격 상태와 행동 경계</h2>
-<div class="objectives">학습 목표: 이동 후 공격 선택의 흐름을 설명한다. HasMoved와 보류 행동을 구분하고, 공격·건너뛰기·Undo·적 턴 진입의 경계를 정한다.</div>
-<h3>6.1 클릭의 의미를 상태에 맡긴다</h3>
-<p>Idle에서는 아군 선택, UnitSelectedState에서는 이동할 칸 선택, AttackState에서는 공격 대상 선택이 중요합니다. 같은 클릭이라도 의미가 달라지므로 모든 조건을 한 Update에 겹쳐 넣는 대신 입력 상태로 나눕니다. BattleController는 실제 보드와 전투 행동의 실행을 맡고, 상태는 현재 입력을 어떤 요청으로 바꿀지 결정합니다.</p>
-<div class="flow"><span>Idle</span><b>→</b><span>UnitSelectedState</span><b>→</b><span>이동 성공</span><b>→</b><span>목표 확인</span><b>→</b><span>AttackState 또는 즉시 완료</span></div>
-<p>현재 학생판의 이동 경로는 앞 차시대로 바로 행동을 마칩니다. 전투를 구현할 때 이동 후 인접 적이 있는 경우에만 AttackState를 열도록 연결합니다. 적이 없거나 목표로 결과가 확정된 경우에는 공격 선택을 기다릴 이유가 없습니다.</p>
-<h3>6.2 대상 선정은 공간 규칙이다</h3>
-<p>상하좌우 인접은 두 셀의 맨해튼 거리 1로 표현합니다. 대각선은 가로와 세로 차이의 합이 2이므로 제외됩니다. 제공된 AttackTargeting은 다른 팀의 활성·생존 대상을 중복 없이 모읍니다. 호출자는 전투 명단과 행동 자격도 검사합니다. 장면의 Fixed Blocker는 전투 목록에 없으므로 적의 공격 대상이 아닙니다.</p>
-<p class="code-caption">발췌 ⑭ · 직교 인접 판정</p><pre><code>Mathf.Abs(cell.x - origin.x)
-    + Mathf.Abs(cell.y - origin.y) == 1</code></pre>
-<p>대상은 선택할 때만 검사해서는 부족합니다. 실제 피해를 주기 직전에도 현재 위치, 생존, 팀, 진행 중인 게임인지 확인해야 합니다. 사건 콜백이나 이전 행동으로 대상의 상태가 바뀔 수 있기 때문입니다.</p>
-<h3>6.3 HasMoved와 공격 대기는 별개다</h3>
-<p>PlayerMoveCommand는 이동에 성공하면 HasMoved를 true로 만듭니다. 그래서 AttackState에 들어온 유닛은 이미 이동한 상태입니다. 그 뒤 공격을 선택하는 시간을 관리하려면 BattleController가 어떤 유닛의 행동을 보류 중인지 별도로 기억해야 합니다. HasMoved가 true라는 사실만으로 즉시 다음 턴을 시작하면 공격 클릭을 할 기회가 없어집니다.</p>
-<p>보류 중에는 다른 아군 선택을 막습니다. 피해 전 Undo는 보류한 바로 그 이동 명령만 되돌려 원래 셀과 HasMoved=false를 복구하고, 보류 상태·공격 표시를 지운 뒤 Idle로 돌아갑니다. Controller는 해당 PlayerMoveCommand를 기억하고 이력 맨 위의 명령과 같은지 확인하므로 다른 유닛의 이전 이동을 되돌리지 않습니다. CompletePlayerAction은 보류한 바로 그 Unit의 요청인지 확인한 뒤 보류 상태를 지우고 Idle로 돌아갑니다. 전투가 끝났으면 Finished를 반영하고, 아직 플레이어 턴이면 전체 아군 행동 완료 여부를 TurnManager에 알립니다.</p>
-<table><caption>AttackState의 입력 의미</caption><thead><tr><th>입력</th><th>실행과 상태 변화</th></tr></thead><tbody><tr><td>유효한 인접 적 클릭</td><td>TryAttack으로 실제 HP 감소 → 행동 완료</td></tr><tr><td>빈 공간 클릭</td><td>공격을 건너뛰고 행동 완료</td></tr><tr><td>아군·범위 밖 적 클릭</td><td>현재 공격 선택 유지</td></tr><tr><td>피해 전 Undo</td><td>현재 보류 이동만 복구하고 보류 상태·표시를 정리한 뒤 Idle</td></tr><tr><td>Enter (기본·숫자패드)</td><td>공격을 건너뛰고 해당 행동 완료 후 남은 아군 행동을 넘김</td></tr></tbody></table>
-<p>Enter는 5차시부터 유지하는 필수 조작입니다. BattleController.Update의 Input System 입력은 공개 OnEndTurnRequested로 연결됩니다. Playing·Player일 때만 선택을 정리하고 RequestEndPlayerPhase를 호출합니다. 전투를 연결한 뒤에는 보류 중인 공격을 피해 없이 건너뛰어 행동을 완료한 다음 턴 종료를 한 번 요청합니다. 완료 통지로 자동 종료한 뒤 또 종료하지 않게 하며, Enemy·Finished·종료 결과·피해 처리 중에는 무시합니다.</p>
-<h3>6.4 전투의 피해는 이동 Undo로 복구되지 않는다</h3>
-<p>이동 Command의 Undo는 이전 위치와 HasMoved만 복구합니다. 적 HP 감소, 사망, 관찰자 반응까지 되돌리는 기능은 들어 있지 않습니다. 공격 후 위치만 돌아가면 피해를 남긴 채 행동을 다시 할 수 있는 모순이 생깁니다. 그래서 실제 HP가 감소한 공격은 명령 이력을 비웁니다.</p>
-<p class="code-caption">발췌 ⑮ · 실제 피해와 이력의 관계</p><pre><code>_attackApplied = defender.CurrentHp &lt; previousHp;
-if (_attackApplied)
-    _history.Clear();</code></pre>
-<p class="annotation">완성 TryAttack은 피해 전 HP를 기억하고, 처리 중 상태를 세워 콜백이 행동 완료에 재진입하지 못하게 합니다. finally에서 실제 피해 여부와 이력을 정리하고 처리 중 상태를 해제합니다. 구독자가 예외를 던져도 이미 감소한 HP를 없던 일로 취급해서는 안 됩니다.</p>
-<p>공격을 건너뛰었다면 같은 플레이어 턴에서 이력이 남아 있을 때 이동 Undo가 가능합니다. 다만 마지막 아군의 행동 완료가 적 턴을 시작하면 앞 차시 규칙에 따라 이력은 비워집니다. 따라서 “건너뛰기는 항상 Undo 가능”이라고 외우지 말고 현재 턴과 이력 경계를 확인해야 합니다.</p>
-<div class="exercise"><span class="label">연습</span>Player 3이 이동한 뒤 공격을 건너뛰었습니다. 다른 아군 둘은 아직 움직이지 않았습니다. 이어 Undo를 누르면 무엇이 복구되나요? 마지막 아군이었다면 왜 다를 수 있나요?</div><details><summary>해설 보기</summary><p>같은 플레이어 턴에 명령이 남아 있으면 위치와 HasMoved가 복구됩니다. 마지막 아군이었다면 행동 완료로 적 턴에 들어가고 이력이 비워집니다. 공격 대기 중에도 피해 전 Undo로 바로 그 이동을 복구할 수 있습니다. 빈 공간 건너뛰기는 해당 행동만 끝내지만 Enter는 남은 아군 행동도 넘기므로 이력이 지워집니다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
+<p class="kicker">CHAPTER 06 · 구독자 2</p><h2>두 번째 구독자와 전멸 판정</h2>
+<div class="objectives">학습 목표: GameManager가 구독하고 해제하는 위치를 설명한다. OnUnitDied가 전멸을 판정하는 과정을 읽는다. 구독자가 늘어나는 동안 발행자가 바뀌지 않았음을 확인한다.</div>
+<h3>6.1 Start에서 모든 유닛의 Died를 구독한다</h3>
+<p class="code-caption">실제 코드 · GameManager.cs</p><pre><code>private void Start()
+{
+    foreach (Unit unit in _spawner.Units)
+    {
+        unit.Died += OnUnitDied;
+    }
+}</code></pre>
+<p>구독은 발행자가 만들어진 뒤에 할 수 있다. 유닛은 UnitSpawner의 Awake에서 만들어진다. Start는 모든 Awake가 끝난 뒤에 실행되므로 이 시점에는 <code>_spawner.Units</code>가 채워져 있다. Awake에서 구독하면 실행 순서에 따라 목록이 비어 있어서 아무것도 구독하지 못할 수 있다.</p>
+<h3>6.2 OnDestroy에서 같은 메서드를 해제한다</h3>
+<p class="code-caption">실제 코드 · GameManager.cs</p><pre><code>private void OnDestroy()
+{
+    if (Instance != this)
+    {
+        return;
+    }
+
+    foreach (Unit unit in _spawner.Units)
+    {
+        unit.Died -= OnUnitDied;
+    }
+
+    Instance = null;
+}</code></pre>
+<p class="annotation">Instance 검사와 <code>Instance = null</code>은 5차시 Singleton에서 이어진 코드다. 이번 차시에 추가한 부분은 가운데의 <code>-=</code> 반복문이다. Start의 <code>+=</code>와 짝을 이룬다.</p>
+<h3>6.3 OnUnitDied는 같은 진영에 살아 있는 유닛이 있는지 확인한다</h3>
+<p class="code-caption">실제 코드 · GameManager.cs</p><pre><code>private void OnUnitDied(Unit deadUnit)
+{
+    foreach (Unit unit in _spawner.Units)
+    {
+        if (unit.Team == deadUnit.Team &amp;&amp; unit.IsAlive)
+        {
+            return;
+        }
+    }
+
+    Finish(deadUnit.Team == Team.Enemy ? BattleResult.PlayerWon : BattleResult.PlayerLost);
+}</code></pre>
+<p>쓰러진 유닛과 같은 진영의 유닛을 차례로 확인한다. 살아 있는 유닛을 하나라도 찾으면 돌아가고 전투는 계속된다. 하나도 없으면 전멸이다. 쓰러진 유닛이 적 진영이면 PlayerWon, 아군 진영이면 PlayerLost로 결과를 확정한다.</p>
+<p>알림을 받은 시점에 <code>deadUnit.IsAlive</code>는 이미 false다. Unit이 값을 먼저 바꾸고 발행하기 때문이다. 그래서 <code>unit != deadUnit</code> 조건을 추가할 필요가 없다. 4장의 발행 순서가 구독자의 코드를 단순하게 만든다.</p>
+<h3>6.4 구독자가 둘이 되는 동안 Unit.cs는 바뀌지 않았다</h3>
+<p>같은 Unit에 구독자가 둘이 되었다. 그동안 Unit.cs는 한 줄도 바뀌지 않았다. 이것이 첫 시도와의 차이다. 두 구독자는 서로의 존재도 알지 못한다.</p>
+<table><caption>두 구독자의 구독 수명</caption><thead><tr><th>구독자</th><th>구독하는 알림</th><th>구독</th><th>해제</th></tr></thead><tbody><tr><td>UnitHealthBar</td><td>자기 유닛의 HpChanged</td><td>OnEnable</td><td>OnDisable</td></tr><tr><td>GameManager</td><td>모든 유닛의 Died</td><td>Start</td><td>OnDestroy</td></tr></tbody></table>
+<p>두 구독자가 같은 수명 메서드를 쓰지는 않는다. 구독자마다 자신의 수명에 맞는 짝을 고른다. 체력바는 켜지고 꺼지는 객체이므로 OnEnable과 OnDisable을 쓴다. GameManager는 장면이 유지되는 동안 계속 듣는 객체이므로 Start와 OnDestroy를 쓴다.</p>
+<div class="exercise"><span class="label">연습</span>적 진영에 유닛이 둘 있다. 그중 하나가 쓰러졌다. OnUnitDied는 어디에서 돌아가는가? 결과는 무엇인가?</div><details><summary>해설 보기</summary><p>반복문이 살아 있는 나머지 적을 찾은 순간 <code>return</code>으로 돌아간다. Finish는 호출되지 않고 결과는 Playing으로 남는다. 나머지 적까지 쓰러지면 살아 있는 적을 찾지 못하고 반복문이 끝나서 Finish(PlayerWon)이 호출된다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
 </section>
 <section class="chapter" id="chapter-7">
-<p class="kicker">CHAPTER 07 · 계산과 데이터</p><h2>지형을 읽는 피해 계산</h2>
-<div class="objectives">학습 목표: 지형 데이터와 전투 규칙을 구별한다. 방어자 셀을 기준으로 피해를 계산하고 최소 피해, 잘못된 입력, 이동 비용과 방어 보너스 차이를 설명한다.</div>
-<h3>7.1 CombatCalculator는 어떤 질문에 답하는가</h3>
-<p>CombatCalculator.CalculateDamage(attacker, defender, terrain)은 “이 공격의 피해는 얼마인가”에 답합니다. 계산기는 HP 바를 찾거나 Unit을 비활성화하지 않습니다. 공격 실행자는 대상을 검증하고 지형을 찾은 뒤 계산 결과를 TakeDamage에 전달합니다. 계산과 상태 변경을 나누면 숫자 규칙과 사건 흐름을 각각 이해하기 쉽습니다.</p>
-<div class="concept"><span class="label">이번 차시의 공식</span><code>피해 = max(1, 공격력 − 방어력 − 방어 지형 보너스)</code><br>숲 보너스 1, 산 보너스 2, 그 외 0. 최소 피해는 1입니다.</div>
-<p>유닛의 공격력과 방어력은 음수가 되지 않도록 구성됩니다. 유효한 전투에서 공식의 차이가 0 이하가 되어도 최소 피해 1은 남습니다. 따라서 방어가 높다는 이유만으로 무한히 피해를 받지 않는 상태가 되지는 않습니다. 이것은 이번 전투의 의도된 게임 규칙이며, 다른 게임에서는 다른 규칙을 선택할 수 있습니다.</p>
-<h3>7.2 방어자의 현재 셀을 읽는다</h3>
-<p class="code-caption">발췌 ⑯ · 전투와 보드 데이터가 만나는 곳</p><pre><code>Vector2Int cell = _board.WorldToCell(defender.transform.position);
-TerrainType terrain = _board.Board.GetTerrain(cell);
-int damage = CombatCalculator.CalculateDamage(attacker, defender, terrain);</code></pre>
-<p class="annotation">실제 호출 앞에는 셀이 보드 안인지, 두 유닛이 유효하고 살아 있는지 검사합니다. 공격자가 숲에 있더라도 방어자가 평지라면 숲 방어를 적용하지 않습니다. 이동 후 공격에서는 변경된 현재 위치로 다시 지형을 읽어야 합니다.</p>
-<h3>7.3 같은 지형에 서로 다른 규칙이 붙는다</h3>
-<table><caption>지형 데이터의 두 해석</caption><thead><tr><th>지형</th><th>이동 비용</th><th>방어 보너스</th><th>공격 6·방어 1 피해</th></tr></thead><tbody><tr><td>평지</td><td>1</td><td>0</td><td>5</td></tr><tr><td>숲</td><td>2</td><td>1</td><td>4</td></tr><tr><td>산</td><td>3</td><td>2</td><td>3</td></tr><tr><td>강</td><td>이동 불가</td><td>0</td><td>계산상 5</td></tr></tbody></table>
-<p>6차시 TerrainType에는 Name, MovementCost, IsWalkable과 DefenseBonus가 있습니다. TileData 에셋의 Defense Bonus를 공유 모델에 옮기고 계산기는 그 값을 읽습니다. 기본 Forest.asset은 1, Mountain.asset은 2입니다. 강의 Movement Cost는 1이지만 Is Walkable이 꺼져 경로에 들어가지 않습니다.</p>
-<p class="code-caption">발췌 ⑰ · 에셋에서 전달된 방어 값 읽기</p><pre><code>int terrainDefense = terrain.DefenseBonus;</code></pre>
-<p class="annotation">방어 보너스는 표시 이름이나 특정 정적 객체와의 일치 여부로 추측하지 않습니다. MapLoader.Load가 연결된 TileData의 RuntimeTerrain을 공유하므로 에셋의 방어 값이 피해에 반영됩니다. 새 지형도 자신의 Defense Bonus를 지정하면 같은 계산 경로를 사용합니다.</p>
-<h3>7.4 정상 입력을 지키는 위치</h3>
-<p>완성 계산기는 null 공격자·방어자·지형이면 ArgumentNullException, 사망한 공격자 또는 방어자면 InvalidOperationException으로 잘못된 호출을 드러냅니다. 계산기에서 예외를 낸다고 클릭 입력 검사가 없어지는 것은 아닙니다. 사용자 입력은 실행자 쪽에서 먼저 유효하지 않은 요청을 거절하고, 계산기는 자신의 계약도 지킵니다.</p>
-<div class="exercise"><span class="label">손으로 계산하기</span>공격력 6, 방어력 1인 기본 전투에서 평지·숲·산 피해를 적으세요. 공격력 2, 방어력 5, 산 방어일 때는 얼마인가요? 산의 이동 비용 3을 잘못 빼면 기본 피해가 어떻게 달라지나요?</div><details><summary>해설 보기</summary><p>기본 피해는 5, 4, 3입니다. 공격 2·방어 5·산 2는 차이가 -5이지만 최소 피해 때문에 1입니다. 이동 비용 3을 방어로 쓰면 기본 산 피해가 2가 되어 의도한 3과 다릅니다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
+<p class="kicker">CHAPTER 07 · 실행 흐름</p><h2>발행 한 번의 단계별 추적</h2>
+<div class="objectives">학습 목표: TakeDamage 한 번이 두 구독자에게 전달되는 과정을 값과 함께 따라간다. 각 단계의 CurrentHp, 체력바 비율, IsAlive, 전멸 판정 결과를 직접 계산한다.</div>
+<h3>7.1 출발 상태와 호출</h3>
+<p>적 진영에 A와 B가 있고 둘 다 HP 10 / 10이다. 각 유닛의 체력바가 HpChanged를, GameManager가 모든 유닛의 Died를 구독하고 있다. 호출하는 쪽은 다음 한 줄만 쓴다.</p>
+<p class="code-caption">실제 코드 · TurnManager.Attack의 마지막 줄</p><pre><code>defender.TakeDamage(damage);</code></pre>
+<p class="annotation">피해량을 구하는 앞부분은 이 교재에서 다루지 않는다. 아래의 추적에서는 피해량을 5로 둔다.</p>
+<p>체력바와 전멸 판정은 호출하는 쪽의 코드에도, Unit의 코드에도 나타나지 않는다. 그 연결은 구독자가 등록한 <code>+=</code>에 있다.</p>
+<h3>7.2 A가 피해 5를 두 번 받는다</h3>
+<table><caption>A.TakeDamage(5)를 두 번 호출했을 때</caption><thead><tr><th>단계</th><th>첫 번째 호출</th><th>두 번째 호출</th></tr></thead><tbody><tr><td>CurrentHp</td><td>max(0, 10 − 5) = 5</td><td>max(0, 5 − 5) = 0</td></tr><tr><td>HpChanged → 체력바</td><td>5 / 10 = 0.5, 길이 50%</td><td>0 / 10 = 0.0, 길이 0%</td></tr><tr><td>IsAlive</td><td>5 &gt; 0 이므로 true</td><td>0 &gt; 0 이 아니므로 false</td></tr><tr><td>Died</td><td>발행하지 않는다.</td><td>발행한다.</td></tr><tr><td>전멸 판정</td><td>실행되지 않는다.</td><td>A는 false, B는 true다. B를 찾고 돌아간다. 결과는 Playing이다.</td></tr><tr><td>비활성화</td><td>하지 않는다.</td><td>A를 비활성화한다. 자식인 체력바의 OnDisable이 실행되어 구독이 해제된다.</td></tr></tbody></table>
+<h3>7.3 이어서 B도 피해 5를 두 번 받는다</h3>
+<ol><li>B의 CurrentHp는 10 → 5 → 0이 된다. 체력바는 50%, 0%가 된다.</li><li>두 번째 피해에서 IsAlive가 false가 되어 Died가 발행된다.</li><li>OnUnitDied(B)가 적 진영을 확인한다. A는 false이고 B도 false다.</li><li>살아 있는 유닛을 찾지 못하고 반복문이 끝난다. B는 적 진영이므로 Finish(PlayerWon)이 호출된다.</li></ol>
+<div class="concept"><span class="label">추적에서 확인할 점</span>발행자는 두 번의 발행만 했다. 체력바의 길이와 승패는 구독자가 각자 읽고 판단한 결과다. 같은 TakeDamage 호출이라도 구독자의 구성이 달라지면 이어지는 반응이 달라진다.</div>
+<div class="exercise"><span class="label">손으로 계산하기</span>HP 10인 유닛이 피해 7을 두 번 받는다. 각 호출 뒤의 CurrentHp와 체력바 비율은 얼마인가? Died는 몇 번 발행되는가?</div><details><summary>해설 보기</summary><p>첫 번째 호출 뒤에는 max(0, 10 − 7) = 3이고 체력바는 3 / 10 = 0.3, 30%다. 두 번째 호출 뒤에는 max(0, 3 − 7) = 0이고 체력바는 0%다. <code>Mathf.Max</code>가 있으므로 체력은 0 아래로 내려가지 않는다. Died는 두 번째 호출에서 1번 발행된다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
 </section>
 <section class="chapter" id="chapter-8">
-<p class="kicker">CHAPTER 08 · 결정과 실행 수명</p><h2>적의 결정과 비동기 턴</h2>
-<div class="objectives">학습 목표: 공격 우선과 이동 후 공격을 구분한다. 동률 정렬·현재 상황 재검색·순차 await·취소와 종료 확인의 목적을 설명한다.</div>
-<h3>8.1 결정 가능한 작은 규칙으로 시작한다</h3>
-<p>적에게 인접한 아군이 있다면 이미 공격할 수 있습니다. 먼저 움직이는 대신 그 자리에서 공격하는 것이 이번 AI의 첫 규칙입니다. ChooseAttackTarget은 유효한 Enemy 턴 유닛인지, 보드와 명단이 있는지 확인하고, 인접한 살아 있는 Player 전투 유닛을 고릅니다. 고정 장애물은 아군 팀으로 직렬화되어 있어도 IsTurnUnit이 false라 제외됩니다.</p>
-<p class="code-caption">발췌 ⑱ · 여러 인접 대상의 비교 순서</p><pre><code>.OrderBy(unit =&gt; unit.CurrentHp)
-.ThenBy(unit =&gt; _board.WorldToCell(unit.transform.position).y)
-.ThenBy(unit =&gt; _board.WorldToCell(unit.transform.position).x)</code></pre>
-<p class="annotation">HP가 같으면 y, y도 같으면 x로 결정합니다. 매번 동일한 장면에서 동일한 선택을 하면 학생이 예측과 실제를 비교할 수 있습니다. 이것은 최선의 전술을 찾는 알고리즘이라기보다 설명 가능한 규칙입니다.</p>
-<h3>8.2 이동 뒤에는 공격 대상을 다시 찾는다</h3>
-<p>현재 인접 대상이 없으면 가장 가까운 살아 있는 아군을 맨해튼 거리, y, x 순서로 고릅니다. 이동 목적지는 앞 차시의 ChooseDestination을 사용합니다. 도달 가능한 비점유 후보를 목표까지 거리, 이동 비용, y, x로 정렬하고, 출발점보다 가까워지지 않으면 움직이지 않습니다.</p>
-<div class="flow"><span>현재 인접 대상?</span><b>→</b><span>있음: 제자리 공격</span></div><div class="flow"><span>없음</span><b>→</b><span>가까운 아군 선택</span><b>→</b><span>이동</span><b>→</b><span>종료·취소 확인</span><b>→</b><span>인접 재검색·공격</span></div>
-<p>이동 목표로 선택한 아군과 실제 공격할 아군은 같다고 보장되지 않습니다. 이동 후 새로 인접한 여러 아군 중 HP 정렬에 따라 다른 대상을 공격할 수 있습니다. 그래서 이동 전에 정한 참조를 그대로 공격하는 대신 현재 위치에서 다시 검색합니다. 한 번의 적 행동은 최대 한 번만 피해를 줍니다.</p>
-<p>이동이 사건을 발행하면 그 콜백이 결과를 끝내거나 작업을 취소할 수도 있습니다. 따라서 이동이 끝났다는 이유만으로 무조건 공격하지 않습니다. cancellationToken, IsGamePlaying, 유닛 생존과 행동 자격을 다시 확인하는 경계가 필요합니다.</p>
-<h3>8.3 적 한 명의 완료를 기다린다</h3>
-<p class="code-caption">발췌 ⑲ · TurnManager의 순차 실행</p><pre><code>EnemyTurnStarted?.Invoke(unit);
-await enemyAi.TakeCombatTurnAsync(unit, _units, cancellationToken);
-// 게임 결과를 확인하고, 목표를 확인하고, 다음 적으로 넘어간다.</code></pre>
-<p>TurnManager의 직렬화 Unit 목록에서 Enemy가 나타나는 순서와 EnemyAI 목록의 순서가 대응합니다. 사망한 적을 건너뛰더라도 AI 인덱스의 대응을 바꾸지 않아야 합니다. await가 빠지면 이전 적이 기다리는 동안 다음 적이 시작될 수 있습니다. 기존 중복 실행 방지와 finally의 가드 해제를 유지하여 같은 적 턴을 겹쳐 실행하지 않습니다.</p>
-<p>350ms 대기는 위치를 서서히 바꾸는 애니메이션이 아닙니다. 이동 명령은 즉시 위치를 바꾸고, 행동 뒤 가독성을 위한 대기가 이어집니다. 완성 전투 경로는 대기와 게임 종료를 함께 기다리며 종료나 취소가 오면 남은 대기를 정리합니다. R로 장면을 다시 불러오면 옛 TurnManager의 수명 토큰으로 이전 비동기 작업을 끝냅니다.</p>
-<h3>8.4 학생 출발 경로와 완성 경로</h3>
-<p>Student TurnManager는 완성된 Lesson05 방식인 TakeTurnAsync(enemy, goalCell, cancellationToken)를 호출하여 적을 아군 목표로 이동시킵니다. TakeCombatTurnAsync의 출발 본문도 공격을 하지 않고 기존 이동 함수로 이어집니다. 전투 판단·공격·대기 종료를 완성한 뒤 TurnManager의 호출을 최종 전투 API로 바꿉니다. 기존의 목표 확인과 게임 종료 확인을 지우지 않도록 주의합니다.</p>
-<div class="warning"><span class="label">알고리즘의 한계</span>ChooseDestination은 더 가까운 칸을 고르는 탐욕 규칙입니다. 목표에서 잠시 멀어져야 돌아갈 수 있는 복잡한 지형에서는 기다릴 수 있습니다. 이동·공격 이벤트의 오류와 이 정책의 한계를 구별해야 합니다.</div>
-<div class="exercise"><span class="label">연습</span>적 옆의 아군 A는 HP 4, B는 HP 4입니다. A는 (3,2), B는 (2,3)에 있습니다. 누구를 먼저 고르나요? 이동 직후 게임이 끝났는데 공격을 계속하면 어떤 계약을 어기나요?</div><details><summary>해설 보기</summary><p>HP가 같으므로 y가 작은 A를 고릅니다. 이동 뒤 결과가 끝났다면 남은 공격과 다음 적 행동은 진행하면 안 됩니다. 사건이 발생할 수 있는 경계 뒤에 결과와 취소를 다시 확인해야 합니다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
+<p class="kicker">CHAPTER 08 · 판단</p><h2>확장, 대가, 적용 기준</h2>
+<div class="objectives">학습 목표: 새 구독자를 추가할 때 기존 파일이 바뀌지 않음을 확인한다. Observer의 대가 세 가지와 적용 기준을 설명한다. Singleton과 Observer가 다루는 문제를 구분한다.</div>
+<h3>8.1 DeathLogger를 추가할 때 고쳐야 할 기존 파일은 0개다</h3>
+<p>유닛이 쓰러질 때 Console에 기록을 남기는 구독자를 추가한다고 하자.</p>
+<p class="code-caption">확장 예시용 가상 코드 · 프로젝트에 포함된 파일이 아니다</p><pre><code>public sealed class DeathLogger : MonoBehaviour
+{
+    [SerializeField] private UnitSpawner _spawner;
+
+    private void Start()
+    {
+        foreach (Unit unit in _spawner.Units) unit.Died += Log;
+    }
+
+    private void OnDestroy()
+    {
+        foreach (Unit unit in _spawner.Units) unit.Died -= Log;
+    }
+
+    private void Log(Unit unit) =&gt; Debug.Log($"{unit.name} 쓰러짐");
+}</code></pre>
+<table><caption>같은 기능을 추가할 때 고치는 기존 파일</caption><thead><tr><th>방식</th><th>고치는 기존 파일</th></tr></thead><tbody><tr><td>첫 시도(직접 호출)</td><td>Unit.cs 1개. 필드와 호출을 추가한다.</td></tr><tr><td>event</td><td>0개. 새 파일만 추가한다.</td></tr></tbody></table>
+<p>새 class가 스스로 구독하면 된다. Unit.cs, UnitHealthBar.cs, GameManager.cs는 열어 볼 필요가 없다. 이것이 Observer의 이득이다.</p>
+<h3>8.2 Observer의 대가</h3>
+<table><caption>대가와 대응</caption><thead><tr><th>대가</th><th>구체적인 모습</th><th>대응</th></tr></thead><tbody><tr><td>호출 흐름을 한곳에서 읽을 수 없다.</td><td>TakeDamage를 읽어도 그 뒤에 체력바와 전멸 판정이 실행된다는 사실이 보이지 않는다.</td><td>이벤트 이름으로 <code>+=</code>의 위치를 검색하여 구독자를 찾는다.</td></tr><tr><td>구독 해제는 구독자의 책임이다.</td><td>해제를 빠뜨리면 중복 실행, 파괴된 객체의 호출, 정리되지 않는 메모리가 생긴다.</td><td>구독과 해제를 수명 메서드의 짝으로 작성한다.</td></tr><tr><td>실행 순서를 가정하면 안 된다.</td><td>구독자 사이의 호출 순서는 등록된 순서에 따라 달라진다. 순서에 기대는 규칙은 구독자가 추가되거나 등록 시점이 바뀌면 깨진다.</td><td>각 구독자는 이미 저장된 값을 읽어 독립적으로 판단한다.</td></tr></tbody></table>
+<h3>8.3 적용 기준</h3>
+<div class="grid"><div class="box"><h4>event가 이득인 경우</h4><p>하나의 변화를 알려야 할 곳이 여럿이다. 알려야 할 곳이 앞으로 늘어날 수 있다. 예: 체력의 변화와 사망.</p></div><div class="box"><h4>직접 호출이 나은 경우</h4><p>받는 쪽이 하나로 정해져 있다. 호출 흐름을 한곳에서 읽을 수 있는 것이 더 중요하다. 예: 결과를 확정하는 Finish 호출.</p></div></div>
+<p>5차시의 <code>GameManager.Instance.Finish(result)</code> 직접 호출은 이번 차시에도 그대로 둔다. OnUnitDied 안에서도 Finish를 직접 호출한다. 받는 쪽이 GameManager 하나로 정해져 있기 때문이다. 패턴은 실제로 나눌 책임이 있을 때에만 도입한다.</p>
+<h3>8.4 Singleton과 Observer의 구분</h3>
+<table><caption>두 패턴이 답하는 질문</caption><thead><tr><th>패턴</th><th>답하는 질문</th><th>코드</th></tr></thead><tbody><tr><td>Singleton(5차시)</td><td>“어떻게 닿는가” · 하나뿐인 객체에 어디에서나 접근하는 방법을 정한다.</td><td><code>GameManager.Instance</code></td></tr><tr><td>Observer(6차시)</td><td>“누가 누구를 알아야 하는가” · 알리는 쪽과 반응하는 쪽 사이에서 의존의 방향을 정한다.</td><td><code>unit.Died += OnUnitDied;</code></td></tr></tbody></table>
+<p>첫 시도의 <code>GameManager.Instance.OnUnitDied(this)</code>에서 Singleton은 GameManager에 닿는 방법을 해결해 주었다. 그러나 Unit이 GameManager를 알아야 한다는 문제는 그대로였다. 닿을 수 있다는 것과 알아야 한다는 것은 다른 문제다. GameManager는 두 패턴에 함께 참여한다. Singleton으로 접근되는 객체이면서 Died를 듣는 구독자다.</p>
+<div class="exercise"><span class="label">생각할 문제</span>결과를 확정하는 <code>GameManager.Instance.Finish(...)</code> 직접 호출도 event로 바꾸어야 하는가?</div><details><summary>해설 보기</summary><p>바꾸지 않아도 된다. 받는 쪽이 GameManager 하나로 정해져 있고 늘어날 계획이 없다. 이 경우에는 직접 호출이 더 읽기 쉽다. event로 바꾸면 호출 흐름이 흩어지는 대가만 치르게 된다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
 </section>
 <section class="chapter" id="chapter-9">
-<p class="kicker">CHAPTER 09 · 실제 장면과 관찰</p><h2>장면 통합과 실패 진단</h2>
-<div class="objectives">학습 목표: 장면 참조를 코드의 데이터 흐름과 연결한다. 값·발행·구독·반응 중 끊어진 단계를 근거로 찾아 복구한다.</div>
-<h3>9.1 배포 장면의 구성</h3>
-<p>프로젝트 폴더는 MiniTactics_Student_Lesson6, 실제 장면은 Assets/Lesson06/Scenes/Lesson06.unity입니다. 12×10 보드는 Assets/Lesson06/Maps/map01.asset의 120개 TileData 참조로 구성됩니다. BoardView의 Map Data에 이 에셋을 연결합니다. 배치는 위쪽 행부터 왼쪽→오른쪽 순서이며 인덱스는 (Height−1−y)×Width+x입니다. 지형 규칙·방어·표시 Tile은 같은 Maps 폴더의 네 TileData에서 편집하고 Play를 다시 시작해 확인합니다. 카메라, Tilemap, Unit Spawner, MovementOverlayRoot, Input System EventSystem, Undo 버튼, HUD와 목표가 이미 배치되어 있습니다. 장면을 다시 만들기 위한 학생 메뉴는 Mini Tactics/Lesson 06/Build Student Scene입니다.</p>
-<table><caption>유닛과 목표의 초기 셀</caption><thead><tr><th>요소</th><th>셀</th><th>역할</th></tr></thead><tbody><tr><td>Player 1 / 2 / 3</td><td>(2,2) / (5,4) / (8,6)</td><td>아군 전투 유닛 3명</td></tr><tr><td>Enemy 1 / 2</td><td>(9,8) / (9,3)</td><td>적 전투 유닛 2명</td></tr><tr><td>Fixed Blocker</td><td>(6,4)</td><td>점유만 담당, 바 없음</td></tr><tr><td>Player Goal</td><td>(0,4)</td><td>적 진입 시 패배</td></tr><tr><td>Enemy Goal</td><td>(11,6)</td><td>아군 진입 시 승리</td></tr></tbody></table>
-<p>다섯 전투 유닛은 HP 10/10, 공격력 6, 방어력 1로 시작합니다. GameManager와 BattleController의 전투 목록은 같은 다섯 Unit을 가리킵니다. TurnManager의 전체 목록에는 Fixed Blocker까지 여섯 개의 참조가 있지만 턴 자격으로 고정 유닛을 제외합니다. 여러 목록이 있다는 사실보다 각 목록의 목적이 무엇인지 구별하는 것이 중요합니다.</p>
-<h3>9.2 데이터 흐름으로 연결을 읽는다</h3>
-<div class="flow"><span>클릭 / EnemyAI</span><b>→</b><span>대상·지형</span><b>→</b><span>CombatCalculator</span><b>→</b><span>TakeDamage</span></div><div class="flow"><span>HpChanged</span><b>→</b><span>UnitHealthBar.Refresh</span><b>→</b><span>Fill.x</span></div><div class="flow"><span>Died</span><b>→</b><span>GameManager 결과</span><b>→</b><span>TurnManager.Finished</span><b>→</b><span>HUD·입력 차단</span></div>
-<p>배선 오류를 발견하면 먼저 실제 대상 참조가 맞는지 확인합니다. HP 바의 _unit에 다른 유닛이 연결되어 있으면 이벤트 코드는 맞아도 다른 바가 움직일 수 있습니다. GameManager 명단에 적이 빠져 있으면 그 적의 사망을 듣지 못합니다. Fill Transform 대신 전체 유닛 Transform을 연결하면 비율 갱신이 유닛 자체를 축소할 수 있습니다.</p>
-<h3>9.3 실패를 한 층씩 좁힌다</h3>
-<table><caption>증상에서 근거로 내려가는 진단표</caption><thead><tr><th>증상</th><th>관찰할 근거</th><th>회복 방향</th></tr></thead><tbody><tr><td>피해가 없음</td><td>대상 유효성, 계산 값, 실제 CurrentHp</td><td>학생 본문 완성 여부→TryAttack→TakeDamage</td></tr><tr><td>HP만 줄어듦</td><td>HpChanged 발행, 콜백 등록, Fill 참조</td><td>발행→구독→Refresh→float 비율</td></tr><tr><td>바가 완전히 사라짐</td><td>SpriteRenderer 활성·알파·정렬, 정수 나눗셈</td><td>표현 연결과 숫자 비율을 구분</td></tr><tr><td>재활성화 후 중복 반응</td><td>+= 횟수, -= 대상, Bind 순서</td><td>구독 플래그와 같은 핸들러 해제</td></tr><tr><td>전멸 후 Playing</td><td>5명 명단, Died, IsAlive/IsTurnUnit</td><td>관찰 시작→사망 전이→생존 수→TryFinish</td></tr><tr><td>공격 선택에 멈춤</td><td>현재 상태, 유효 클릭, 보류 Unit</td><td>성공/빈 공간→한 번의 완료→Idle</td></tr><tr><td>공격 후 Undo가 됨</td><td>실제 HP 감소 뒤 이력</td><td>피해 적용과 이력 정리 경계</td></tr><tr><td>적이 이동만 함</td><td>TurnManager 호출 메서드</td><td>전투 본문 완성 뒤 전투 API로 연결</td></tr><tr><td>적이 겹쳐 행동함</td><td>await·중복 실행 가드</td><td>순차 완료·finally 정리·취소 전달</td></tr></tbody></table>
-<p>Console에 오류가 여럿이면 첫 오류부터 읽습니다. 그 뒤의 화면 문제는 같은 오류의 결과일 수 있습니다. 이벤트가 안 온다고 추측하기 전에 CurrentHp가 실제로 바뀌었는지 확인하고, 값이 바뀌었다면 발행과 구독을 살펴봅니다. 눈에 보이는 결과만 반복 클릭하면 어떤 층이 실패했는지 구별하기 어렵습니다.</p>
-<h3>9.4 재연결과 재시작은 별개의 회복이다</h3>
-<p>HP 바의 껐다 켜기는 같은 Unit을 계속 보면서 화면 구독만 다시 시작하는 동작입니다. Bind는 관찰 대상을 교체합니다. R 재시작은 장면 전체를 다시 불러 새 Unit·GameManager·TurnManager를 만듭니다. 세 경우의 수명을 구별해야 옛 Unit 구독이나 정적 Instance가 남는 문제를 설명할 수 있습니다.</p>
-<p>R이 작동하려면 활성 장면이 Build Settings에 enabled로 등록되어 있어야 합니다. RestartCurrentScene은 등록되지 않은 장면에서 경고를 남기고 종료합니다. 결과 이후에도 R 입력을 읽는 GameManager의 Update는 유지되며, 플레이어 전투 입력을 막는 BattleController의 조건과 분리되어 있습니다.</p>
-<div class="exercise"><span class="label">진단 연습</span>적 HP는 10→5로 바뀌었는데 바는 100%입니다. 다른 적의 바는 줄었습니다. 이때 피해 공식부터 다시 쓰기보다 어떤 두 참조를 먼저 확인할까요?</div><details><summary>해설 보기</summary><p>해당 UnitHealthBar의 _unit과 _fill을 확인합니다. 다른 바가 줄었다면 이벤트 대상 연결이 뒤바뀌었을 가능성이 있습니다. 데이터 값이 이미 올바르게 변했으므로 계산보다 구독 대상과 표현 대상을 먼저 추적합니다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
-</section>
-<section class="chapter" id="chapter-10">
-<p class="kicker">CHAPTER 10 · 적용과 회고</p><h2>Play 미션·복습·용어</h2>
-<div class="objectives">학습 목표: 숫자 예측과 게임 관찰을 연결한다. 전투와 이전 차시 규칙이 함께 작동함을 설명하고, 새 관찰자의 확장 책임을 판단한다.</div>
-<h3>10.1 180분에서 마지막 30분의 역할</h3>
-<p>수업은 0–30분 개념과 구조, 30–150분 전체 구현, 150–180분 Play 미션과 복습입니다. 120분 구현에는 피해·발행·HP 바·전멸·공격 상태·지형·적 AI가 모두 포함됩니다. 마지막 활동은 구현을 대신하는 시연이 아니라 이미 연결한 게임의 실제 결과를 설명하는 시간입니다.</p>
-<p>150–170분에는 짝과 조작자·관찰자를 나눕니다. 관찰자는 클릭 전에 결과를 예측하고 실제 HP, 바, 턴을 기록합니다. 170–180분에는 어떤 알림이 어떤 책임으로 이어졌는지 설명하고 오류를 예방하는 규칙을 정리합니다.</p>
-<h3>10.2 통합 Play 미션</h3>
-<ol><li><strong>기본 공격:</strong> Player 3을 (8,6)에서 (9,7)로 이동한 뒤 (9,8)의 Enemy 1을 공격합니다. 평지 피해 5로 HP가 10→5, 바가 절반인지 관찰합니다. 공격 이후 Undo로 위치만 돌아가지 않아야 합니다.</li><li><strong>피해 전 취소와 건너뛰기:</strong> R로 초기화하고 같은 이동 뒤 공격 클릭 전 Undo로 (8,6)과 HasMoved=false가 복구되는지 확인합니다. 다시 이동한 뒤 빈 공간을 클릭합니다. 다른 아군이 아직 행동하지 않아 플레이어 턴이 유지될 때 Undo로 위치와 HasMoved가 복구되는지 확인합니다.</li><li><strong>지형 비교:</strong> 방어자를 숲과 산의 유효한 비점유 셀에 놓고 같은 공격의 피해 4와 3을 비교합니다. 필요하면 Play 전 Inspector에서 위치·현재 HP를 조정하고 실험 뒤 원래 장면 값을 회복합니다.</li><li><strong>적 행동:</strong> 인접한 적은 제자리 공격, 멀리 있던 적은 접근 후 대상 재검색을 하는지 봅니다. 아군 전체 행동 후 자동 전환과, 움직이지 않은 아군이 남은 상태에서 기본·숫자패드 Enter로 수동 종료를 모두 확인합니다. 공격 대기 중 Enter는 피해 없이 보류 상태와 표시를 정리하고 적 턴으로 넘어갑니다. 매 Enemy 진입에 활성 적 HasMoved=false, 각 행동 뒤 true가 되며 적 턴 입력·Undo·Enter는 막힙니다.</li><li><strong>전멸 결과:</strong> 적 둘을 잃으면 VICTORY, 아군 셋을 잃으면 DEFEAT입니다. 사망 유닛은 보드 점유·대상·다음 행동에서 빠지고 Fixed Blocker는 결과를 지연시키지 않습니다.</li><li><strong>기존 목표와 회복:</strong> 아군의 적 소유 목표 (11,6) 진입은 승리, 적의 아군 소유 목표 (0,4) 진입은 패배입니다. 종료 후 이동·Undo·Enter가 막히고 R로 10/10 HP와 플레이어 턴이 새로 시작됩니다.</li></ol>
-<p>전멸 직전 상황을 짧게 관찰하려면 재생 전에 Inspector에서 현재 HP를 1로 줄여 시작할 수 있습니다. 이것은 공격이나 전멸 구현을 생략하는 방법이 아니라 완성된 반응을 관찰할 상황을 준비하는 방법입니다. 실험 후 10/10 상태로 회복합니다. HP 바를 비활성화했다가 켜는 회복과 Bind 대상 교체도 순서표로 점검합니다.</p>
-<table><caption>관찰 기록 예시</caption><thead><tr><th>전투 조건</th><th>예측</th><th>확인할 실제 반응</th></tr></thead><tbody><tr><td>HP 10·평지·공격 6·방어 1</td><td>HP 5</td><td>HpChanged 뒤 바 50%</td></tr><tr><td>HP 3·산·공격 6·방어 1</td><td>HP 0</td><td>바 0→사망 알림→비활성화</td></tr><tr><td>마지막 적 HP 0</td><td>PlayerWon</td><td>Finished·VICTORY·추가 행동 없음</td></tr></tbody></table>
-<h3>10.3 스스로 설명하는 다섯 질문</h3>
-<ol><li>Unit이 HP 바의 메서드를 직접 호출하지 않아도 되는 이유는 무엇인가요?</li><li>HP 저장과 HpChanged의 순서를 바꾸면 어떤 관찰자가 잘못된 값을 읽나요?</li><li>Died 처리 중 활성 상태만으로 남은 유닛을 세면 왜 틀릴 수 있나요?</li><li>구독자의 OnEnable/OnDisable과 Bind에서 반드시 짝지어야 하는 것은 무엇인가요?</li><li>공격 후 이력을 비우고, 적 이동 뒤 대상을 다시 검색하는 이유는 무엇인가요?</li></ol>
-<details><summary>핵심 답 확인</summary><p>Unit은 사실의 발행자이고 바는 그 사실의 구독자이므로 표현 타입을 몰라도 됩니다. HP를 나중에 저장하면 바와 결과 관찰자가 이전 값을 읽습니다. Died 때는 HP 0인데 오브젝트가 아직 활성일 수 있어 IsAlive가 필요합니다. 구독 대상·이벤트·콜백을 정확히 맞춰 해제해야 하며 새 Bind 전에 옛 대상을 정리합니다. 이동 Undo는 피해를 복원하지 않기 때문에 공격 후 이력을 비우고, 이동 후 위치와 상태가 달라졌기 때문에 대상을 다시 찾습니다.</p></details>
-<h3>10.4 용어 사전</h3>
-<table><thead><tr><th>용어</th><th>이번 수업에서의 뜻</th></tr></thead><tbody><tr><td>Observer</td><td>상태 변화 알림을 받아 자기 책임에 맞게 반응하는 구조.</td></tr><tr><td>발행자 / 구독자</td><td>사건을 만드는 객체 / 콜백을 등록해 사건을 받는 객체.</td></tr><tr><td>event / Action</td><td>외부 발행 권한을 제한하는 선언 / 반환값 없는 메서드 모양.</td></tr><tr><td>콜백</td><td>등록해 두었다가 사건이 발생할 때 호출되는 메서드.</td></tr><tr><td>구독 수명</td><td>언제 듣기 시작하고 언제 연결을 정리하는지의 범위.</td></tr><tr><td>HpChanged / Died</td><td>HP가 바뀐 사실 / 생존에서 사망으로 전이한 사실.</td></tr><tr><td>IsAlive / IsTurnUnit</td><td>HP가 양수인가 / 고정 장애물이 아닌 턴 참여자인가.</td></tr><tr><td>보류 행동</td><td>이동을 마쳤지만 공격 또는 건너뛰기 선택을 기다리는 행동.</td></tr><tr><td>재진입</td><td>처리 중인 동작이 콜백 등으로 다시 호출되는 상황.</td></tr><tr><td>맨해튼 거리</td><td>가로 차이의 절댓값과 세로 차이의 절댓값의 합.</td></tr><tr><td>결정적 정렬</td><td>동률 기준까지 정해 같은 상황에서 같은 선택이 나오는 규칙.</td></tr><tr><td>CancellationToken</td><td>장면 수명 종료 등의 취소 요청을 비동기 작업에 전달하는 값.</td></tr></tbody></table>
-<h3>10.5 필수 구현 이후의 확장</h3>
-<p>전투 로그는 HpChanged 또는 새 피해 사건을 듣고, 효과음은 Died를 들으며, 이동 카메라는 Moved를 들을 수 있습니다. 새로운 관찰자를 붙였을 때 Unit의 HP 코드에 UI·오디오 참조를 추가해야 한다면 책임이 다시 섞이고 있는지 점검합니다. 사건의 인수가 새 구독자의 요구를 충분히 설명하는지도 따져 봅니다.</p>
-<p>비동기 피격 연출, 피해 숫자, 사거리 자료형, 보호 중심 AI, 오브젝트 풀링은 후속 과제입니다. 비동기 연출에는 알림과 완료 시점이 다를 수 있다는 정책이 필요하고, 풀링에는 재활성화와 재바인딩 수명 설계가 필요합니다. 이번 수업의 필수 전투·바·전멸·지형·적 AI를 모두 완성한 뒤 선택 확장으로 진행합니다.</p>
-<div class="concept"><span class="label">수업의 기준</span>값의 소유자는 Unit, 표현의 소유자는 HP 바, 결과의 소유자는 GameManager입니다. 한 번 화면이 바뀌는 것뿐 아니라 순서·수명·입력 경계까지 설명할 수 있어야 전투 흐름을 이해한 것입니다.</div><a class="back" href="#top">↑ 처음과 목차로</a>
+<p class="kicker">CHAPTER 09 · 복습</p><h2>복습 질문과 용어</h2>
+<div class="objectives">학습 목표: 다섯 질문에 자신의 말로 답한다. 이번 차시의 용어를 정확한 뜻으로 사용한다.</div>
+<h3>9.1 스스로 설명하는 다섯 질문</h3>
+<ol><li>Unit.cs에서 “UnitHealthBar”와 “GameManager”를 검색하면 몇 번 나오는가? 그것은 무엇을 뜻하는가?</li><li>쓰러질 때 Console에 기록을 남기는 DeathLogger를 추가한다면 고쳐야 할 기존 파일은 몇 개인가?</li><li>OnDisable에서 구독을 해제하지 않으면 어떤 문제가 생기는가?</li><li>event로 연결하면 “TakeDamage를 호출하면 무슨 일이 일어나는가”를 코드 한 곳에서 읽을 수 없게 된다. 이 대가는 언제 감수할 만한가?</li><li>값을 바꾸기 전에 HpChanged를 발행하면 체력바는 어떤 값을 읽는가?</li></ol>
+<details><summary>답 확인</summary><p>1. 0번이다. 발행자가 구독자를 알지 못한다는 뜻이다. 2. 0개다. 새 class가 스스로 구독하면 된다. 3. 다시 켜질 때마다 같은 메서드가 중복으로 등록된다. 파괴된 객체의 메서드가 호출될 수 있고, 발행자가 구독자를 계속 참조하여 메모리에서 정리되지 않는다. 4. 알려야 할 곳이 여럿이고 늘어날 수 있을 때다. 받는 쪽이 하나로 정해져 있으면 직접 호출이 더 읽기 쉽다. 5. 바뀌기 전의 값을 읽는다. HP 10에서 피해 5를 받았다면 10을 읽어 100%로 표시한다.</p></details>
+<h3>9.2 용어 사전</h3>
+<table><thead><tr><th>용어</th><th>이번 차시에서의 뜻</th></tr></thead><tbody><tr><td>Observer 패턴</td><td>상태를 가진 객체가 변화를 알리면, 미리 등록한 객체들이 각자 반응하는 구조.</td></tr><tr><td>발행자(Subject)</td><td>값을 소유하고 변화를 알리는 객체. 이번 차시에서는 Unit.</td></tr><tr><td>구독자(Observer)</td><td>알림을 받을 메서드를 등록한 객체. 이번 차시에서는 UnitHealthBar와 GameManager.</td></tr><tr><td>발행</td><td>등록된 메서드를 모두 호출하는 일. <code>?.Invoke(this)</code>로 작성한다.</td></tr><tr><td>구독 / 해제</td><td>메서드를 등록하는 일 / 등록했던 메서드를 빼는 일. <code>+=</code>와 <code>-=</code>로 작성한다.</td></tr><tr><td>event</td><td>바깥에서는 구독과 해제만 할 수 있도록 제한하는 C# 키워드.</td></tr><tr><td>Action&lt;Unit&gt;</td><td>Unit 하나를 받고 반환값이 없는 메서드의 모양.</td></tr><tr><td>구독 수명</td><td>언제 구독을 시작하고 언제 해제하는지의 범위.</td></tr><tr><td>HpChanged / Died</td><td>체력이 바뀌었다는 알림 / 유닛이 쓰러졌다는 알림.</td></tr></tbody></table>
+<h3>9.3 요약</h3>
+<div class="concept"><span class="label">이번 차시의 기준</span>발행자는 값을 먼저 바꾼 뒤에 알리고, 구독자는 스스로 등록하고 스스로 해제한다. 발행자는 구독자를 알지 못하므로 구독자가 늘어나도 발행자의 코드는 바뀌지 않는다. 대가는 흩어진 호출 흐름, 해제 책임, 가정할 수 없는 실행 순서다. 받는 쪽이 하나로 정해져 있으면 직접 호출을 그대로 쓴다.</div><a class="back" href="#top">↑ 처음과 목차로</a>
 </section>
 <p class="endnote">Mini Tactics · 6차시 Observer 패턴 · 네트워크 없이 읽는 독립 교재</p>
 </main>

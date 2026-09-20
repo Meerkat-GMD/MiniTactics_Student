@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace MiniTactics.Lesson04
@@ -7,41 +8,34 @@ namespace MiniTactics.Lesson04
     {
         [SerializeField] private BoardView _board;
         [SerializeField] private Camera _camera;
-        [SerializeField] private Transform _overlayRoot;
-        [SerializeField] private LayerMask _unitLayerMask = ~0;
+        [SerializeField] private SpriteRenderer _overlayPrefab;
 
-        private RangeHighlighter _highlighter;
         private readonly CommandHistory _history = new CommandHistory();
+        private RangeHighlighter _highlighter;
 
         public Unit SelectedUnit { get; private set; }
-        public MovementRangeResult LastMovementRange { get; private set; } =
-            MovementRangeResult.Empty(Vector2Int.zero);
 
         private void Awake()
         {
-            if (_camera == null)
-            {
-                _camera = Camera.main;
-            }
+            _highlighter = new RangeHighlighter(transform, _overlayPrefab, _board);
         }
 
         private void Update()
         {
-            if (Mouse.current == null || !Mouse.current.leftButton.wasPressedThisFrame)
+            if (!Mouse.current.leftButton.wasPressedThisFrame)
             {
                 return;
             }
 
-            if (_board == null || _camera == null)
+            if (EventSystem.current.IsPointerOverGameObject())
             {
-                Debug.LogError("BattleController requires a BoardView and Camera.", this);
                 return;
             }
 
             Vector2 screenPosition = Mouse.current.position.ReadValue();
             Vector3 worldPosition = _camera.ScreenToWorldPoint(screenPosition);
-            Collider2D hit = Physics2D.OverlapPoint(worldPosition, _unitLayerMask);
-            Unit clickedUnit = hit != null ? hit.GetComponentInParent<Unit>() : null;
+            Collider2D hit = Physics2D.OverlapPoint(worldPosition);
+            Unit clickedUnit = hit != null ? hit.GetComponent<Unit>() : null;
 
             if (clickedUnit != null && clickedUnit.CanMove)
             {
@@ -57,46 +51,28 @@ namespace MiniTactics.Lesson04
 
         public void Select(Unit unit)
         {
-            SelectedUnit = unit != null && unit.CanMove ? unit : null;
-
-            if (_board == null || _overlayRoot == null)
-            {
-                Debug.LogError("BattleController requires a BoardView and MovementOverlayRoot.", this);
-                return;
-            }
-
-            if (SelectedUnit == null)
-            {
-                _highlighter?.Hide();
-                return;
-            }
-
-            LastMovementRange = _board.GetMovementRange(SelectedUnit);
-            GetHighlighter().Show(LastMovementRange, SelectedUnit);
+            SelectedUnit = unit;
+            _highlighter.Show(_board.GetMovementRange(unit), unit);
         }
 
         public bool TryMoveSelectedUnit(Vector2Int targetCell)
         {
-            if (SelectedUnit == null || _board == null || !_board.CanMoveTo(SelectedUnit, targetCell))
+            if (!_board.CanMoveTo(SelectedUnit, targetCell))
             {
                 return false;
             }
 
-            MoveUnitCommand command = new MoveUnitCommand(SelectedUnit, _board, targetCell);
-            _history.Execute(command);
+            _history.Execute(new MoveUnitCommand(SelectedUnit, _board, targetCell));
             SelectedUnit = null;
-            _highlighter?.Hide();
+            _highlighter.Hide();
             return true;
         }
 
         public void OnUndoClicked()
         {
             _history.UndoLast();
-        }
-
-        private RangeHighlighter GetHighlighter()
-        {
-            return _highlighter ??= new RangeHighlighter(_overlayRoot, _board);
+            SelectedUnit = null;
+            _highlighter.Hide();
         }
     }
 }

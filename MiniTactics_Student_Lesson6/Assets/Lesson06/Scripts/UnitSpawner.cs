@@ -1,71 +1,33 @@
-using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace MiniTactics.Lesson06
 {
     public sealed class UnitSpawner : MonoBehaviour
     {
-        [Serializable]
-        public struct SpawnDefinition
-        {
-            public string Name;
-            public Vector2Int Cell;
-            public Team Team;
-            public bool CanMove;
-            public int MoveBudget;
-
-            public SpawnDefinition(string name, Vector2Int cell, Team team, bool canMove = true, int moveBudget = 4)
-            {
-                Name = name;
-                Cell = cell;
-                Team = team;
-                CanMove = canMove;
-                MoveBudget = moveBudget;
-            }
-        }
-
         [SerializeField] private Unit _unitPrefab;
         [SerializeField] private BoardView _board;
-        [SerializeField] private Vector2Int[] _spawnCells = Array.Empty<Vector2Int>();
-        [SerializeField] private SpawnDefinition[] _spawns = Array.Empty<SpawnDefinition>();
+        [SerializeField] private Vector2Int[] _playerCells;
+        [SerializeField] private Vector2Int[] _enemyCells;
 
-        public void Configure(Unit prefab, BoardView board, SpawnDefinition[] spawns)
-        {
-            _unitPrefab = prefab;
-            _board = board;
-            _spawns = spawns ?? Array.Empty<SpawnDefinition>();
-        }
+        public List<Unit> Units { get; } = new List<Unit>();
 
         private void Awake()
         {
-            SpawnAll();
+            Spawn(_playerCells, Team.Player, "Player");
+            Spawn(_enemyCells, Team.Enemy, "Enemy");
         }
 
-        public Unit[] SpawnAll()
+        private void Spawn(Vector2Int[] cells, Team team, string label)
         {
-            Unit[] existing = GetComponentsInChildren<Unit>(true);
-            if (existing.Length > 0 || _unitPrefab == null)
-            {
-                return existing;
-            }
-
-            int count = _spawns.Length > 0 ? _spawns.Length : _spawnCells.Length;
-            Unit[] spawned = new Unit[count];
-            for (int index = 0; index < count; index++)
+            for (int index = 0; index < cells.Length; index++)
             {
                 Unit unit = Instantiate(_unitPrefab, transform);
-                SpawnDefinition spawn = _spawns.Length > 0 ? _spawns[index] :
-                    new SpawnDefinition($"Squad Unit {index + 1}", _spawnCells[index], Team.Player);
-                unit.name = spawn.Name;
-                unit.Configure(spawn.Team, spawn.CanMove, spawn.MoveBudget);
-                Vector2Int cell = spawn.Cell;
-                unit.transform.position = _board != null
-                    ? _board.CellToWorld(cell)
-                    : new Vector3(cell.x, cell.y, 0f);
-                spawned[index] = unit;
+                unit.name = $"{label} {index + 1}";
+                unit.transform.position = _board.CellToWorld(cells[index]);
+                unit.Initialize(team);
+                Units.Add(unit);
             }
-
-            return spawned;
         }
     }
 }
