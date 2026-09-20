@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>7차시 · Type Object 패턴 강의자료</title>
+<style>
+:root{color-scheme:light;--bg:#f3f1eb;--paper:#fffefa;--ink:#23323e;--muted:#5c6c75;--accent:#136c61;--line:#d5ddd9;--warm:#8b4c21}*{box-sizing:border-box}html{scroll-behavior:auto;scroll-padding-top:22px}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;font-size:17px;line-height:1.95;overflow-wrap:anywhere}a{color:var(--accent);text-underline-offset:4px}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #b56832;outline-offset:4px}.cover{background:#163446;color:#f5f5ee;padding:64px max(24px,calc((100vw - 1200px)/2));border-bottom:8px solid #65c7b4}.eyebrow{font-size:13px;font-weight:700;letter-spacing:.1em;color:#a8decd;margin:0 0 16px}.cover h1{font-size:clamp(32px,4vw,54px);line-height:1.3;margin:0 0 22px;word-break:keep-all}.cover p{max-width:840px;color:#e2e9e7;font-size:19px}.cover a{color:#a8e5d4}.cover .meta{font-size:14px;color:#c0d1d4}.layout{max-width:1248px;padding:36px 24px 64px;margin:auto;display:grid;grid-template-columns:252px minmax(0,1fr);gap:36px;align-items:start}aside{position:sticky;top:22px;max-height:calc(100vh - 44px);overflow-y:auto;border:1px solid var(--line);padding:22px;background:var(--paper);border-radius:14px}aside h2{font-size:20px;margin:0 0 14px}aside ol{padding-left:1.5em;margin:0}aside li{font-size:14px;line-height:1.6;margin:12px 0}aside a{text-decoration:none}aside .small{font-size:12px;color:var(--muted);line-height:1.6}button{font:inherit;font-size:14px;min-height:44px;padding:8px 15px;background:var(--accent);color:white;border:0;border-radius:8px;cursor:pointer}main{min-width:0}.chapter{padding:38px 42px;margin:0 0 30px;background:var(--paper);border:1px solid var(--line);border-radius:16px;scroll-margin-top:22px}.chapter>h2{font-size:30px;line-height:1.4;margin:0 0 20px;word-break:keep-all}.chapter .kicker{font-size:12px;letter-spacing:.08em;font-weight:700;color:var(--accent);margin:0 0 8px}h3{font-size:22px;line-height:1.5;margin:34px 0 12px;word-break:keep-all}h4{font-size:18px;margin:24px 0 8px}p{margin:15px 0}ul,ol{padding-left:1.5em}li{margin:9px 0}.objectives,.concept,.exercise,.warning{border-left:4px solid var(--accent);padding:15px 19px;margin:22px 0;background:#edf5f0;border-radius:0 10px 10px 0}.objectives{font-size:15px;line-height:1.8;color:#3b5857}.warning{border-color:#b76c31;background:#faf0e5}.exercise{border-color:#63839e;background:#eef3f8}.label{display:block;font-weight:700;font-size:14px;margin-bottom:8px;color:var(--accent)}.warning .label{color:var(--warm)}.exercise .label{color:#385c7b}.code-caption{font-size:14px;color:var(--muted);margin-bottom:8px}pre{font-family:Consolas,monospace;font-size:14px;line-height:1.75;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;max-width:100%;padding:20px;background:#172d3b;color:#e4f0ec;border:1px solid #2e4855;border-radius:10px;tab-size:2;margin:10px 0 18px}code{font-family:Consolas,monospace;font-size:.92em;color:#155e54}pre code{font-size:inherit;color:inherit}.annotation{font-size:15px;line-height:1.8;color:#48616a}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:22px 0}.box{padding:18px;border:1px solid var(--line);border-radius:12px;min-width:0}.box h4{margin:0 0 8px}.box p{font-size:15px;margin:0}.flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:24px 0}.flow span{border:1px solid #b5cdc3;background:#eaf3ee;border-radius:9px;padding:10px 13px;font-size:14px}.flow b{color:var(--accent)}table{border-collapse:collapse;table-layout:fixed;width:100%;font-size:15px;line-height:1.75;margin:20px 0}caption{text-align:left;font-weight:700;font-size:14px;margin-bottom:8px;color:var(--muted)}th,td{border-bottom:1px solid var(--line);padding:11px 9px;text-align:left;vertical-align:top}th{background:#eef3ee;color:#28584f}details{margin:16px 0;padding:13px 17px;border:1px solid var(--line);border-radius:10px;background:#fff}summary{cursor:pointer;font-weight:700;color:var(--accent);font-size:15px}details p{font-size:15px}.back{font-size:13px;display:inline-block;margin-top:20px}.endnote{font-size:14px;color:var(--muted);text-align:center;margin:30px 0}.term{font-weight:700;color:var(--accent)}@media(max-width:840px){.layout{grid-template-columns:1fr;padding:24px 18px 40px;gap:24px}aside{position:static;max-height:none;overflow:visible}aside ol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:24px}aside li{margin:8px 0}.chapter{padding:30px}}@media(max-width:480px){body{font-size:16px;line-height:1.9}.cover{padding:38px 22px}.cover h1{font-size:34px}.cover p{font-size:17px}.layout{padding:20px 14px 32px}aside{padding:20px}aside ol{display:block}.chapter{padding:26px 20px}.chapter>h2{font-size:27px}h3{font-size:21px}.grid{grid-template-columns:1fr}pre{font-size:13px;padding:15px}table{font-size:13px}th,td{padding:9px 6px}.objectives,.concept,.exercise,.warning{padding:13px 15px}.flow span{font-size:13px;padding:8px 10px}}@media print{body{background:white;color:#111;font-size:11pt}.cover{background:white;color:#111;padding:20px 0;border-bottom:2px solid #333}.cover p,.eyebrow,.cover .meta{color:#333}.layout{display:block;max-width:none;padding:0}aside{position:static;max-height:none;overflow:visible;border:0;break-after:page}aside button,.back,.endnote{display:none}.chapter{padding:15px 0;border:0;break-before:page;margin:0;border-radius:0}.chapter>h2{font-size:22pt}h3{break-after:avoid}pre{background:#f2f4f5;color:#111;border-color:#bbb;font-size:10pt;break-inside:avoid}.concept,.exercise,.warning,.grid{break-inside:avoid}details{display:block}details>*{display:block}a{color:#174f48;text-decoration:none}@page{size:A4;margin:18mm}}
+</style>
+</head>
+<body>
+<header class="cover" id="top"><p class="eyebrow">MINI TACTICS · LESSON 07 · REFERENCE TEXTBOOK</p><h1>Type Object 패턴<br>종류를 class가 아니라 데이터로 만들기</h1><p>이 교재는 Type Object 패턴 하나만 다룬다. 패턴이 해결하는 문제, 상속으로 작성한 첫 시도와 그 한계, 역할과 구조, ScriptableObject로 작성한 코드, 수치 추적, 이득과 대가, 적용 기준을 순서대로 설명한다.</p><p class="meta">Unity 6000.5.3f1 · MiniTactics.Lesson07<br>코드 발췌의 기준은 완성본의 UnitClass.cs, Unit.cs, UnitPlacement.cs, UnitSpawner.cs, TurnManager.cs다.</p><a href="07차시_Type_Object_패턴_발표자료.html">24장 발표자료로 이동 →</a></header>
+<div class="layout">
+<aside id="toc" aria-label="교재 목차"><h2>차례</h2><ol><li><a href="#chapter-1">값만 다른 종류가 늘어날 때</a></li><li><a href="#chapter-2">종류를 객체로 만드는 구조</a></li><li><a href="#chapter-3">타입 객체 UnitClass와 ScriptableObject</a></li><li><a href="#chapter-4">개체 Unit과 타입 객체의 연결</a></li><li><a href="#chapter-5">공유하는 값과 개체의 상태</a></li><li><a href="#chapter-6">사용하는 쪽의 코드와 수치 추적</a></li><li><a href="#chapter-7">종류를 데이터로 정하고 늘리기</a></li><li><a href="#chapter-8">대가, 적용 기준, 이웃한 패턴</a></li><li><a href="#chapter-9">복습 질문과 용어</a></li></ol><p class="small">개념별로 찾아 읽는 교재다. 실제 코드, 축약한 코드, 이전 차시의 구현, 설계 비교용 가상 코드를 구분하여 표시했다. 기능을 구현하는 순서는 교사용 진행안에서 다룬다.</p><button id="print" type="button">교재 인쇄</button></aside>
+<main>
+<section class="chapter" id="chapter-1">
+<p class="kicker">CHAPTER 01 · 문제</p><h2>값만 다른 종류가 늘어날 때</h2>
+<div class="objectives">학습 목표: Unit이 능력치를 직접 가지는 방식이 어떤 전제에서 충분했는지 설명한다. 병종마다 class를 하나씩 만드는 첫 시도가 어떤 한계를 갖는지 표와 코드로 확인한다.</div>
+<h3>1.1 지금까지는 Unit이 자신의 능력치를 직접 가졌다</h3>
+<p>이전 차시까지 유닛의 능력치는 Unit class의 필드였다. 필드는 객체가 가지고 있는 변수다.</p>
+<p class="code-caption">이전 차시의 구현 · 6차시 Unit.cs의 필드 · 축약한 발췌이며 패턴과 관계없는 두 줄을 생략했다</p><pre><code>[SerializeField, Min(0)] private int _moveBudget = 4;
+[SerializeField, Min(1)] private int _maxHp = 10;
+[SerializeField, Min(0)] private int _attackPower = 6;
+[SerializeField, Min(0)] private int _defense = 1;</code></pre>
+<p class="annotation"><code>[SerializeField]</code>는 private 필드의 값을 Unity의 Inspector 창에서 입력하고 저장할 수 있게 하는 표시다. <code>Min(1)</code>은 Inspector에서 1보다 작은 값을 입력하지 못하게 한다.</p>
+<p>이 방식은 지금까지 잘 동작했다. 모든 유닛을 같은 프리팹 하나로 만들었기 때문이다. <span class="term">프리팹</span>은 미리 만들어 둔 게임 오브젝트의 원본이고, 유닛은 이 원본을 복제해서 만든다. 프리팹에 적힌 값이 곧 모든 유닛의 값이므로 아군과 적은 모두 최대 HP 10, 공격력 6, 방어력 1, 이동력 4였다.</p>
+<p>이 방식에는 전제가 하나 있다. 유닛의 종류가 하나뿐이라는 것이다. 종류가 하나이면 값을 바꿀 때 프리팹 하나만 고치면 된다. 이 장에서는 이 전제가 맞지 않는 상황을 살펴본다. 유닛의 종류가 여럿이고 앞으로 더 늘어날 수 있는 경우다.</p>
+<h3>1.2 새 요구: 병종이 생기면 유닛마다 능력치가 달라져야 한다</h3>
+<p><span class="term">병종</span>은 기사, 궁수, 마법사와 같은 유닛의 종류를 뜻한다. 병종이 생기면 유닛마다 능력치가 달라진다.</p>
+<table><caption>세 병종의 능력치</caption><thead><tr><th>병종</th><th>최대 HP</th><th>공격력</th><th>방어력</th><th>이동력</th><th>사거리</th></tr></thead><tbody><tr><td>기사</td><td>14</td><td>6</td><td>3</td><td>3</td><td>1</td></tr><tr><td>궁수</td><td>9</td><td>5</td><td>1</td><td>4</td><td>2</td></tr><tr><td>마법사</td><td>7</td><td>8</td><td>0</td><td>3</td><td>1</td></tr></tbody></table>
+<p>표를 두 방향으로 읽는다. 병종마다 다른 것은 숫자 다섯 개와 이름, 그리고 화면에 보이는 그림이다. 병종이 달라도 같은 것도 있다. 어떤 병종이든 피해를 받으면 HP가 줄고, HP가 0이 되면 쓰러진다. 이동하는 방법과 공격하는 방법도 같다.</p>
+<div class="concept"><span class="label">핵심 관찰</span>병종마다 다른 것은 값이고, 병종이 달라도 같은 것은 동작이다. 이 구분이 이번 차시 내용 전체의 출발점이다.</div>
+<h3>1.3 첫 시도: 병종마다 class를 하나씩 만든다</h3>
+<p>가장 먼저 떠올릴 수 있는 방법은 상속이다. <span class="term">상속</span>은 기존 class의 내용을 물려받아 새 class를 만드는 문법이다. 부모 class가 <code>virtual</code>로 표시한 속성은 자식 class가 <code>override</code>로 다시 정의할 수 있다.</p>
+<p class="code-caption">설계 비교용 가상 코드 · 프로젝트에 있었던 코드가 아니다</p><pre><code>// 첫 시도: 병종마다 class를 하나씩 만든다.
+public class Unit : MonoBehaviour
+{
+    public virtual int MaxHp =&gt; 10;
+    public virtual int AttackRange =&gt; 1;
+}
+
+public class Knight : Unit
+{
+    public override int MaxHp =&gt; 14;
+}
+
+public class Archer : Unit
+{
+    public override int MaxHp =&gt; 9;
+    public override int AttackRange =&gt; 2;
+}</code></pre>
+<p class="annotation">“기사는 유닛의 한 종류다”라는 말을 상속으로 그대로 옮긴 코드다. 객체지향을 배우면 가장 먼저 떠올리는 방법이다. 이 코드는 동작한다. 병종이 두세 개로 고정되어 있고 값을 조정할 일이 거의 없다면 이 방법으로 충분하다.</p>
+<h3>1.4 첫 시도의 한계</h3>
+<p>첫 시도에서는 병종의 값이 C# 코드 안에 숫자로 적혀 있다. 그래서 값과 종류에 관한 요구가 모두 코드 수정이 된다.</p>
+<table><caption>새 요구가 생겼을 때 첫 시도에서 해야 하는 일</caption><thead><tr><th>새 요구</th><th>해야 하는 일</th></tr></thead><tbody><tr><td>기사의 HP를 14에서 16으로 조정한다.</td><td>Knight.cs를 열어 숫자를 고치고 다시 컴파일한다. 프로그래머만 할 수 있다.</td></tr><tr><td>새 병종 “도적”을 추가한다.</td><td>새 class 파일을 만들고, 그 class를 붙인 새 프리팹을 만들고, 유닛을 생성하는 코드에 도적을 추가한다.</td></tr><tr><td>병종이 30개로 늘어난다.</td><td>병종 class 30개와 프리팹 30개가 생긴다. 그런데 그 class들의 내용은 숫자만 다르다.</td></tr></tbody></table>
+<div class="warning"><span class="label">한계의 요약</span>class는 동작이 다를 때 나누는 도구다. 기사와 궁수는 동작이 같고 값만 다르다. 첫 시도는 값의 차이를 표현하려고 class를 늘리고 있다.</div>
+<h3>1.5 enum과 switch로 바꾸어도 사정은 같다</h3>
+<p><span class="term">enum</span>은 정해진 이름 몇 개 중 하나를 값으로 가지는 형식이다. class를 늘리지 않고 enum으로 병종을 구분하는 방법도 떠올릴 수 있다.</p>
+<p class="code-caption">설계 비교용 가상 코드 · 프로젝트에 있었던 코드가 아니다</p><pre><code>public int GetMaxHp(UnitKind kind)
+{
+    switch (kind)
+    {
+        case UnitKind.Knight: return 14;
+        case UnitKind.Archer: return 9;
+        case UnitKind.Mage: return 7;
+        default: return 10;
+    }
+}</code></pre>
+<p>이 방법에서는 능력치마다 switch가 하나씩 필요하다. 능력치가 다섯 개이므로 switch도 다섯 개다. 도적을 추가하려면 enum에 이름을 추가하고 switch 다섯 개에 case를 하나씩, 모두 5개를 추가해야 한다. 하나라도 빠뜨리면 도적은 default 값을 사용하게 되고 컴파일러는 이 실수를 알려 주지 않는다. 값이 코드 안에 있다는 점과 종류를 추가할 때 코드를 고쳐야 한다는 점은 첫 시도와 같다.</p>
+<div class="exercise"><span class="label">생각할 문제</span>첫 시도의 방식에서 병종이 3개일 때 유닛과 관련된 class는 부모 Unit을 포함하여 모두 몇 개인가? 병종이 30개가 되면 몇 개인가? 그 class들은 서로 무엇이 다른가?</div><details><summary>해설 보기</summary><p>병종이 3개이면 Unit 1개와 병종 class 3개로 1 + 3 = 4개다. 병종이 30개이면 1 + 30 = 31개다. 병종 class들은 override한 숫자만 서로 다르고 동작을 담은 코드는 하나도 다르지 않다. 종류가 하나 늘 때마다 내용이 거의 같은 class가 하나씩 늘어난다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
+</section>
+<section class="chapter" id="chapter-2">
+<p class="kicker">CHAPTER 02 · 구조</p><h2>종류를 객체로 만드는 구조</h2>
+<div class="objectives">학습 목표: 병종마다 다른 값을 별도의 객체로 떼어 낸다는 말의 뜻을 설명한다. 타입 객체, 개체, 연결의 역할을 실제 class와 대응시킨다. class의 수와 객체의 수를 구분한다.</div>
+<h3>2.1 병종마다 다른 값만 떼어 내어 별도의 객체로 만든다</h3>
+<p>1장에서 다른 것은 값이고 같은 것은 동작이라는 점을 확인했다. 그렇다면 동작을 담은 Unit class는 하나로 두고, 병종마다 다른 값만 떼어 내어 별도의 객체에 담을 수 있다. 이 객체를 “병종 정보” 객체라고 부르자. Unit은 자신의 병종 정보 객체를 참조한다. <span class="term">참조</span>는 다른 객체를 가리키는 값이다.</p>
+<div class="grid"><div class="box"><h4>첫 시도의 구조</h4><p>Knight, Archer, Mage. 종류 하나가 class 하나다. 종류를 추가하려면 코드를 작성하고 컴파일해야 한다.</p></div><div class="box"><h4>바꾼 구조</h4><p>Unit + 병종 정보 객체. Unit class는 하나다. 병종마다 다른 값은 병종 정보 객체가 가진다. 종류를 추가하려면 병종 정보 객체를 하나 더 만든다.</p></div></div>
+<p>“이 유닛은 기사다”라는 사실을 표현하는 방법이 달라진다. 첫 시도에서는 “이 유닛은 Knight class의 객체다”로 표현했다. 바꾼 구조에서는 “이 유닛은 기사라는 병종 정보 객체를 가리킨다”로 표현한다. 종류가 class에서 객체로 바뀌었다.</p>
+<h3>2.2 Type Object 패턴의 역할</h3>
+<p>이 구조의 이름이 Type Object 패턴이다. 종류를 나타내는 객체를 따로 만들고, 각 개체가 자신의 종류 객체를 참조한다. 종류를 나타내는 객체를 <span class="term">타입 객체</span>라고 부른다. <span class="term">개체</span>는 실행 중에 전장에 존재하는 유닛 하나하나를 뜻한다. Type Object는 “타입 역할을 하는 객체”라는 뜻이다. C#의 class가 하던 “종류를 정의하는 일”을 우리가 만든 객체가 대신한다.</p>
+<table><caption>Type Object의 역할과 미니 택틱스의 코드</caption><thead><tr><th>역할</th><th>미니 택틱스에서</th><th>책임</th></tr></thead><tbody><tr><td>타입 객체(Type Object)</td><td>UnitClass</td><td>병종 하나를 나타낸다. 그 병종의 모든 유닛이 공유하는 값을 가진다.</td></tr><tr><td>타입 객체의 실물</td><td>Knight, Archer, Mage 에셋</td><td>class는 UnitClass 하나이고 객체가 셋이다. 객체마다 값이 다르다.</td></tr><tr><td>개체(Typed Object)</td><td>Unit</td><td>전장에 있는 유닛 하나다. 현재 HP처럼 개체마다 다른 상태를 가진다.</td></tr><tr><td>연결</td><td>Unit.UnitClass</td><td>개체가 자신의 타입 객체를 가리키는 참조다. 개체는 공유 값을 이 참조를 통해 읽는다.</td></tr></tbody></table>
+<div class="flow" aria-label="타입 객체를 만들고 값을 읽기까지"><span>타입 객체를 만든다</span><b>→</b><span>개체가 타입 객체를 참조한다</span><b>→</b><span>개체의 능력치를 읽는다</span><b>→</b><span>타입 객체의 값이 돌아온다</span></div>
+<h3>2.3 class의 수와 객체의 수를 구분한다</h3>
+<p>이 패턴을 이해할 때 가장 중요한 것은 class와 객체를 구분하는 일이다. class는 코드로 작성하는 설계이고, 객체는 그 설계로 만든 실물이다.</p>
+<table><caption>바꾼 구조에서의 class와 객체</caption><thead><tr><th>구분</th><th>개수</th><th>늘어나는 때</th></tr></thead><tbody><tr><td>UnitClass class</td><td>1개</td><td>늘어나지 않는다.</td></tr><tr><td>UnitClass 객체</td><td>병종의 수만큼(현재 3개)</td><td>병종을 추가할 때</td></tr><tr><td>Unit class</td><td>1개</td><td>늘어나지 않는다.</td></tr><tr><td>Unit 객체</td><td>전장에 있는 유닛의 수만큼</td><td>유닛을 배치할 때</td></tr></tbody></table>
+<p>첫 시도에서는 병종이 늘어나면 class가 늘어났다. 바꾼 구조에서는 병종이 늘어나면 객체가 늘어난다. class를 추가하려면 코드를 작성해야 하지만 객체는 코드를 작성하지 않고도 만들 수 있다. 그 방법은 3장에서 다룬다.</p>
+<h3>2.4 흔한 오해</h3>
+<div class="warning"><span class="label">주의</span>UnitClass라는 이름의 Class는 게임에서 병종이나 직업을 부르는 말이다. C#의 <code>class</code> 키워드와는 뜻이 다르다. UnitClass는 “유닛의 병종”이라는 뜻의 이름을 가진 평범한 C# class다.</div>
+<p>Type Object를 “능력치를 파일로 옮기는 기능”으로만 이해하면 핵심을 놓친다. 핵심은 종류가 객체가 되었다는 점이다. 객체는 변수에 담고, 메서드의 인수로 넘기고, 목록에 넣을 수 있다. 그래서 어떤 유닛을 어떤 종류로 만들지를 실행 중에 정할 수 있다. 이 점은 4장과 7장에서 코드로 확인한다.</p>
+<div class="exercise"><span class="label">생각할 문제</span>전장에 기사 2명, 궁수 3명, 마법사 1명이 있다. Unit 객체와 UnitClass 객체는 각각 몇 개인가? 유닛이 60명으로 늘어나면 어떻게 되는가?</div><details><summary>해설 보기</summary><p>Unit 객체는 2 + 3 + 1 = 6개이고 UnitClass 객체는 3개다. 유닛이 60명으로 늘어나도 병종이 그대로라면 Unit 객체만 60개가 되고 UnitClass 객체는 3개다. 같은 병종의 유닛은 모두 같은 타입 객체 하나를 참조한다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
+</section>
+<section class="chapter" id="chapter-3">
+<p class="kicker">CHAPTER 03 · 타입 객체</p><h2>타입 객체 UnitClass와 ScriptableObject</h2>
+<div class="objectives">학습 목표: UnitClass가 값과 읽기 전용 속성만 가지는 이유를 설명한다. ScriptableObject 에셋 하나가 타입 객체 하나라는 점을 이해한다. class 하나와 에셋 여러 개의 관계를 설명한다.</div>
+<h3>3.1 UnitClass는 값과 읽기 전용 속성만 가진다</h3>
+<p class="code-caption">실제 코드 · UnitClass.cs의 class 전체</p><pre><code>[CreateAssetMenu(menuName = "Mini Tactics/Unit Class")]
+public sealed class UnitClass : ScriptableObject
+{
+    [SerializeField] private string _displayName;
+    [SerializeField, Min(1)] private int _maxHp;
+    [SerializeField, Min(0)] private int _attackPower;
+    [SerializeField, Min(0)] private int _defense;
+    [SerializeField, Min(0)] private int _moveBudget;
+    [SerializeField, Min(1)] private int _attackRange = 1;
+    [SerializeField] private Sprite _sprite;
+
+    public string DisplayName =&gt; _displayName;
+    public int MaxHp =&gt; _maxHp;
+    public int AttackPower =&gt; _attackPower;
+    public int Defense =&gt; _defense;
+    public int MoveBudget =&gt; _moveBudget;
+    public int AttackRange =&gt; _attackRange;
+    public Sprite Sprite =&gt; _sprite;
+}</code></pre>
+<p>이 class는 세 부분으로 읽는다. 첫째, 필드 일곱 개는 Inspector에서 입력하는 값이다. 1.2절의 표에 있던 숫자 다섯 개와 이름, 그림이 여기에 들어간다. <code>Sprite</code>는 Unity에서 2D 그림 한 장을 나타내는 형식이다. 둘째, 속성 일곱 개는 <code>=&gt;</code>로 필드의 값을 읽어 주기만 한다. 셋째, 메서드가 없다. 이 class는 동작을 하지 않고 값을 보관한다.</p>
+<p class="annotation"><code>sealed</code>는 이 class를 상속할 수 없게 막는 키워드다. 병종을 상속으로 늘리지 않고 객체로 늘린다는 설계와 맞는다. <code>_attackRange = 1</code>의 1은 새 객체를 만들었을 때 처음 들어 있는 기본값이다.</p>
+<h3>3.2 ScriptableObject 에셋 하나가 타입 객체 하나다</h3>
+<p><span class="term">ScriptableObject</span>는 씬의 게임 오브젝트에 붙이지 않고 프로젝트에 파일로 저장하는 데이터 객체다. 프로젝트에 저장되는 파일을 Unity에서는 <span class="term">에셋</span>이라고 부른다. 3차시의 TileData가 같은 방식이었다.</p>
+<table><caption>MonoBehaviour와 ScriptableObject</caption><thead><tr><th>구분</th><th>MonoBehaviour</th><th>ScriptableObject</th></tr></thead><tbody><tr><td>존재하는 곳</td><td>씬이나 프리팹의 게임 오브젝트에 붙는다.</td><td>프로젝트에 에셋 파일로 저장된다.</td></tr><tr><td>주된 용도</td><td>동작과 개체의 상태</td><td>여러 곳에서 함께 읽는 데이터</td></tr><tr><td>이번 차시의 예</td><td>Unit</td><td>UnitClass</td></tr></tbody></table>
+<p>타입 객체는 전장의 특정 위치에 있는 물체가 아니다. 여러 유닛이 함께 읽는 데이터다. 그래서 게임 오브젝트에 붙이는 MonoBehaviour보다 ScriptableObject가 타입 객체에 알맞다.</p>
+<h3>3.3 CreateAssetMenu: 코드를 작성하지 않고 객체를 만든다</h3>
+<p>class 위의 <code>[CreateAssetMenu]</code>는 Project 창의 Create 메뉴에 “Mini Tactics/Unit Class” 항목을 추가한다. 이 메뉴를 선택할 때마다 UnitClass 객체가 하나씩 에셋으로 만들어진다.</p>
+<table><caption>class와 에셋</caption><thead><tr><th>구분</th><th>개수</th><th>만드는 방법</th></tr></thead><tbody><tr><td>UnitClass class</td><td>1개</td><td>프로그래머가 코드로 한 번 작성한다.</td></tr><tr><td>UnitClass 에셋</td><td>병종의 수만큼(현재 3개)</td><td>누구나 메뉴에서 만들고 Inspector에서 값을 입력한다.</td></tr></tbody></table>
+<table><caption>현재 프로젝트의 UnitClass 에셋 세 개</caption><thead><tr><th>에셋</th><th>MaxHp</th><th>AttackPower</th><th>Defense</th><th>MoveBudget</th><th>AttackRange</th></tr></thead><tbody><tr><td>Knight</td><td>14</td><td>6</td><td>3</td><td>3</td><td>1</td></tr><tr><td>Archer</td><td>9</td><td>5</td><td>1</td><td>4</td><td>2</td></tr><tr><td>Mage</td><td>7</td><td>8</td><td>0</td><td>3</td><td>1</td></tr></tbody></table>
+<div class="concept"><span class="label">첫 시도와의 차이</span>첫 시도에서는 병종의 수만큼 class가 필요했다. 이제는 병종의 수만큼 에셋이 필요하다. 에셋을 만들고 값을 고치는 데에는 컴파일이 필요하지 않다.</div>
+<h3>3.4 속성이 읽기 전용인 이유</h3>
+<p>UnitClass의 필드는 모두 private이고 속성에는 값을 바꾸는 <code>set</code>이 없다. 그래서 다른 class의 코드는 타입 객체의 값을 읽을 수만 있고 바꿀 수는 없다. 타입 객체 하나는 같은 병종의 모든 유닛이 함께 참조한다. 어느 한 곳의 코드가 값을 바꾸면 그 병종의 모든 유닛이 영향을 받는다. 읽기 전용 속성은 이런 일이 코드에서 일어나지 않도록 막는다.</p>
+<div class="exercise"><span class="label">연습</span>UnitClass의 MaxHp 속성에 <code>set</code>이 있다고 가정한다. 전장에 기사가 둘 있을 때 어떤 코드가 기사 한 명의 타입 객체에 <code>MaxHp = 20</code>을 실행하면 어떤 일이 일어나는가?</div><details><summary>해설 보기</summary><p>두 기사의 MaxHp가 모두 20이 된다. 두 기사는 같은 Knight 에셋 하나를 참조하기 때문이다. 기사 한 명의 값만 바꾸려는 의도였다면 잘못된 결과다. 실제 코드에는 <code>set</code>이 없으므로 이 줄은 컴파일 오류가 된다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
+</section>
+<section class="chapter" id="chapter-4">
+<p class="kicker">CHAPTER 04 · 개체와 연결</p><h2>개체 Unit과 타입 객체의 연결</h2>
+<div class="objectives">학습 목표: Unit의 능력치 속성이 타입 객체의 값을 돌려주는 과정을 설명한다. Initialize가 하는 세 가지 일을 순서대로 읽는다. 종류가 실행 중에 정해진다는 말의 뜻을 설명한다.</div>
+<h3>4.1 Unit은 능력치를 자신의 타입 객체에서 읽는다</h3>
+<p class="code-caption">실제 코드 · Unit.cs의 속성 부분</p><pre><code>public UnitClass UnitClass { get; private set; }
+public int MoveBudget =&gt; UnitClass.MoveBudget;
+public bool CanMove =&gt; _canMove;
+public int MaxHp =&gt; UnitClass.MaxHp;
+public int AttackPower =&gt; UnitClass.AttackPower;
+public int Defense =&gt; UnitClass.Defense;
+public int AttackRange =&gt; UnitClass.AttackRange;
+public int CurrentHp { get; private set; }</code></pre>
+<p class="annotation"><code>CanMove</code>는 이전 차시에서 이어진 속성이며 이번 패턴과는 관계가 없다.</p>
+<p>1.1절에서 본 능력치 필드 네 개가 사라지고 <code>UnitClass</code> 참조 하나가 생겼다. <code>unit.MaxHp</code>를 읽으면 Unit은 자신이 가진 값을 돌려주지 않고 자신이 참조하는 타입 객체의 값을 돌려준다. 기사인 유닛은 Knight 에셋의 14를, 궁수인 유닛은 Archer 에셋의 9를 돌려준다. <code>AttackRange</code>는 이번 차시에 새로 생긴 속성이며 같은 방식으로 타입 객체의 값을 돌려준다.</p>
+<p class="code-caption">이전 차시의 구현과 현재 코드의 비교 · 첫 줄은 6차시 Unit.cs, 둘째 줄은 7차시 Unit.cs</p><pre><code>public int MaxHp =&gt; _maxHp;            // 6차시: 자신의 필드를 돌려준다
+public int MaxHp =&gt; UnitClass.MaxHp;   // 7차시: 타입 객체의 값을 돌려준다</code></pre>
+<p>속성의 이름과 형식은 6차시와 같다. 달라진 것은 <code>=&gt;</code>의 오른쪽뿐이다. 그래서 <code>unit.MaxHp</code>를 읽던 체력바의 코드와 <code>attacker.AttackPower</code>, <code>defender.Defense</code>를 읽던 공격 코드는 한 줄도 바뀌지 않는다. Unit을 사용하는 쪽에서는 값이 어디에 저장되어 있는지 알 필요가 없다.</p>
+<h3>4.2 Initialize가 유닛에게 타입 객체를 알려 준다</h3>
+<p class="code-caption">실제 코드 · Unit.cs의 Initialize 전체</p><pre><code>public void Initialize(Team team, UnitClass unitClass)
+{
+    Team = team;
+    UnitClass = unitClass;
+    CurrentHp = unitClass.MaxHp;
+    SpriteRenderer renderer = GetComponent&lt;SpriteRenderer&gt;();
+    renderer.sprite = unitClass.Sprite;
+    renderer.color = team == Team.Player ? PlayerColor : EnemyColor;
+}</code></pre>
+<p>Initialize는 타입 객체와 관련하여 세 가지 일을 한다.</p>
+<ol><li><code>UnitClass = unitClass;</code>로 전달받은 타입 객체를 기억한다. 이 줄이 2장의 표에서 “연결”에 해당한다.</li><li><code>CurrentHp = unitClass.MaxHp;</code>로 현재 HP를 그 병종의 최대 HP로 채운다. 기사는 14, 궁수는 9, 마법사는 7에서 시작한다.</li><li><code>renderer.sprite = unitClass.Sprite;</code>로 그림을 그 병종의 그림으로 바꾼다. <code>SpriteRenderer</code>는 게임 오브젝트에 그림을 표시하는 컴포넌트다.</li></ol>
+<p class="annotation">첫 줄의 <code>Team = team;</code>과 마지막 줄의 색 지정은 6차시부터 있던 코드다. 진영은 병종과 관계없이 개체마다 정해지는 값이다.</p>
+<h3>4.3 현재 HP를 채우는 위치가 Initialize로 옮겨진 이유</h3>
+<p class="code-caption">이전 차시의 구현 · 6차시 Unit.cs의 Awake와 Initialize · 두 메서드 사이에 있는 TakeDamage는 생략했다</p><pre><code>private void Awake()
+{
+    CurrentHp = _maxHp;
+}
+
+public void Initialize(Team team)
+{
+    Team = team;
+    GetComponent&lt;SpriteRenderer&gt;().color = team == Team.Player ? PlayerColor : EnemyColor;
+}</code></pre>
+<p>6차시에는 최대 HP가 Unit 자신의 필드였다. 그래서 유닛이 만들어지는 순간에 Unity가 호출하는 <code>Awake</code>에서 바로 현재 HP를 채울 수 있었다. 7차시에는 최대 HP가 타입 객체에 있다. Awake가 실행되는 시점에 유닛은 아직 자신의 타입 객체를 전달받지 못했다. 그래서 7차시의 Unit에는 Awake가 없고, 타입 객체를 전달받는 Initialize에서 현재 HP를 채운다.</p>
+<h3>4.4 종류가 실행 중에 정해진다</h3>
+<p>유닛은 만들어진 직후에는 종류가 없다. Initialize에 어떤 에셋을 넘기는가에 따라 기사가 되기도 하고 궁수가 되기도 한다. 첫 시도에서는 종류가 코드를 작성할 때 정해졌다. Knight class의 객체는 끝까지 기사다. Type Object에서는 종류가 실행 중에 정해진다.</p>
+<p><code>UnitClass</code> 속성의 <code>private set</code>은 Unit의 바깥에서 이 참조를 바꿀 수 없게 한다. 타입 객체는 Initialize를 통해서만 정해진다.</p>
+<div class="warning"><span class="label">흔한 실수</span>Initialize를 호출하기 전의 유닛은 <code>UnitClass</code>가 null이다. 이 상태에서 <code>unit.MaxHp</code>를 읽으면 <code>UnitClass.MaxHp</code>에서 NullReferenceException이 발생한다. 유닛을 만든 직후에 Initialize를 호출해야 한다. 실제 코드가 이 순서를 지키는 모습은 7장에서 확인한다.</div>
+<div class="exercise"><span class="label">연습</span>Initialize에서 <code>CurrentHp = unitClass.MaxHp;</code> 한 줄을 빠뜨렸다. 기사로 만든 유닛의 MaxHp, CurrentHp, IsAlive는 각각 무엇인가? <code>IsAlive</code>는 <code>CurrentHp &gt; 0</code>을 계산하는 속성이다.</div><details><summary>해설 보기</summary><p>MaxHp는 타입 객체의 값을 돌려주므로 14다. CurrentHp는 값을 넣은 적이 없으므로 int의 기본값인 0이다. 0 &gt; 0은 거짓이므로 IsAlive는 false다. 이 유닛은 만들어진 직후부터 쓰러진 유닛으로 취급된다. 타입 객체를 연결하는 일과 개체의 상태를 초기화하는 일은 서로 다른 일이며 둘 다 필요하다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
+</section>
+<section class="chapter" id="chapter-5">
+<p class="kicker">CHAPTER 05 · 값의 자리</p><h2>공유하는 값과 개체의 상태</h2>
+<div class="objectives">학습 목표: 어떤 값을 UnitClass에 두고 어떤 값을 Unit에 두는지 하나의 질문으로 판단한다. 개체의 상태를 타입 객체에 두었을 때 일어나는 일을 수치로 확인한다.</div>
+<h3>5.1 공유하는 값은 타입 객체에, 개체마다 다른 값은 Unit에 둔다</h3>
+<table><caption>값과 그 값을 두는 곳</caption><thead><tr><th>값</th><th>두는 곳</th><th>이유</th></tr></thead><tbody><tr><td>MaxHp, AttackPower, Defense, MoveBudget, AttackRange, Sprite</td><td>UnitClass</td><td>같은 병종이면 모두 같다. 한곳에 두면 한 번만 고쳐도 그 병종 전체에 반영된다.</td></tr><tr><td>CurrentHp</td><td>Unit</td><td>같은 기사라도 받은 피해가 다르다.</td></tr><tr><td>Team, HasMoved</td><td>Unit</td><td>같은 기사라도 아군일 수도 있고 적일 수도 있다. 이번 턴에 행동했는지도 유닛마다 다르다.</td></tr><tr><td>위치</td><td>Unit의 Transform</td><td>유닛마다 서 있는 칸이 다르다.</td></tr></tbody></table>
+<p class="code-caption">실제 코드 · Unit.cs에서 개체가 직접 가지는 상태</p><pre><code>public int CurrentHp { get; private set; }
+public bool IsAlive =&gt; CurrentHp &gt; 0;
+public Team Team { get; private set; }
+public bool HasMoved { get; set; }</code></pre>
+<p>이 속성들은 4.1절의 능력치 속성과 모양이 다르다. 능력치 속성은 <code>=&gt; UnitClass.</code>로 시작하여 타입 객체의 값을 돌려준다. 이 속성들은 <code>{ get; set; }</code>의 형태로 Unit 객체 안에 값을 직접 저장한다. <code>IsAlive</code>는 저장된 CurrentHp로 계산한다.</p>
+<h3>5.2 판단하는 질문은 하나다</h3>
+<div class="concept"><span class="label">값의 자리를 정하는 질문</span>“같은 병종의 다른 유닛과 이 값이 달라질 수 있는가?” 달라질 수 있으면 Unit에 두고, 달라질 수 없으면 UnitClass에 둔다.</div>
+<p>최대 HP에 이 질문을 적용해 본다. 기사 A의 최대 HP와 기사 B의 최대 HP는 달라질 수 없다. 둘 다 기사이기 때문이다. 그러므로 UnitClass에 둔다. 현재 HP에 적용해 본다. 기사 A만 피해를 받을 수 있으므로 두 값은 달라질 수 있다. 그러므로 Unit에 둔다.</p>
+<h3>5.3 CurrentHp를 UnitClass에 두면 일어나는 일</h3>
+<p>질문을 거꾸로 확인해 본다. 현재 HP를 타입 객체에 두었다고 가정한다.</p>
+<p class="code-caption">설계 비교용 가상 코드 · 값을 잘못된 곳에 두었다고 가정한 것이며 프로젝트의 코드가 아니다</p><pre><code>// 잘못된 설계: 현재 HP를 타입 객체에 둔다.
+public sealed class UnitClass : ScriptableObject
+{
+    [SerializeField, Min(1)] private int _maxHp;
+
+    public int MaxHp =&gt; _maxHp;
+    public int CurrentHp { get; set; }
+}</code></pre>
+<p>출발 상태는 다음과 같다. 아군 기사 A와 적 기사 B가 있고 둘 다 HP가 14다. A와 B는 같은 Knight 에셋을 참조한다. 에셋은 하나다. 이제 A가 피해 5를 받는다.</p>
+<table><caption>A가 피해 5를 받은 뒤</caption><thead><tr><th>확인하는 값</th><th>잘못된 설계(CurrentHp가 UnitClass에 있다)</th><th>현재 코드(CurrentHp가 Unit에 있다)</th></tr></thead><tbody><tr><td>바뀌는 곳</td><td>Knight 에셋의 CurrentHp가 14 − 5 = 9가 된다.</td><td>A의 CurrentHp가 14 − 5 = 9가 된다.</td></tr><tr><td>A의 HP</td><td>에셋의 값을 읽으므로 9다.</td><td>9다.</td></tr><tr><td>B의 HP</td><td>같은 에셋의 값을 읽으므로 9다. 피해를 받지 않은 유닛의 HP가 줄었다.</td><td>B의 CurrentHp는 바뀌지 않았으므로 14다.</td></tr></tbody></table>
+<div class="warning"><span class="label">규칙</span>타입 객체에는 실행 중에 바뀌지 않는 값만 둔다. 실행 중에 바뀌는 값은 개체의 상태이며 개체에 둔다. 3.4절에서 UnitClass의 속성을 읽기 전용으로 만든 것도 같은 이유다.</div>
+<div class="exercise"><span class="label">연습</span>“이동하면 이번 턴의 남은 이동력이 줄어든다”는 규칙을 추가하려고 한다. 남은 이동력은 어디에 두어야 하는가? 기사의 MoveBudget은 3이다. 기사 A가 이동력 2를 썼을 때를 예로 들어 설명해 본다.</div><details><summary>해설 보기</summary><p>Unit에 둔다. 같은 기사라도 이미 이동한 기사와 아직 이동하지 않은 기사의 값이 다르기 때문이다. Unit에 두면 A의 남은 이동력은 3 − 2 = 1이고 기사 B의 남은 이동력은 3 그대로다. UnitClass에 두면 에셋의 값이 1이 되어 이동하지 않은 B의 남은 이동력도 1이 된다. 한편 매 턴의 시작 값인 MoveBudget 3은 모든 기사가 같으므로 UnitClass에 그대로 둔다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
+</section>
+<section class="chapter" id="chapter-6">
+<p class="kicker">CHAPTER 06 · 사용하는 쪽</p><h2>사용하는 쪽의 코드와 수치 추적</h2>
+<div class="objectives">학습 목표: 병종을 확인하는 코드와 값을 읽는 코드의 차이를 설명한다. 같은 조건문이 병종에 따라 다른 결과를 내는 과정을 좌표와 거리로 직접 계산한다.</div>
+<h3>6.1 병종을 묻는 코드</h3>
+<p>공격할 수 있는 대상을 고르려면 공격하는 유닛의 사거리를 알아야 한다. 첫 시도의 구조에서는 다음과 같은 코드를 쓰게 된다. <code>is</code>는 객체가 그 class의 객체인지 검사하는 연산자다.</p>
+<p class="code-caption">설계 비교용 가상 코드 · 프로젝트에 있었던 코드가 아니다</p><pre><code>if (attacker is Archer)
+{
+    range = 2;
+}
+else
+{
+    range = 1;
+}</code></pre>
+<p>이 코드는 “너는 어떤 병종인가”를 묻고, 그 답에 따라 값을 정한다. 사거리가 3인 병종이 생기면 분기를 하나 더 추가해야 한다. 병종을 추가할 때마다 이런 분기가 있는 곳을 모두 찾아서 고쳐야 한다.</p>
+<h3>6.2 값을 읽는 코드</h3>
+<p class="code-caption">실제 코드 · TurnManager.GetAttackTargets의 반복문 안쪽</p><pre><code>Vector2Int cell = _board.WorldToCell(unit.transform.position);
+int distance = Mathf.Abs(cell.x - origin.x) + Mathf.Abs(cell.y - origin.y);
+if (unit.IsAlive &amp;&amp; unit.Team != attacker.Team
+    &amp;&amp; distance &gt;= 1 &amp;&amp; distance &lt;= attacker.AttackRange)
+{
+    targets.Add(unit);
+}</code></pre>
+<p class="annotation">이 코드는 전장의 모든 유닛을 하나씩 <code>unit</code>에 담아 반복하는 <code>foreach</code>의 안쪽이다. <code>origin</code>은 공격하는 유닛이 서 있는 칸이며 반복문 앞에서 구한다. 거리는 가로 차이와 세로 차이를 더한 값이다. <code>Mathf.Abs</code>는 절댓값을 구한다.</p>
+<p>이 코드에는 “궁수”라는 단어가 없다. 공격하는 유닛이 어떤 병종인지 확인하지 않고 그 유닛의 사거리 값을 읽는다. <code>attacker.AttackRange</code>는 4.1절에서 본 대로 그 유닛이 참조하는 타입 객체의 값을 돌려준다. 실제로 7차시의 스크립트 전체에서 Knight, Archer, Mage라는 단어는 한 번도 나오지 않는다.</p>
+<h3>6.3 추적: 같은 조건문이 병종에 따라 다른 결과를 낸다</h3>
+<p>출발 상태는 다음과 같다. 공격하는 유닛이 (2, 3)에 있다. 적 X는 (3, 3)에, 적 Y는 (4, 3)에 있다. 두 적은 모두 살아 있고 공격하는 유닛과 진영이 다르다. 공격하는 유닛이 기사일 때와 궁수일 때를 나란히 계산한다.</p>
+<table><caption>공격하는 유닛이 (2, 3)에 있을 때의 공격 대상</caption><thead><tr><th>단계</th><th>공격하는 유닛이 기사일 때</th><th>공격하는 유닛이 궁수일 때</th></tr></thead><tbody><tr><td>attacker.AttackRange</td><td>Knight 에셋의 값 1</td><td>Archer 에셋의 값 2</td></tr><tr><td>적 X까지의 거리</td><td>|3 − 2| + |3 − 3| = 1</td><td>|3 − 2| + |3 − 3| = 1</td></tr><tr><td>적 X 판정</td><td>1 ≥ 1 이고 1 ≤ 1 이므로 대상이다.</td><td>1 ≥ 1 이고 1 ≤ 2 이므로 대상이다.</td></tr><tr><td>적 Y까지의 거리</td><td>|4 − 2| + |3 − 3| = 2</td><td>|4 − 2| + |3 − 3| = 2</td></tr><tr><td>적 Y 판정</td><td>2 ≤ 1 이 아니므로 대상이 아니다.</td><td>2 ≥ 1 이고 2 ≤ 2 이므로 대상이다.</td></tr><tr><td>공격 대상</td><td>X 하나</td><td>X와 Y 둘</td></tr></tbody></table>
+<div class="concept"><span class="label">추적에서 확인할 점</span>실행된 코드는 두 경우 모두 같다. 달라진 것은 유닛이 참조하는 에셋뿐이다. 종류에 따른 차이가 코드의 분기에서 데이터의 값으로 옮겨졌다.</div>
+<h3>6.4 새 병종이 생겨도 이 코드는 바뀌지 않는다</h3>
+<p>6.1절의 코드는 병종이 하나 늘 때마다 분기가 하나 늘어난다. 6.2절의 코드는 병종이 몇 개로 늘어나도 그대로다. 사용하는 쪽이 병종의 이름을 모르고 값만 읽기 때문이다. 이것이 Type Object가 사용하는 쪽의 코드에 주는 이득이다.</p>
+<div class="exercise"><span class="label">손으로 계산하기</span>사거리가 3인 새 병종의 에셋을 만들었다. 이 병종의 유닛이 (2, 3)에 있고 적 Z가 (4, 4)에 있다. Z는 이 유닛의 공격 대상인가? 같은 자리에 궁수가 있었다면 어떠한가? 이 병종을 위해 GetAttackTargets에서 고쳐야 하는 줄은 몇 줄인가?</div><details><summary>해설 보기</summary><p>Z까지의 거리는 |4 − 2| + |4 − 3| = 2 + 1 = 3이다. 새 병종은 3 ≥ 1 이고 3 ≤ 3 이므로 Z가 대상이다. 궁수는 3 ≤ 2 가 아니므로 Z가 대상이 아니다. GetAttackTargets에서 고쳐야 하는 줄은 0줄이다. 조건문은 에셋에 적힌 값 3을 읽을 뿐이다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
+</section>
+<section class="chapter" id="chapter-7">
+<p class="kicker">CHAPTER 07 · 생성과 확장</p><h2>종류를 데이터로 정하고 늘리기</h2>
+<div class="objectives">학습 목표: 같은 프리팹으로 만든 유닛이 서로 다른 병종이 되는 과정을 코드로 읽는다. 새 병종을 추가할 때 작성해야 하는 코드가 0줄임을 확인한다. 실행 중에 에셋의 값을 바꾸었을 때 일어나는 일을 수치로 추적한다.</div>
+<h3>7.1 어떤 종류로 만들지도 데이터로 정한다</h3>
+<p class="code-caption">실제 코드 · UnitPlacement.cs의 class 전체</p><pre><code>[Serializable]
+public sealed class UnitPlacement
+{
+    [SerializeField] private UnitClass _unitClass;
+    [SerializeField] private Vector2Int _cell;
+
+    public UnitClass UnitClass =&gt; _unitClass;
+    public Vector2Int Cell =&gt; _cell;
+}</code></pre>
+<p>UnitPlacement는 “어느 칸에 어떤 병종을 놓는가”를 한 쌍으로 묶은 데이터다. <code>[Serializable]</code>은 이 class의 값을 Inspector에 표시하고 저장할 수 있게 하는 표시다. 여기에서 눈여겨볼 것은 <code>_unitClass</code> 필드다. 필드의 형식이 UnitClass이므로 Inspector에서 Knight, Archer, Mage 에셋 중 하나를 연결할 수 있다. 종류가 객체이기 때문에 가능한 일이다. 첫 시도의 구조에서는 “어떤 class로 만들 것인가”를 Inspector의 값으로 고를 수 없었고 코드에 적어야 했다.</p>
+<h3>7.2 같은 프리팹에 서로 다른 타입 객체를 넘긴다</h3>
+<p class="code-caption">실제 코드 · UnitSpawner.cs의 Spawn 전체</p><pre><code>private void Spawn(UnitPlacement[] placements, Team team, string label)
+{
+    for (int index = 0; index &lt; placements.Length; index++)
+    {
+        UnitPlacement placement = placements[index];
+        Unit unit = Instantiate(_unitPrefab, transform);
+        unit.name = $"{label} {placement.UnitClass.DisplayName} {index + 1}";
+        unit.transform.position = _board.CellToWorld(placement.Cell);
+        unit.Initialize(team, placement.UnitClass);
+        Units.Add(unit);
+    }
+}</code></pre>
+<p class="annotation"><code>_unitPrefab</code>은 유닛 프리팹을 가리키는 필드이고 <code>Instantiate</code>는 프리팹을 복제하여 새 게임 오브젝트를 만드는 Unity의 메서드다. 이름을 짓는 줄과 목록에 추가하는 줄은 패턴과 직접 관계가 없다.</p>
+<p>이 메서드에서 패턴과 관련된 줄은 두 줄이다. <code>Instantiate(_unitPrefab, transform)</code>은 어떤 병종이든 같은 프리팹 하나를 복제한다. <code>unit.Initialize(team, placement.UnitClass)</code>는 복제한 유닛에 그 배치 데이터가 가리키는 타입 객체를 넘긴다. 프리팹은 여전히 하나다. 같은 프리팹으로 만든 유닛에 서로 다른 타입 객체를 넘겨서 기사, 궁수, 마법사를 만든다.</p>
+<p>이 메서드에도 Knight, Archer, Mage라는 단어는 없다. 생성하는 코드도 병종의 이름을 알지 못한다. 그리고 Instantiate의 바로 뒤에서 Initialize를 호출하므로 4.4절에서 주의한 “타입 객체가 없는 유닛”은 이 메서드의 바깥으로 나가지 않는다.</p>
+<h3>7.3 새 병종 “도적”을 추가할 때 작성해야 할 코드는 0줄이다</h3>
+<div class="flow" aria-label="새 병종을 추가하는 과정"><span>Create 메뉴에서 Unit Class를 선택한다</span><b>→</b><span>이름을 Thief로 하고 값과 그림을 입력한다</span><b>→</b><span>배치 목록에 Thief와 칸을 추가한다</span><b>→</b><span>Play를 누르면 도적이 등장한다</span></div>
+<table><caption>새 병종 하나를 추가할 때 필요한 것</caption><thead><tr><th>방법</th><th>새 class</th><th>새 프리팹</th><th>기존 코드 수정</th><th>컴파일</th></tr></thead><tbody><tr><td>첫 시도(상속)</td><td>1개</td><td>1개</td><td>생성 코드에 추가한다.</td><td>필요하다.</td></tr><tr><td>Type Object</td><td>0개</td><td>0개</td><td>없다.</td><td>필요하지 않다.</td></tr></tbody></table>
+<p>도적이 등장한 뒤에 일어나는 일도 코드를 고치지 않고 동작한다. Initialize가 도적의 최대 HP로 현재 HP를 채우고 도적의 그림을 표시한다. 6장의 조건문은 도적의 사거리를 읽는다. 체력바는 도적의 MaxHp로 비율을 계산한다. 모두 값을 읽는 코드이기 때문이다.</p>
+<p>기사의 HP를 14에서 16으로 조정하는 일도 같다. Knight 에셋의 숫자를 Inspector에서 고치면 끝난다. 1.4절의 표에서는 이 일을 프로그래머만 할 수 있었다. 이제는 프로그래머가 아닌 사람도 할 수 있다.</p>
+<h3>7.4 실행 중에 Knight 에셋의 MaxHp를 14에서 20으로 바꾸면</h3>
+<p>타입 객체가 공유된다는 사실을 한 번 더 수치로 확인한다. 출발 상태는 다음과 같다. 전장에 기사가 둘 있다. A는 HP 14 / 14이고 B는 HP 9 / 14다. 게임을 실행하고 있는 동안 Inspector에서 Knight 에셋의 MaxHp를 20으로 바꾼다.</p>
+<ol><li>A와 B의 MaxHp는 모두 즉시 20이 된다. <code>unit.MaxHp</code>는 읽을 때마다 같은 에셋의 값을 돌려주기 때문이다.</li><li>CurrentHp는 Unit에 있으므로 A는 14, B는 9 그대로다.</li><li>체력바는 바로 바뀌지 않는다. 6차시에서 배운 대로 체력바는 HpChanged 알림을 받았을 때만 길이를 다시 계산한다.</li><li>그 뒤에 B가 피해 2를 받으면 B의 CurrentHp는 9 − 2 = 7이 된다. 이때 체력바가 7 / 20 = 0.35로 계산하여 35%가 된다.</li></ol>
+<div class="warning"><span class="label">주의</span>에디터에서 실행 중에 바꾼 ScriptableObject 에셋의 값은 Play를 끝내도 되돌아가지 않는다. 씬에 있는 오브젝트의 값이 Play를 끝내면 되돌아가는 것과 다르다. 에셋은 프로젝트에 저장된 파일이기 때문이다.</div>
+<div class="exercise"><span class="label">손으로 계산하기</span>위의 상황에서 MaxHp를 20으로 바꾼 뒤에 A가 피해 2를 받았다. A의 체력바는 몇 %가 되는가? MaxHp를 바꾸지 않았다면 몇 %였겠는가?</div><details><summary>해설 보기</summary><p>A의 CurrentHp는 14 − 2 = 12가 된다. MaxHp가 20이므로 체력바는 12 / 20 = 0.6, 60%다. MaxHp를 바꾸지 않았다면 12 / 14 ≈ 0.857이므로 약 86%였다. 에셋의 숫자 하나를 바꾼 결과가 그 에셋을 참조하는 모든 유닛의 계산에 반영된다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
+</section>
+<section class="chapter" id="chapter-8">
+<p class="kicker">CHAPTER 08 · 판단</p><h2>대가, 적용 기준, 이웃한 패턴</h2>
+<div class="objectives">학습 목표: Type Object의 대가 세 가지와 적용 기준을 설명한다. 3차시의 Flyweight와 Type Object가 답하는 질문을 구분한다. Instantiate(prefab)이 Prototype 패턴이라는 점을 설명한다.</div>
+<h3>8.1 Type Object의 대가</h3>
+<table><caption>대가와 대응</caption><thead><tr><th>대가</th><th>구체적인 모습</th><th>대응</th></tr></thead><tbody><tr><td>값은 바꿀 수 있지만 동작은 바꿀 수 없다.</td><td>“마법사의 공격은 방어력을 무시한다”는 숫자 하나로 표현할 수 없다. 데이터에는 if문을 적을 수 없기 때문이다.</td><td>동작의 차이가 필요해지면 다른 구조를 함께 사용한다.</td></tr><tr><td>연결을 빠뜨려도 컴파일러가 알려 주지 않는다.</td><td>배치 목록에서 병종 칸을 비워 두면 실행 중에 Spawn의 <code>placement.UnitClass.DisplayName</code>에서 NullReferenceException이 발생한다.</td><td>에셋을 만든 뒤에 Inspector의 연결을 확인한다.</td></tr><tr><td>값을 찾으려면 한 단계를 더 거친다.</td><td><code>unit.MaxHp</code>의 실제 값은 Unit.cs에 없다. 그 유닛이 참조하는 에셋을 열어야 알 수 있다.</td><td>Unit의 속성 이름을 UnitClass의 속성 이름과 같게 유지한다.</td></tr></tbody></table>
+<div class="warning"><span class="label">대가의 요약</span>첫 시도의 상속에서는 <code>Knigt</code>처럼 class 이름을 잘못 적으면 컴파일 오류가 발생했다. Type Object에서는 컴파일러가 검사해 주던 것을 사람이 확인해야 한다. 유연함을 얻은 만큼 검사를 잃었다.</div>
+<h3>8.2 적용 기준: 종류마다 다른 것이 값인가, 동작인가</h3>
+<div class="grid"><div class="box"><h4>Type Object가 이득인 경우</h4><p>종류가 많거나 앞으로 늘어난다. 종류 사이의 차이가 대부분 값이다. 프로그래머가 아닌 사람이 값을 조정해야 한다. 예: 병종, 아이템, 몬스터, 지형.</p></div><div class="box"><h4>class로 나누는 편이 나은 경우</h4><p>종류가 두세 개로 고정되어 있다. 종류마다 실행되는 코드 자체가 다르다. 예: 4차시의 IdleState와 UnitSelectedState.</p></div></div>
+<p>4차시의 두 상태는 같은 클릭에 서로 다른 코드를 실행한다. 상태마다 다른 것은 값이 아니고 동작이다. 그래서 4차시의 상태들은 데이터로 바꾸지 않고 class로 둔다. 1장에서 상속을 첫 시도로 다루었지만 상속이 나쁜 도구라는 뜻은 아니다. 값의 차이를 표현하는 데에 맞지 않았을 뿐이다. 패턴은 실제로 해결할 문제가 있을 때에만 도입한다.</p>
+<h3>8.3 3차시의 Flyweight와 모양은 비슷하지만 목적이 다르다</h3>
+<p>여러 개체가 하나의 객체를 함께 참조한다는 모양은 3차시의 Flyweight와 같다. 두 패턴은 답하는 질문이 다르다.</p>
+<table><caption>두 패턴이 답하는 질문</caption><thead><tr><th>패턴</th><th>답하는 질문</th><th>미니 택틱스에서</th></tr></thead><tbody><tr><td>Flyweight(3차시)</td><td>“같은 데이터를 몇 번 저장하는가” · 수많은 칸이 같은 지형 정보를 각자 복사해서 가지는 낭비를 없앤다. 목적은 중복 제거다.</td><td>칸 120개가 <code>TerrainType</code> 객체 4개를 공유한다.</td></tr><tr><td>Type Object(7차시)</td><td>“종류를 어디에 정의하는가” · 종류를 class로 정의하지 않고 객체로 정의한다. 목적은 코드를 고치지 않고 종류를 추가하고 조정하는 것이다.</td><td>유닛들이 <code>UnitClass</code> 에셋 3개를 참조한다.</td></tr></tbody></table>
+<p>두 패턴 모두 여러 개체가 하나의 객체를 공유한다. 그래서 한 구조가 두 패턴의 이득을 함께 얻는 경우가 많다. 기사가 100명이어도 기사의 능력치는 메모리에 한 번만 저장된다. 다만 출발점이 다르다. 유닛이 6명뿐이어서 메모리를 아끼는 이득이 거의 없어도 Type Object는 쓸모가 있다. 종류를 코드 없이 추가하고 조정하는 것이 목적이기 때문이다.</p>
+<h3>8.4 이론 코너: Instantiate(prefab)은 Prototype 패턴이다</h3>
+<p class="code-caption">실제 코드 · UnitSpawner.Spawn의 한 줄</p><pre><code>Unit unit = Instantiate(_unitPrefab, transform);</code></pre>
+<p><span class="term">Prototype 패턴</span>은 새 객체를 <code>new</code>로 처음부터 조립하지 않고, 미리 만들어 둔 원본을 복제해서 만드는 구조다. 이 원본을 프로토타입이라고 부른다. Unity에서는 프리팹이 프로토타입이다. Instantiate는 프리팹에 붙어 있는 컴포넌트, 자식 오브젝트, Inspector 값을 모두 복제한다. 6차시의 체력바가 유닛마다 하나씩 따라오는 이유가 이것이다. 체력바는 유닛 프리팹의 자식 오브젝트이므로 유닛을 복제할 때 함께 복제된다.</p>
+<p>이번 차시의 유닛은 두 패턴으로 만들어진다. 프리팹을 복제하여 모든 유닛에 공통인 구조를 얻고(Prototype), 타입 객체를 넘겨받아 병종을 얻는다(Type Object). 7.2절의 Spawn에서 Instantiate 줄과 Initialize 줄이 각각 이 두 단계다.</p>
+<div class="exercise"><span class="label">생각할 문제</span>“마법사의 공격은 방어력을 무시한다”를 표현하려고 UnitClass에 <code>bool</code> 값 <code>_ignoresDefense</code>를 추가하면 코드를 작성하지 않고 해결되는가?</div><details><summary>해설 보기</summary><p>절반만 해결된다. 참과 거짓은 값이므로 에셋에 둘 수 있다. 그러나 그 값을 읽어 “참이면 방어력을 계산에서 뺀다”를 실행하는 if문은 코드에 한 번 작성해야 한다. 한 번 작성한 뒤에는 어떤 병종이든 에셋의 값으로 이 동작을 켜고 끌 수 있다. 새로운 종류의 동작이 필요할 때마다 코드가 필요하다는 점은 달라지지 않는다. 이런 동작이 계속 늘어난다면 동작을 나누는 다른 구조를 함께 사용해야 한다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
+</section>
+<section class="chapter" id="chapter-9">
+<p class="kicker">CHAPTER 09 · 복습</p><h2>복습 질문과 용어</h2>
+<div class="objectives">학습 목표: 다섯 질문에 자신의 말로 답한다. 이번 차시의 용어를 정확한 뜻으로 사용한다.</div>
+<h3>9.1 스스로 설명하는 다섯 질문</h3>
+<ol><li>7차시의 스크립트에서 “Knight”, “Archer”, “Mage”를 검색하면 몇 번 나오는가? 그것은 무엇을 뜻하는가?</li><li>새 병종 “도적”을 추가한다면 새로 작성해야 할 class와 프리팹은 각각 몇 개인가?</li><li>CurrentHp를 UnitClass에 두면 어떤 일이 일어나는가? 값을 둘 곳은 어떤 질문으로 판단하는가?</li><li>공격하는 유닛이 (2, 3)에 있고 적이 (4, 3)에 있다. 공격하는 유닛이 기사일 때와 궁수일 때 이 적은 각각 공격 대상인가? 두 경우에 실행되는 코드는 같은가?</li><li>“마법사의 공격은 방어력을 무시한다”는 왜 에셋의 숫자만으로 표현할 수 없는가? Type Object는 언제 쓰고 언제 쓰지 않는가?</li></ol>
+<details><summary>답 확인</summary><p>1. 0번이다. 코드가 병종의 이름을 알지 못하고 값만 읽는다는 뜻이다. 병종의 이름은 에셋에만 있다. 2. 둘 다 0개다. UnitClass 에셋 하나를 만들고 배치 목록에 추가하면 된다. 3. 같은 에셋을 참조하는 모든 유닛이 현재 HP를 공유한다. 기사 A가 피해 5를 받아 14 − 5 = 9가 되면 피해를 받지 않은 기사 B의 HP도 9가 된다. 값을 둘 곳은 “같은 병종의 다른 유닛과 이 값이 달라질 수 있는가”로 판단한다. 4. 거리는 |4 − 2| + |3 − 3| = 2다. 기사는 사거리가 1이고 2 ≤ 1 이 아니므로 대상이 아니다. 궁수는 사거리가 2이고 2 ≤ 2 이므로 대상이다. 실행되는 코드는 같고 유닛이 참조하는 에셋만 다르다. 5. 방어력을 무시하는 것은 값이 아니고 동작이며 데이터에는 if문을 적을 수 없기 때문이다. Type Object는 종류가 많거나 늘어나고 종류 사이의 차이가 대부분 값일 때 쓴다. 종류가 두세 개로 고정되어 있고 종류마다 실행되는 코드가 다르면 class로 나눈다.</p></details>
+<h3>9.2 용어 사전</h3>
+<table><thead><tr><th>용어</th><th>이번 차시에서의 뜻</th></tr></thead><tbody><tr><td>Type Object 패턴</td><td>종류를 나타내는 객체를 따로 만들고, 각 개체가 자신의 종류 객체를 참조하는 구조.</td></tr><tr><td>타입 객체(Type Object)</td><td>종류 하나를 나타내며 그 종류의 모든 개체가 공유하는 값을 가진 객체. 이번 차시에서는 UnitClass 에셋.</td></tr><tr><td>개체(Typed Object)</td><td>타입 객체를 참조하며 자신만의 상태를 가진 객체. 이번 차시에서는 Unit.</td></tr><tr><td>병종</td><td>기사, 궁수, 마법사와 같은 유닛의 종류.</td></tr><tr><td>UnitClass</td><td>병종 하나의 이름, 능력치 다섯 개, 그림을 보관하는 ScriptableObject class. 이름의 Class는 병종을 뜻한다.</td></tr><tr><td>ScriptableObject</td><td>게임 오브젝트에 붙이지 않고 프로젝트에 에셋으로 저장하는 데이터 객체.</td></tr><tr><td>에셋</td><td>프로젝트에 저장되는 파일. Knight, Archer, Mage 에셋이 각각 타입 객체 하나다.</td></tr><tr><td>CreateAssetMenu</td><td>Create 메뉴에 항목을 추가하여 코드 없이 ScriptableObject 에셋을 만들 수 있게 하는 표시.</td></tr><tr><td>공유 값 / 개체의 상태</td><td>같은 병종이면 모두 같은 값 / 같은 병종이어도 유닛마다 달라질 수 있는 값. 앞의 것은 UnitClass에, 뒤의 것은 Unit에 둔다.</td></tr><tr><td>UnitPlacement</td><td>어느 칸에 어떤 타입 객체로 유닛을 만들지를 한 쌍으로 묶은 데이터.</td></tr><tr><td>Prototype 패턴</td><td>미리 만들어 둔 원본을 복제하여 새 객체를 만드는 구조. Unity에서는 프리팹과 Instantiate.</td></tr></tbody></table>
+<h3>9.3 요약</h3>
+<div class="concept"><span class="label">이번 차시의 기준</span>종류가 값으로만 구분된다면 종류를 객체로 만든다. 병종마다 다른 값은 UnitClass에, 개체마다 다른 상태는 Unit에 둔다. Unit은 자신의 타입 객체를 참조하고 능력치를 읽으면 타입 객체의 값을 돌려준다. 사용하는 쪽은 병종을 확인하지 않고 <code>attacker.AttackRange</code>처럼 값을 읽는다. 새 종류를 추가하거나 값을 조정할 때에는 코드를 고치지 않고 에셋을 만들거나 고친다. 대가는 데이터로 표현할 수 없는 동작, 컴파일러가 검사하지 않는 연결, 한 단계 멀어진 값이다. 새 종류를 추가할 때 새 class를 작성하지 않아도 된다면 Type Object가 제 역할을 하고 있는 것이다.</div><a class="back" href="#top">↑ 처음과 목차로</a>
+</section>
+<p class="endnote">Mini Tactics · 7차시 Type Object 패턴 · 네트워크 없이 읽는 독립 교재</p>
+</main>
+</div>
+<script>
+(()=>{'use strict';document.getElementById('print').addEventListener('click',()=>window.print());let opened=[];window.addEventListener('beforeprint',()=>{opened=[...document.querySelectorAll('details')].map(detail=>detail.open);document.querySelectorAll('details').forEach(detail=>detail.open=true)});window.addEventListener('afterprint',()=>document.querySelectorAll('details').forEach((detail,index)=>detail.open=opened[index]??false));})();
+</script>
+</body>
+</html>

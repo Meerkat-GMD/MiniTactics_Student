@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>7차시 — Type Object 패턴 | 미니 택틱스</title>
+  <style>
+    :root {
+      --bg:#040a13; --slide:#091526; --panel:#10233a; --panel2:#142b45;
+      --text:#eef5ff; --muted:#afbed1; --teal:#55e4cf; --violet:#b8a4ff;
+      --amber:#ffd16f; --red:#ff8c99; --line:#2a405b; --green:#83e58f;
+    }
+    * { box-sizing:border-box; }
+    html, body { width:100%; height:100%; margin:0; overflow:hidden; }
+    body { background:var(--bg); color:var(--text); font-family:"Pretendard","Noto Sans KR",system-ui,sans-serif; word-break:keep-all; overflow-wrap:break-word; }
+    button, a { font:inherit; }
+    button { color:inherit; }
+    .app { min-height:100%; display:grid; grid-template-rows:1fr auto; }
+    .stage { min-height:0; display:grid; place-items:center; padding:14px 18px 6px; }
+    .deck { position:relative; width:min(100%,calc((100vh - 80px) * 16 / 9)); max-height:calc(100vh - 80px); aspect-ratio:16/9; overflow:hidden; border:1px solid #263b56; border-radius:18px; background:var(--slide); box-shadow:0 28px 88px #000a; container-type:inline-size; }
+    .slide { position:absolute; inset:0; display:none; overflow:auto; padding:clamp(28px,3.6cqw,56px) clamp(36px,5cqw,78px); background:radial-gradient(circle at 94% 7%,#253969 0,transparent 27%),linear-gradient(145deg,#0c1a2d 0%,#07121f 74%); }
+    .slide.is-active { display:grid; align-content:center; animation:reveal .24s ease-out; }
+    .slide::after { content:attr(data-slide); position:absolute; right:26px; top:20px; color:#7189a6; font-size:.76rem; font-weight:850; letter-spacing:.13em; }
+    @keyframes reveal { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:none; } }
+    h1,h2,h3,p { margin-top:0; }
+    h1 { max-width:78cqw; margin-bottom:20px; font-size:clamp(2.3rem,5.1cqw,4.9rem); line-height:1.08; letter-spacing:-.05em; }
+    h2 { max-width:82cqw; margin-bottom:clamp(16px,2.2cqw,30px); font-size:clamp(1.75rem,3.35cqw,3.15rem); line-height:1.17; letter-spacing:-.035em; }
+    h3 { margin-bottom:8px; color:var(--teal); font-size:clamp(.98rem,1.38cqw,1.3rem); }
+    p,li { font-size:clamp(.83rem,1.23cqw,1.13rem); line-height:1.53; }
+    p { margin-bottom:.72em; }
+    ul,ol { margin:.1em 0 0; padding-left:1.25em; }
+    li { margin:.38em 0; }
+    li::marker { color:var(--teal); font-weight:800; }
+    strong { color:#fff; }
+    .kicker { margin:0 0 7px; color:var(--teal); font-size:clamp(.68rem,1cqw,.9rem); font-weight:900; letter-spacing:.13em; text-transform:uppercase; }
+    .subtitle { max-width:72cqw; color:var(--muted); font-size:clamp(1rem,1.68cqw,1.5rem); line-height:1.5; }
+    .accent { color:var(--teal); } .violet { color:var(--violet); } .amber { color:var(--amber); } .red { color:var(--red); } .green { color:var(--green); }
+    .big { max-width:78cqw; font-size:clamp(1.28rem,2.3cqw,2.12rem); line-height:1.45; letter-spacing:-.02em; }
+    .quote { max-width:76cqw; margin:12px 0; padding-left:22px; border-left:5px solid var(--violet); font-size:clamp(1.2rem,2.25cqw,2rem); line-height:1.43; font-weight:760; }
+    .two { display:grid; grid-template-columns:1fr 1fr; gap:clamp(15px,2.2cqw,30px); align-items:stretch; }
+    .wide { display:grid; grid-template-columns:1.3fr .85fr; gap:clamp(18px,2.6cqw,36px); align-items:center; }
+    .panel { padding:clamp(14px,1.8cqw,23px); border:1px solid var(--line); border-radius:14px; background:#0f2138d9; }
+    .panel.teal { border-top:4px solid var(--teal); } .panel.violet { border-top:4px solid var(--violet); } .panel.amber { border-top:4px solid var(--amber); } .panel.redline { border-top:4px solid var(--red); }
+    .callout { margin-top:15px; padding:13px 18px; border-left:4px solid var(--teal); border-radius:8px; background:#10243c; }
+    .callout.warning { border-left-color:var(--amber); } .callout.danger { border-left-color:var(--red); }
+    .callout p:last-child,.panel p:last-child { margin-bottom:0; }
+    pre { margin:10px 0 0; padding:clamp(13px,1.65cqw,21px); overflow:auto; border:1px solid var(--line); border-radius:12px; background:#030a13; color:#dceafa; white-space:pre; font:clamp(.68rem,1.04cqw,.96rem)/1.58 Consolas,"D2Coding",monospace; }
+    p code,li code { padding:.08em .32em; border:1px solid #344d69; border-radius:5px; background:#081522; color:var(--amber); font-family:Consolas,"D2Coding",monospace; font-size:.92em; }
+    .code-focus { color:var(--amber); font-weight:800; }
+    .source { margin-top:10px; color:#7f94ad; font-size:clamp(.62rem,.82cqw,.76rem); }
+    .flow { display:grid; grid-template-columns:repeat(7,auto); align-items:center; justify-content:center; gap:9px; margin-top:22px; }
+    .node { min-width:9cqw; min-height:66px; display:grid; place-items:center; padding:10px 12px; border:1px solid #3b5575; border-radius:12px; background:var(--panel); text-align:center; font-size:clamp(.7rem,.95cqw,.9rem); font-weight:800; }
+    .arrow { color:var(--teal); font-size:1.35rem; font-weight:900; }
+    .state-board { display:grid; grid-template-columns:1fr auto 1fr; gap:18px; align-items:center; margin-top:14px; }
+    .coord { min-height:140px; display:grid; place-items:center; padding:22px; border:1px solid var(--line); border-radius:14px; background:#07111e; text-align:center; font:800 clamp(1rem,1.7cqw,1.55rem)/1.6 Consolas,monospace; }
+    .missing { color:var(--red); text-decoration:line-through; text-decoration-thickness:3px; }
+    .compare { width:100%; border-collapse:collapse; font-size:clamp(.72rem,1cqw,.94rem); line-height:1.42; }
+    .compare th,.compare td { padding:10px 13px; border:1px solid var(--line); vertical-align:top; text-align:left; }
+    .compare th { color:var(--teal); background:#071321; }
+    .stack { width:min(440px,70cqw); margin:14px auto 0; display:grid; gap:8px; }
+    .stack-item { padding:11px 16px; border:1px solid #405c7d; border-radius:9px; background:var(--panel); text-align:center; font-weight:800; }
+    .stack-item.top { border-color:var(--amber); color:var(--amber); }
+    .question { padding:clamp(20px,2.7cqw,38px); border:1px solid #5b4e25; border-radius:15px; background:linear-gradient(135deg,#221d10,#101c2d); }
+    .question .big { margin-bottom:0; }
+    .role-map { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:18px; }
+    .role { min-height:125px; padding:15px; border-top:4px solid var(--teal); border-radius:12px; background:var(--panel); }
+    .role:nth-child(2) { border-color:var(--violet); } .role:nth-child(3) { border-color:var(--amber); } .role:nth-child(4) { border-color:var(--red); }
+    .role b { display:block; margin-bottom:7px; font-size:clamp(.82rem,1.12cqw,1rem); }
+    .role span { color:var(--muted); font-size:clamp(.7rem,.92cqw,.86rem); line-height:1.45; }
+    .controls { min-height:60px; display:flex; align-items:center; justify-content:center; gap:9px; padding:7px 14px 10px; }
+    .control-btn { min-width:44px; min-height:40px; padding:7px 15px; border:1px solid #354c68; border-radius:10px; background:#0d1d30; cursor:pointer; }
+    .control-btn:hover:not(:disabled) { border-color:var(--teal); color:var(--teal); }
+    .control-btn:focus-visible,.toc-link:focus-visible { outline:3px solid var(--amber); outline-offset:2px; }
+    .control-btn:disabled { opacity:.35; cursor:not-allowed; }
+    #slideCounter { min-width:76px; color:var(--muted); text-align:center; font-weight:850; font-variant-numeric:tabular-nums; }
+    dialog { width:min(780px,calc(100% - 32px)); max-height:min(80vh,740px); padding:0; border:1px solid #405b7a; border-radius:18px; background:#091526; color:var(--text); box-shadow:0 30px 100px #000d; }
+    dialog::backdrop { background:#020710df; backdrop-filter:blur(4px); }
+    .toc-head { position:sticky; top:0; z-index:2; display:flex; align-items:center; justify-content:space-between; padding:18px 21px; border-bottom:1px solid var(--line); background:#091526; }
+    .toc-head h2 { margin:0; font-size:1.4rem; }
+    .toc-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; padding:16px; }
+    .toc-link { display:grid; grid-template-columns:34px 1fr; gap:8px; padding:9px 11px; border:1px solid transparent; border-radius:8px; color:var(--muted); text-decoration:none; font-size:.88rem; }
+    .toc-link:hover { color:var(--text); background:var(--panel); border-color:var(--line); }
+    .toc-link span { color:var(--teal); font-weight:900; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @media (max-height:650px) and (min-width:721px) {
+      .slide { padding:24px 40px; }
+      h1 { font-size:3rem; } h2 { font-size:1.72rem; margin-bottom:12px; } h3 { font-size:.91rem; }
+      p,li { font-size:.76rem; line-height:1.38; } li { margin:.25em 0; }
+      .panel { padding:10px 13px; } .callout { margin-top:8px; padding:8px 13px; }
+      pre { margin-top:6px; padding:9px 12px; font-size:.64rem; line-height:1.4; }
+      .node { min-height:48px; padding:6px 9px; font-size:.65rem; }
+      .role { min-height:90px; padding:10px; } .coord { min-height:105px; padding:14px; }
+    }
+    @media (max-width:720px) {
+      .stage { padding:0; }
+      .deck { width:100%; height:calc(100vh - 60px); max-height:none; aspect-ratio:auto; border:0; border-radius:0; }
+      .slide { padding:48px 21px 28px; }
+      .slide.is-active { align-content:start; }
+      .two,.wide,.state-board,.role-map { grid-template-columns:1fr; }
+      .flow { grid-template-columns:1fr; }
+      .flow .arrow { transform:rotate(90deg); }
+      .toc-grid { grid-template-columns:1fr; }
+      h1 { font-size:clamp(2.05rem,10.5cqw,3.25rem); }
+      h2 { font-size:clamp(1.6rem,7.2cqw,2.25rem); }
+      p,li { font-size:1rem; }
+      pre { font-size:.75rem; white-space:pre-wrap; overflow-wrap:anywhere; }
+    }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; } }
+    @media print {
+      html,body { height:auto; overflow:visible; background:#fff; color:#111; }
+      .app,.stage,.deck { display:block; width:auto; height:auto; max-height:none; padding:0; overflow:visible; border:0; box-shadow:none; }
+      .slide,.slide.is-active { position:relative; display:grid; width:100%; min-height:175mm; padding:15mm; break-after:page; overflow:hidden; background:#fff; color:#111; animation:none; }
+      .slide:last-child { break-after:auto; }
+      .controls,dialog { display:none !important; }
+      h1,h2,h3,p,li,strong,.subtitle,.kicker,.accent,.violet,.amber,.red,.green,.source { color:#111; }
+      .panel,.callout,pre,.node,.coord,.role,.stack-item,.question,.compare th,.compare td { background:#fff; color:#111; border-color:#777; }
+    }
+  </style>
+<style id="layout-safety">
+    .slide > div,.two > div,.wide > div,.role,.node { min-width:0; }
+    .compare { table-layout:fixed; overflow-wrap:anywhere; }
+    .role b,.role span { overflow-wrap:anywhere; }
+    @media (max-width:720px) { .state-board > .arrow { transform:rotate(90deg); justify-self:center; } .flow > .arrow { justify-self:center; } }
+    @media print { .deck { container-type:normal; aspect-ratio:auto; } .slide,.slide.is-active { height:auto; overflow:visible; break-inside:avoid; } }
+    </style>
+</head>
+<body>
+  <div class="app">
+    <main class="stage">
+      <div class="deck" id="deck">
+        <section class="slide is-active" id="slide-1" data-slide="01 / 24" aria-labelledby="title-1"><div><p class="kicker">Mini Tactics · Lesson 07</p><h1 id="title-1">미니 택틱스로 이해하는<br><span class="accent">Type Object 패턴</span></h1><p class="subtitle">기사, 궁수, 마법사는 서로 다른 class여야 할까?<br>유닛의 “종류”를 class가 아니라 데이터로 만든다.</p></div></section>
+
+<section class="slide" id="slide-2" data-slide="02 / 24" aria-labelledby="title-2"><div><p class="kicker">Starting Point</p><h2 id="title-2">지금까지는 Unit이 자신의 능력치를 직접 가지고 있었다</h2><pre><code>[SerializeField, Min(0)] private int _moveBudget = 4;
+[SerializeField, Min(1)] private int _maxHp = 10;
+[SerializeField, Min(0)] private int _attackPower = 6;
+[SerializeField, Min(0)] private int _defense = 1;</code></pre><p class="source">6차시 Unit.cs의 필드다. 읽기 편하게 네 줄만 옮겼다.</p><div class="two"><div class="panel teal"><h3>이 방식으로 충분했던 이유</h3><p>모든 유닛을 같은 프리팹 하나로 만들었다. 프리팹에 적힌 값이 곧 모든 유닛의 값이므로 아군과 적의 능력치가 모두 같았다.</p></div><div class="panel violet"><h3>이 방식의 전제</h3><p>유닛의 종류가 하나뿐이다. 값을 바꾸려면 프리팹 하나만 고치면 된다.</p></div></div><div class="callout"><p>오늘은 이 전제가 맞지 않는 상황을 다룬다. 유닛의 종류가 여럿이고 앞으로 더 늘어날 수 있는 경우다.</p></div></div></section>
+
+<section class="slide" id="slide-3" data-slide="03 / 24" aria-labelledby="title-3"><div><p class="kicker">New Requirement</p><h2 id="title-3">병종이 생기면 유닛마다 능력치가 달라져야 한다</h2><table class="compare"><thead><tr><th>병종</th><th>최대 HP</th><th>공격력</th><th>방어력</th><th>이동력</th><th>사거리</th></tr></thead><tbody><tr><td>기사</td><td>14</td><td>6</td><td>3</td><td>3</td><td>1</td></tr><tr><td>궁수</td><td>9</td><td>5</td><td>1</td><td>4</td><td>2</td></tr><tr><td>마법사</td><td>7</td><td>8</td><td>0</td><td>3</td><td>1</td></tr></tbody></table><div class="two" style="margin-top:16px"><div class="panel teal"><h3>병종마다 다른 것</h3><p>숫자 다섯 개와 이름, 그림이다.</p></div><div class="panel violet"><h3>병종이 달라도 같은 것</h3><p>피해를 받으면 HP가 줄고, 0이 되면 쓰러진다. 이동하고 공격하는 방법도 같다.</p></div></div><div class="callout"><p>다른 것은 값이고, 같은 것은 동작이다. 이 구분이 오늘 내용 전체의 출발점이다.</p></div></div></section>
+
+<section class="slide" id="slide-4" data-slide="04 / 24" aria-labelledby="title-4"><div><p class="kicker">First Attempt</p><h2 id="title-4">첫 시도: 병종마다 class를 하나씩 만든다</h2><div class="wide"><pre><code>public class Unit : MonoBehaviour
+{
+    public virtual int MaxHp =&gt; 10;
+    public virtual int AttackRange =&gt; 1;
+}
+
+public class Knight : Unit
+{
+    public override int MaxHp =&gt; 14;
+}
+
+public class Archer : Unit
+{
+    public override int MaxHp =&gt; 9;
+    public override int AttackRange =&gt; 2;
+}</code></pre><div class="panel teal"><h3>이 방법의 생각</h3><p>“기사는 유닛의 한 종류다”라는 말을 상속으로 그대로 옮겼다. 객체지향을 배우면 가장 먼저 떠올리는 방법이다.</p><p>병종이 두세 개로 고정되어 있다면 이 방법으로도 동작한다.</p></div></div><p class="source">설계 비교용 가상 코드다. 실제 프로젝트에는 이런 class가 없다.</p></div></section>
+
+<section class="slide" id="slide-5" data-slide="05 / 24" aria-labelledby="title-5"><div><p class="kicker">Observe the Limit</p><h2 id="title-5">첫 시도에서는 값 하나를 바꾸는 일이 코드 수정이 된다</h2><table class="compare"><thead><tr><th style="width:34%">새 요구</th><th>첫 시도에서 해야 하는 일</th></tr></thead><tbody><tr><td>기사의 HP를 14에서 16으로 조정한다.</td><td>Knight.cs를 열어 숫자를 고치고 다시 컴파일한다. 프로그래머만 할 수 있다.</td></tr><tr><td>새 병종 “도적”을 추가한다.</td><td>새 class 파일을 만들고, 그 class를 붙인 새 프리팹을 만들고, 생성하는 코드에 도적을 추가한다.</td></tr><tr><td>병종이 30개로 늘어난다.</td><td>class 30개와 프리팹 30개가 생긴다. 그런데 class들의 내용은 숫자만 다르다.</td></tr></tbody></table><div class="callout danger"><p>class는 동작이 다를 때 나누는 도구다. 기사와 궁수는 동작이 같고 값만 다르다. 값의 차이를 표현하려고 class를 늘리고 있다.</p></div><p class="source">enum과 switch로 바꾸어도 사정은 같다. 병종을 추가할 때마다 모든 switch에 case를 추가해야 한다.</p></div></section>
+
+<section class="slide" id="slide-6" data-slide="06 / 24" aria-labelledby="title-6"><div><p class="kicker">Find the Boundary</p><h2 id="title-6">병종마다 다른 값만 떼어 내어 별도의 객체로 만든다</h2><div class="two"><div class="panel redline"><h3>첫 시도의 구조</h3><p>Knight, Archer, Mage</p><p>종류 하나가 class 하나다. 종류를 추가하려면 코드를 작성해야 한다.</p></div><div class="panel teal"><h3>바꾼 구조</h3><p>Unit + “병종 정보” 객체</p><p>Unit class는 하나다. 병종마다 다른 값은 병종 정보 객체가 가진다. Unit은 자신의 병종 정보를 참조한다.</p></div></div><div class="callout"><p>“이 유닛은 기사다”를 “이 유닛은 Knight class의 객체다”로 표현하지 않는다. “이 유닛은 기사라는 병종 정보를 가리킨다”로 표현한다. 종류가 class에서 객체로 바뀌었다.</p></div></div></section>
+
+<section class="slide" id="slide-7" data-slide="07 / 24" aria-labelledby="title-7"><div><p class="kicker">Type Object Pattern</p><h2 id="title-7">이 구조의 이름이 Type Object 패턴이다</h2><p class="quote">종류를 나타내는 객체를 따로 만들고, 각 개체가 자신의 종류 객체를 참조한다.</p><div class="role-map"><div class="role"><b>타입 객체(Type Object) · UnitClass</b><span>병종 하나를 나타낸다. 그 병종의 모든 유닛이 공유하는 값을 가진다.</span></div><div class="role"><b>타입 객체의 실물 · 에셋 3개</b><span>Knight, Archer, Mage 에셋이다. class는 UnitClass 하나이고 객체가 셋이다.</span></div><div class="role"><b>개체(Typed Object) · Unit</b><span>전장에 있는 유닛 하나다. 현재 HP처럼 개체마다 다른 상태를 가진다.</span></div><div class="role"><b>연결 · Unit.UnitClass</b><span>개체가 자신의 타입 객체를 가리키는 참조다. 개체는 공유 값을 이 참조를 통해 읽는다.</span></div></div><div class="callout"><p>Type Object는 “타입 역할을 하는 객체”라는 뜻이다. C#의 class가 하던 “종류를 정의하는 일”을 우리가 만든 객체가 대신한다.</p></div></div></section>
+
+<section class="slide" id="slide-8" data-slide="08 / 24" aria-labelledby="title-8"><div><p class="kicker">Actual Code · UnitClass.cs</p><h2 id="title-8">타입 객체: UnitClass는 값과 읽기 전용 속성만 가진다</h2><div class="wide"><pre><code>[CreateAssetMenu(menuName = "Mini Tactics/Unit Class")]
+public sealed class UnitClass : ScriptableObject
+{
+    [SerializeField] private string _displayName;
+    [SerializeField, Min(1)] private int _maxHp;
+    [SerializeField, Min(1)] private int _attackRange = 1;
+    [SerializeField] private Sprite _sprite;
+
+    public string DisplayName =&gt; _displayName;
+    public int MaxHp =&gt; _maxHp;
+    public int AttackRange =&gt; _attackRange;
+    public Sprite Sprite =&gt; _sprite;
+}</code></pre><div class="panel teal"><h3>읽는 방법</h3><ol><li>필드는 Inspector에서 입력하는 값이다.</li><li>속성은 <code>=&gt;</code>로 값을 읽어 주기만 한다. 바깥에서 값을 바꿀 수 없다.</li><li>메서드가 없다. 이 class는 동작을 하지 않고 값을 보관한다.</li></ol></div></div><p class="source">축약한 발췌다. 실제 파일에는 같은 모양의 <code>_attackPower</code>, <code>_defense</code>, <code>_moveBudget</code> 필드와 속성이 더 있다.</p></div></section>
+
+<section class="slide" id="slide-9" data-slide="09 / 24" aria-labelledby="title-9"><div><p class="kicker">ScriptableObject</p><h2 id="title-9">ScriptableObject 에셋 하나가 타입 객체 하나다</h2><div class="two"><div class="panel teal"><h3>ScriptableObject</h3><p>씬의 게임 오브젝트에 붙이지 않고 프로젝트에 파일(에셋)로 저장하는 데이터 객체다. 3차시의 TileData가 같은 방식이었다.</p></div><div class="panel violet"><h3>CreateAssetMenu</h3><p>Project 창의 Create 메뉴에 “Mini Tactics/Unit Class” 항목을 추가한다. 이 메뉴를 선택할 때마다 UnitClass 객체가 하나씩 에셋으로 만들어진다.</p></div></div><table class="compare" style="margin-top:14px"><thead><tr><th>구분</th><th>개수</th><th>만드는 방법</th></tr></thead><tbody><tr><td>UnitClass class</td><td>1개</td><td>프로그래머가 코드로 한 번 작성한다.</td></tr><tr><td>UnitClass 에셋</td><td>병종의 수만큼(현재 3개)</td><td>누구나 메뉴에서 만들고 Inspector에서 값을 입력한다.</td></tr></tbody></table><div class="callout"><p>첫 시도에서는 병종의 수만큼 class가 필요했다. 이제는 병종의 수만큼 에셋이 필요하다. 에셋을 만드는 데에는 컴파일이 필요하지 않다.</p></div></div></section>
+
+<section class="slide" id="slide-10" data-slide="10 / 24" aria-labelledby="title-10"><div><p class="kicker">Actual Code · Unit.cs</p><h2 id="title-10">개체: Unit은 능력치를 자신의 타입 객체에게 물어본다</h2><div class="wide"><pre><code><span class="code-focus">public UnitClass UnitClass { get; private set; }</span>
+public int MoveBudget =&gt; UnitClass.MoveBudget;
+public int MaxHp =&gt; UnitClass.MaxHp;
+public int AttackPower =&gt; UnitClass.AttackPower;
+public int Defense =&gt; UnitClass.Defense;
+public int AttackRange =&gt; UnitClass.AttackRange;
+public int CurrentHp { get; private set; }</code></pre><div class="panel teal"><h3>바뀐 점</h3><p>능력치 필드 네 개가 사라지고 <code>UnitClass</code> 참조 하나가 생겼다.</p><p><code>unit.MaxHp</code>를 읽으면 Unit은 자신의 값을 돌려주지 않고 타입 객체의 값을 돌려준다.</p></div></div><div class="callout"><p>속성의 이름은 6차시와 같다. 그래서 <code>unit.MaxHp</code>, <code>unit.AttackPower</code>를 읽던 체력바와 피해 계산 코드는 한 줄도 바뀌지 않는다.</p></div><p class="source">Unit.cs의 속성 부분이다. 중간의 <code>CanMove</code> 한 줄을 생략했다.</p></div></section>
+
+<section class="slide" id="slide-11" data-slide="11 / 24" aria-labelledby="title-11"><div><p class="kicker">Actual Code · Unit.cs</p><h2 id="title-11">연결: Initialize가 유닛에게 타입 객체를 알려 준다</h2><div class="wide"><pre><code>public void Initialize(Team team, <span class="code-focus">UnitClass unitClass</span>)
+{
+    Team = team;
+    <span class="code-focus">UnitClass = unitClass;</span>
+    CurrentHp = unitClass.MaxHp;
+    SpriteRenderer renderer = GetComponent&lt;SpriteRenderer&gt;();
+    renderer.sprite = unitClass.Sprite;
+    renderer.color = team == Team.Player ? PlayerColor : EnemyColor;
+}</code></pre><div class="panel teal"><h3>실행 순서</h3><ol><li>전달받은 타입 객체를 기억한다.</li><li>현재 HP를 그 병종의 최대 HP로 채운다.</li><li>그림을 그 병종의 그림으로 바꾼다.</li></ol></div></div><div class="callout"><p>유닛은 만들어진 직후에는 종류가 없다. Initialize에 어떤 에셋을 넘기는가에 따라 기사가 되기도 하고 궁수가 되기도 한다. 종류가 실행 중에 정해진다.</p></div><p class="source">Unit.cs의 Initialize 전체다.</p></div></section>
+
+<section class="slide" id="slide-12" data-slide="12 / 24" aria-labelledby="title-12"><div><p class="kicker">Shared vs Own</p><h2 id="title-12">공유하는 값은 타입 객체에, 개체마다 다른 값은 Unit에 둔다</h2><table class="compare"><thead><tr><th style="width:24%">값</th><th style="width:22%">두는 곳</th><th>이유</th></tr></thead><tbody><tr><td>MaxHp, AttackPower, Defense, MoveBudget, AttackRange, Sprite</td><td>UnitClass</td><td>같은 병종이면 모두 같다. 한곳에 두면 한 번만 고쳐도 그 병종 전체에 반영된다.</td></tr><tr><td>CurrentHp</td><td>Unit</td><td>같은 기사라도 받은 피해가 다르다.</td></tr><tr><td>Team, HasMoved</td><td>Unit</td><td>같은 기사라도 아군일 수도 적일 수도 있고, 이번 턴에 행동했는지도 다르다.</td></tr><tr><td>위치</td><td>Unit의 Transform</td><td>유닛마다 서 있는 칸이 다르다.</td></tr></tbody></table><div class="callout"><p>판단하는 질문은 하나다. “같은 병종의 다른 유닛과 이 값이 달라질 수 있는가?” 달라질 수 있으면 Unit에 두고, 달라질 수 없으면 UnitClass에 둔다.</p></div></div></section>
+
+<section class="slide" id="slide-13" data-slide="13 / 24" aria-labelledby="title-13"><div><p class="kicker">Think · Shared State</p><h2 id="title-13">CurrentHp를 UnitClass에 두면 어떤 일이 일어나는가?</h2><div class="two"><div class="question"><p class="big">아군 기사 A와<br>적 기사 B가 있다.<br>A가 피해 5를 받으면<br><span class="amber">B의 HP</span>는 얼마인가?</p></div><div class="panel teal"><h3>답을 순서대로 확인한다</h3><ol><li>A와 B는 같은 Knight 에셋을 참조한다. 에셋은 하나다.</li><li>CurrentHp가 에셋에 있다면 A가 받은 피해는 에셋의 값을 14에서 9로 바꾼다.</li><li>B도 같은 에셋의 값을 읽으므로 B의 HP도 9가 된다. 맞지 않은 유닛의 HP가 줄었다.</li></ol></div></div><div class="callout"><p>현재 코드에서는 CurrentHp가 Unit에 있다. A는 14 − 5 = 9가 되고 B는 14 그대로다. 타입 객체에는 실행 중에 바뀌지 않는 값만 둔다.</p></div><p class="source">질문은 CurrentHp를 잘못된 곳에 두었다고 가정한 것이다.</p></div></section>
+
+<section class="slide" id="slide-14" data-slide="14 / 24" aria-labelledby="title-14"><div><p class="kicker">Actual Code · TurnManager.cs</p><h2 id="title-14">사용하는 쪽은 병종을 묻지 않고 값을 읽는다</h2><div class="two"><div><pre><code>if (attacker is Archer)
+{
+    range = 2;
+}
+else
+{
+    range = 1;
+}</code></pre><p class="source">설계 비교용 가상 코드다. 병종을 추가할 때마다 분기가 늘어난다.</p></div><div><pre><code>if (unit.IsAlive
+    &amp;&amp; unit.Team != attacker.Team
+    &amp;&amp; distance &gt;= 1
+    &amp;&amp; <span class="code-focus">distance &lt;= attacker.AttackRange</span>)
+{
+    targets.Add(unit);
+}</code></pre><p class="source">TurnManager.GetAttackTargets의 조건이다. 줄바꿈만 읽기 편하게 바꾸었다.</p></div></div><div class="callout"><p>오른쪽 코드에는 “궁수”라는 단어가 없다. 공격하는 유닛이 어떤 병종인지 확인하지 않고 그 유닛의 사거리 값을 읽는다. 사거리가 3인 병종이 새로 생겨도 이 코드는 바뀌지 않는다.</p></div></div></section>
+
+<section class="slide" id="slide-15" data-slide="15 / 24" aria-labelledby="title-15"><div><p class="kicker">Trace the Numbers</p><h2 id="title-15">추적: 같은 조건문이 병종에 따라 다른 결과를 낸다</h2><p>출발 상태: 공격하는 유닛이 (2, 3)에 있다. 적 X는 (3, 3)에, 적 Y는 (4, 3)에 있다. 거리는 가로 차이와 세로 차이를 더한 값이다.</p><table class="compare"><thead><tr><th style="width:22%">단계</th><th>공격하는 유닛이 기사일 때</th><th>공격하는 유닛이 궁수일 때</th></tr></thead><tbody><tr><td>attacker.AttackRange</td><td>Knight 에셋의 값 1</td><td>Archer 에셋의 값 2</td></tr><tr><td>적 X까지의 거리</td><td>|3 − 2| + |3 − 3| = 1</td><td>1</td></tr><tr><td>적 X 판정</td><td>1 ≥ 1 이고 1 ≤ 1 이므로 대상이다.</td><td>1 ≥ 1 이고 1 ≤ 2 이므로 대상이다.</td></tr><tr><td>적 Y까지의 거리</td><td>|4 − 2| + |3 − 3| = 2</td><td>2</td></tr><tr><td>적 Y 판정</td><td>2 ≤ 1 이 아니므로 대상이 아니다.</td><td>2 ≥ 1 이고 2 ≤ 2 이므로 대상이다.</td></tr><tr><td>공격 대상</td><td>X 하나</td><td>X와 Y 둘</td></tr></tbody></table><div class="callout"><p>실행된 코드는 두 경우 모두 같다. 달라진 것은 유닛이 참조하는 에셋뿐이다.</p></div></div></section>
+
+<section class="slide" id="slide-16" data-slide="16 / 24" aria-labelledby="title-16"><div><p class="kicker">Actual Code · UnitPlacement.cs, UnitSpawner.cs</p><h2 id="title-16">어떤 종류로 만들지도 데이터로 정한다</h2><div class="two"><pre><code>[Serializable]
+public sealed class UnitPlacement
+{
+    [SerializeField] private UnitClass _unitClass;
+    [SerializeField] private Vector2Int _cell;
+
+    public UnitClass UnitClass =&gt; _unitClass;
+    public Vector2Int Cell =&gt; _cell;
+}</code></pre><pre><code>UnitPlacement placement = placements[index];
+Unit unit = Instantiate(_unitPrefab, transform);
+unit.transform.position =
+    _board.CellToWorld(placement.Cell);
+<span class="code-focus">unit.Initialize(team, placement.UnitClass);</span></code></pre></div><div class="callout"><p>UnitPlacement는 “어느 칸에 어떤 병종을 놓는가”를 한 쌍으로 묶은 데이터다. 프리팹은 여전히 하나다. 같은 프리팹으로 만든 유닛에 서로 다른 타입 객체를 넘겨서 기사, 궁수, 마법사를 만든다.</p></div><p class="source">왼쪽은 UnitPlacement.cs의 class 전체다. 오른쪽은 UnitSpawner.Spawn의 반복문에서 이름을 짓는 줄과 목록에 추가하는 줄을 생략하고 한 줄을 두 줄로 나눈 것이다.</p></div></section>
+
+<section class="slide" id="slide-17" data-slide="17 / 24" aria-labelledby="title-17"><div><p class="kicker">Extension</p><h2 id="title-17">새 병종 “도적”을 추가할 때 작성해야 할 코드는 0줄이다</h2><div class="flow"><div class="node">Create 메뉴에서<br>Unit Class 선택</div><div class="arrow">→</div><div class="node">이름을 Thief로 하고<br>값과 그림을 입력</div><div class="arrow">→</div><div class="node">UnitSpawner의 배치 목록에<br>Thief와 칸을 추가</div><div class="arrow">→</div><div class="node">Play를 누르면<br>도적이 등장</div></div><table class="compare" style="margin-top:16px"><thead><tr><th>방법</th><th>새 class</th><th>새 프리팹</th><th>기존 코드 수정</th><th>컴파일</th></tr></thead><tbody><tr><td>첫 시도(상속)</td><td>1개</td><td>1개</td><td>생성 코드에 추가</td><td>필요하다</td></tr><tr><td>Type Object</td><td>0개</td><td>0개</td><td>없다</td><td>필요하지 않다</td></tr></tbody></table><div class="callout"><p>기사의 HP를 조정하는 일도 같다. Knight 에셋의 숫자를 Inspector에서 고치면 끝난다. 프로그래머가 아닌 사람도 할 수 있다.</p></div></div></section>
+
+<section class="slide" id="slide-18" data-slide="18 / 24" aria-labelledby="title-18"><div><p class="kicker">Think · Live Edit</p><h2 id="title-18">실행 중에 Knight 에셋의 MaxHp를 14에서 20으로 바꾸면?</h2><div class="two"><div class="question"><p class="big">전장에 기사가 둘 있다.<br>A는 HP 14 / 14,<br>B는 HP 9 / 14다.<br>체력바는 <span class="amber">언제</span> 바뀌는가?</p></div><div class="panel teal"><h3>답을 순서대로 확인한다</h3><ol><li>A와 B의 MaxHp는 모두 즉시 20이 된다. 둘 다 같은 에셋의 값을 읽기 때문이다.</li><li>CurrentHp는 Unit에 있으므로 14와 9 그대로다.</li><li>체력바는 바로 바뀌지 않는다. 체력바는 HpChanged 알림을 받았을 때만 다시 계산한다.</li><li>B가 피해 2를 받으면 그때 7 / 20 = 0.35로 계산되어 35%가 된다.</li></ol></div></div><div class="callout warning"><p>에디터에서 실행 중에 바꾼 ScriptableObject 에셋의 값은 Play를 끝내도 되돌아가지 않는다. 씬의 오브젝트와 다른 점이다.</p></div></div></section>
+
+<section class="slide" id="slide-19" data-slide="19 / 24" aria-labelledby="title-19"><div><p class="kicker">Flyweight vs Type Object</p><h2 id="title-19">3차시의 Flyweight와 모양이 비슷하지만 목적이 다르다</h2><div class="two"><div class="panel violet"><h3>Flyweight · “같은 데이터를 몇 번 저장하는가”</h3><p>수많은 칸이 같은 지형 정보를 각자 복사해서 가지는 낭비를 없앤다. 목적은 중복 제거다.</p><p>칸 120개가 <code>TerrainType</code> 객체 4개를 공유한다.</p></div><div class="panel teal"><h3>Type Object · “종류를 어디에 정의하는가”</h3><p>종류를 class로 정의하지 않고 객체로 정의한다. 목적은 코드를 고치지 않고 종류를 추가하고 조정하는 것이다.</p><p>유닛들이 <code>UnitClass</code> 에셋 3개를 참조한다.</p></div></div><div class="callout"><p>두 패턴 모두 여러 개체가 하나의 객체를 공유한다. 그래서 한 구조가 두 패턴의 이득을 함께 얻는 경우가 많다. 기사가 100명이어도 기사의 능력치는 메모리에 한 번만 저장된다.</p></div></div></section>
+
+<section class="slide" id="slide-20" data-slide="20 / 24" aria-labelledby="title-20"><div><p class="kicker">Cost</p><h2 id="title-20">Type Object에는 대가가 있다</h2><table class="compare"><thead><tr><th style="width:26%">대가</th><th>구체적인 모습</th><th style="width:30%">대응</th></tr></thead><tbody><tr><td>값은 바꿀 수 있지만 동작은 바꿀 수 없다.</td><td>“마법사의 공격은 방어력을 무시한다”는 숫자 하나로 표현할 수 없다. 데이터에는 if문을 적을 수 없기 때문이다.</td><td>동작의 차이가 필요해지면 다른 구조를 함께 사용한다.</td></tr><tr><td>연결을 빠뜨려도 컴파일러가 알려 주지 않는다.</td><td>배치 목록에서 병종 칸을 비워 두면 실행 중에 <code>placement.UnitClass.DisplayName</code>에서 NullReferenceException이 발생한다.</td><td>에셋을 만든 뒤 Inspector의 연결을 확인한다.</td></tr><tr><td>값을 찾으려면 한 단계를 더 거친다.</td><td><code>unit.MaxHp</code>의 실제 값은 Unit.cs에 없다. 그 유닛이 참조하는 에셋을 열어야 알 수 있다.</td><td>속성 이름을 에셋의 필드 이름과 같게 유지한다.</td></tr></tbody></table><div class="callout warning"><p>class 상속에서는 컴파일러가 검사해 주던 것을 이제는 사람이 확인해야 한다. 유연함을 얻은 만큼 검사를 잃었다.</p></div></div></section>
+
+<section class="slide" id="slide-21" data-slide="21 / 24" aria-labelledby="title-21"><div><p class="kicker">Judgment</p><h2 id="title-21">적용 기준: 종류마다 다른 것이 값인가, 동작인가?</h2><div class="two"><div class="panel teal"><h3>Type Object가 이득인 경우</h3><p>종류가 많거나 앞으로 늘어난다. 종류 사이의 차이가 대부분 값이다. 프로그래머가 아닌 사람이 값을 조정해야 한다.</p><p>예: 병종, 아이템, 몬스터, 지형.</p></div><div class="panel amber"><h3>class로 나누는 편이 나은 경우</h3><p>종류가 두세 개로 고정되어 있다. 종류마다 실행되는 코드 자체가 다르다.</p><p>예: 4차시의 IdleState와 UnitSelectedState. 두 상태는 같은 클릭에 서로 다른 코드를 실행한다.</p></div></div><div class="callout"><p>4차시의 상태들을 데이터로 바꾸지 않는 이유가 여기에 있다. 상태마다 다른 것은 값이 아니고 동작이다. 패턴은 실제로 해결할 문제가 있을 때에만 도입한다.</p></div></div></section>
+
+<section class="slide" id="slide-22" data-slide="22 / 24" aria-labelledby="title-22"><div><p class="kicker">Check Yourself</p><h2 id="title-22">이해 확인: 답을 먼저 예측한 뒤에 확인한다</h2><div class="two"><div class="panel amber"><h3>질문 1</h3><p><strong>전장에 기사 2명, 궁수 3명, 마법사 1명이 있다. Unit 객체와 UnitClass 객체는 각각 몇 개인가?</strong></p><p>답: Unit은 2 + 3 + 1 = 6개이고 UnitClass는 3개다. 유닛이 60명으로 늘어나도 병종이 그대로라면 UnitClass는 3개다.</p></div><div class="panel amber"><h3>질문 2</h3><p><strong>“이동하면 이번 턴의 이동력이 줄어든다”는 규칙을 추가하려고 한다. 남은 이동력은 어디에 두어야 하는가?</strong></p><p>답: Unit이다. 같은 기사라도 이미 이동한 기사와 아직 이동하지 않은 기사의 값이 다르다. UnitClass에 두면 기사 하나가 이동했을 때 모든 기사의 이동력이 줄어든다.</p></div></div><div class="callout"><p>두 질문 모두 12장의 기준으로 풀 수 있다. “같은 병종의 다른 유닛과 이 값이 달라질 수 있는가?”</p></div></div></section>
+
+<section class="slide" id="slide-23" data-slide="23 / 24" aria-labelledby="title-23"><div><p class="kicker">Theory Corner · Prototype</p><h2 id="title-23">이론 코너: Instantiate(prefab)은 Prototype 패턴이다</h2><pre><code>Unit unit = Instantiate(_unitPrefab, transform);</code></pre><p class="source">UnitSpawner.Spawn의 실제 코드다.</p><div class="two"><div class="panel violet"><h3>Prototype 패턴</h3><p>새 객체를 <code>new</code>로 처음부터 조립하지 않고, 미리 만들어 둔 원본을 복제해서 만든다. 원본을 프로토타입이라고 부른다.</p></div><div class="panel teal"><h3>Unity의 프리팹</h3><p>프리팹이 프로토타입이다. Instantiate는 프리팹에 붙어 있는 컴포넌트, 자식 오브젝트, Inspector 값을 모두 복제한다. 체력바가 유닛마다 따라오는 이유다.</p></div></div><div class="callout"><p>오늘의 유닛은 두 패턴으로 만들어진다. 프리팹을 복제하여 모든 유닛에 공통인 구조를 얻고(Prototype), 타입 객체를 넘겨받아 병종을 얻는다(Type Object).</p></div></div></section>
+
+<section class="slide" id="slide-24" data-slide="24 / 24" aria-labelledby="title-24"><div><p class="kicker">Takeaway</p><h2 id="title-24">종류가 값으로만 구분된다면, 종류를 객체로 만든다</h2><ol><li>병종마다 다른 값은 <code>UnitClass</code>에, 개체마다 다른 상태는 <code>Unit</code>에 둔다.</li><li>Unit은 자신의 타입 객체를 참조하고, 능력치를 물으면 타입 객체의 값을 돌려준다.</li><li>사용하는 쪽은 병종을 확인하지 않고 <code>attacker.AttackRange</code>처럼 값을 읽는다.</li><li>새 종류를 추가하거나 값을 조정할 때 코드를 고치지 않는다. 에셋을 만들거나 고친다.</li><li>대가는 데이터로 표현할 수 없는 동작, 컴파일러가 검사하지 않는 연결, 한 단계 멀어진 값이다.</li></ol><div class="question"><p class="big">새 종류를 추가할 때<br>새 class를 작성해야 하는가?<br>답이 <span class="amber">“아니다”</span>라면 Type Object가 제 역할을 하고 있다.</p></div></div></section>
+      </div>
+    </main>
+
+    <nav class="controls" aria-label="슬라이드 탐색">
+      <button class="control-btn" id="prevBtn" type="button" aria-label="이전 슬라이드">←</button>
+      <button class="control-btn" id="tocBtn" type="button">목차</button>
+      <span id="slideCounter" aria-live="polite">1 / 24</span>
+      <button class="control-btn" id="nextBtn" type="button" aria-label="다음 슬라이드">→</button>
+    </nav>
+  </div>
+
+  <dialog id="tocDialog" aria-labelledby="tocTitle">
+    <div class="toc-head"><h2 id="tocTitle">전체 목차</h2><button class="control-btn" id="tocCloseBtn" type="button">닫기</button></div>
+    <div class="toc-grid">
+<a class="toc-link" href="#slide-1"><span>01</span>Type Object 패턴</a><a class="toc-link" href="#slide-2"><span>02</span>지금까지는 Unit이 자신의 능력치를 직접 가지고 있었다</a><a class="toc-link" href="#slide-3"><span>03</span>병종이 생기면 유닛마다 능력치가 달라져야 한다</a><a class="toc-link" href="#slide-4"><span>04</span>첫 시도: 병종마다 class를 하나씩 만든다</a><a class="toc-link" href="#slide-5"><span>05</span>첫 시도에서는 값 하나를 바꾸는 일이 코드 수정이 된다</a><a class="toc-link" href="#slide-6"><span>06</span>병종마다 다른 값만 떼어 내어 별도의 객체로 만든다</a><a class="toc-link" href="#slide-7"><span>07</span>이 구조의 이름이 Type Object 패턴이다</a><a class="toc-link" href="#slide-8"><span>08</span>타입 객체: UnitClass는 값과 읽기 전용 속성만 가진다</a><a class="toc-link" href="#slide-9"><span>09</span>ScriptableObject 에셋 하나가 타입 객체 하나다</a><a class="toc-link" href="#slide-10"><span>10</span>개체: Unit은 능력치를 자신의 타입 객체에게 물어본다</a><a class="toc-link" href="#slide-11"><span>11</span>연결: Initialize가 유닛에게 타입 객체를 알려 준다</a><a class="toc-link" href="#slide-12"><span>12</span>공유하는 값은 타입 객체에, 개체마다 다른 값은 Unit에 둔다</a><a class="toc-link" href="#slide-13"><span>13</span>CurrentHp를 UnitClass에 두면 어떤 일이 일어나는가?</a><a class="toc-link" href="#slide-14"><span>14</span>사용하는 쪽은 병종을 묻지 않고 값을 읽는다</a><a class="toc-link" href="#slide-15"><span>15</span>추적: 같은 조건문이 병종에 따라 다른 결과를 낸다</a><a class="toc-link" href="#slide-16"><span>16</span>어떤 종류로 만들지도 데이터로 정한다</a><a class="toc-link" href="#slide-17"><span>17</span>새 병종 “도적”을 추가할 때 작성해야 할 코드는 0줄이다</a><a class="toc-link" href="#slide-18"><span>18</span>실행 중에 Knight 에셋의 MaxHp를 14에서 20으로 바꾸면?</a><a class="toc-link" href="#slide-19"><span>19</span>3차시의 Flyweight와 모양이 비슷하지만 목적이 다르다</a><a class="toc-link" href="#slide-20"><span>20</span>Type Object에는 대가가 있다</a><a class="toc-link" href="#slide-21"><span>21</span>적용 기준: 종류마다 다른 것이 값인가, 동작인가?</a><a class="toc-link" href="#slide-22"><span>22</span>이해 확인: 답을 먼저 예측한 뒤에 확인한다</a><a class="toc-link" href="#slide-23"><span>23</span>이론 코너: Instantiate(prefab)은 Prototype 패턴이다</a><a class="toc-link" href="#slide-24"><span>24</span>종류가 값으로만 구분된다면, 종류를 객체로 만든다</a>
+</div>
+  </dialog>
+
+  <script>
+    const slides = [...document.querySelectorAll('.slide')];
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const tocBtn = document.getElementById('tocBtn');
+    const tocDialog = document.getElementById('tocDialog');
+    const tocCloseBtn = document.getElementById('tocCloseBtn');
+    const slideCounter = document.getElementById('slideCounter');
+    let current = 0;
+
+    function showSlide(index, updateHash = true) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      slides.forEach((slide, slideIndex) => slide.classList.toggle('is-active', slideIndex === current));
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current === slides.length - 1;
+      slideCounter.textContent = `${current + 1} / ${slides.length}`;
+      if (updateHash) history.replaceState(null, '', `#slide-${current + 1}`);
+    }
+
+    function indexFromHash() {
+      const match = location.hash.match(/^#slide-(\d+)$/);
+      const index = match ? Number(match[1]) - 1 : -1;
+      if (index >= 0 && index < slides.length) return index;
+      history.replaceState(null, '', '#slide-1');
+      return 0;
+    }
+
+    function openToc() { if (!tocDialog.open) tocDialog.showModal(); }
+    function closeToc() { if (tocDialog.open) tocDialog.close(); }
+
+    prevBtn.addEventListener('click', () => showSlide(current - 1));
+    nextBtn.addEventListener('click', () => showSlide(current + 1));
+    tocBtn.addEventListener('click', openToc);
+    tocCloseBtn.addEventListener('click', closeToc);
+    tocDialog.addEventListener('click', (event) => { if (event.target === tocDialog) closeToc(); });
+    tocDialog.querySelectorAll('.toc-link').forEach((link) => link.addEventListener('click', (event) => {
+      event.preventDefault();
+      const index = Number(link.hash.replace('#slide-', '')) - 1;
+      closeToc();
+      showSlide(index);
+    }));
+    window.addEventListener('hashchange', () => showSlide(indexFromHash(), false));
+    window.addEventListener('keydown', (event) => {
+      if (tocDialog.open) return;
+      const tag = document.activeElement?.tagName;
+      if (['ArrowRight','ArrowLeft','PageDown','PageUp','Home','End'].includes(event.key)) event.preventDefault();
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (event.key === 'ArrowRight' || event.key === 'PageDown') showSlide(current + 1);
+      else if (event.key === 'ArrowLeft' || event.key === 'PageUp') showSlide(current - 1);
+      else if (event.key === 'Home') showSlide(0);
+      else if (event.key === 'End') showSlide(slides.length - 1);
+    });
+
+    const initialIndex = indexFromHash();
+    showSlide(initialIndex);
+  </script>
+<noscript><style>
+    html,body{height:auto;overflow:visible}.app,.stage,.deck{display:block;width:100%;height:auto;max-height:none;aspect-ratio:auto;overflow:visible;container-type:normal}
+    .slide,.slide.is-active{position:relative;display:block;overflow:visible;animation:none;margin-bottom:20px}.controls,dialog{display:none}
+    </style></noscript></body>
+</html>

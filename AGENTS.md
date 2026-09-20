@@ -82,6 +82,20 @@ change much, and allowed changes only to provided code they never typed.
   same way. The fully simplified lessons 1-6 live at the tag
   `simplified-all-lessons-20260920` for a future course run from lesson 1.
 
+## Pattern-unrelated code may be provided complete (user decision, 2026-09-21)
+
+While approving lessons 7-8 the user said: "패턴과 무관한 입력은 완성된 코드로
+보여줘", "컴파일 에러가 발생하면 그냥 같이 수업시간에 입력하게 만들어줘" and
+"350~400줄 넘어가는 조항은 삭제해도 돼". This relaxes the skeleton rule above.
+
+- Code unrelated to the lesson's pattern (lesson 8: the `ActionMenu` UI) ships
+  complete in the starter, already placed and wired in the scene.
+- Provided code may depend only on the lesson N-1 API and itself, so that it
+  compiles next to the skeletons. Code that needs lesson N API (lesson 8:
+  `ActionMenuState`) is typed in class. Do not hand out `.txt` files to paste.
+- The 350-line typed-volume limit no longer applies; `Verify-Lessons.ps1` only
+  reports the volume and lists provided files in `$providedExceptions`.
+
 The complete rules and the progress log are in the Teacher repository:
 `docs/teaching-code-rules.md` and `docs/simplify-progress.md`. The production
 rules for all three workspaces are in `D:\UnityProjects\AGENTS.md`.
