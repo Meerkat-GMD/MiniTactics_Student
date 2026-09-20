@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace MiniTactics.Lesson06
@@ -8,6 +9,16 @@ namespace MiniTactics.Lesson06
 
         public void ChangeState(InputState next)
         {
+            if (next == null)
+            {
+                throw new ArgumentNullException(nameof(next));
+            }
+
+            if (ReferenceEquals(Current, next))
+            {
+                return;
+            }
+
             Current?.Exit();
             Current = next;
             Current.Enter();
@@ -15,12 +26,12 @@ namespace MiniTactics.Lesson06
 
         public void HandleBoardClick(Unit clickedUnit, Vector2Int cell)
         {
-            Current.HandleBoardClick(clickedUnit, cell);
+            Current?.HandleBoardClick(clickedUnit, cell);
         }
 
         public void HandleUndo()
         {
-            Current.HandleUndo();
+            Current?.HandleUndo();
         }
     }
 }

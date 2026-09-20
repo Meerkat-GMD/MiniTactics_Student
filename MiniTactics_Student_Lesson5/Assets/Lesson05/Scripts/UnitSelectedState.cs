@@ -15,15 +15,8 @@ namespace MiniTactics.Lesson05
             _unit = unit;
         }
 
-        public override void Enter()
-        {
-            _controller.ShowSelection(_unit);
-        }
-
-        public override void Exit()
-        {
-            _controller.ClearSelection();
-        }
+        public override void Enter() => _controller.ShowSelection(_unit);
+        public override void Exit() => _controller.ClearSelection();
 
         public override void HandleBoardClick(Unit clickedUnit, Vector2Int cell)
         {

@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 36497aea31dc44e58816c7cfe0bfc376, type: 3}
+  m_Script: {fileID: 11500000, guid: 7708cbb8c00c48299d9fa756c76a5e7c, type: 3}
   m_Name: Forest
   m_EditorClassIdentifier:
   _displayName: 숲

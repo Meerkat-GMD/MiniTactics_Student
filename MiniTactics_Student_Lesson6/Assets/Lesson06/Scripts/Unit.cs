@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace MiniTactics.Lesson06
 {
@@ -7,6 +8,7 @@ namespace MiniTactics.Lesson06
         private static readonly Color PlayerColor = new Color(0.35f, 0.75f, 1f);
         private static readonly Color EnemyColor = new Color(1f, 0.4f, 0.4f);
 
+        [FormerlySerializedAs("_moveDistance")]
         [SerializeField, Min(0)] private int _moveBudget = 4;
         [SerializeField] private bool _canMove = true;
 
@@ -23,6 +25,11 @@ namespace MiniTactics.Lesson06
 
         public void MoveTo(BoardView board, Vector2Int targetCell)
         {
+            if (board == null)
+            {
+                return;
+            }
+
             transform.position = board.CellToWorld(targetCell);
         }
     }

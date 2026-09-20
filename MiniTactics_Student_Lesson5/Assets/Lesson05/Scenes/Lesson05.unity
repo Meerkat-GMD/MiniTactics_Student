@@ -2471,7 +2471,7 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
---- !u!1001 &1190376866
+--- !u!1001 &1124513002
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -2544,6 +2544,50 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fbebcd93d0d8cf5419dac18c8c3abec1, type: 3}
+--- !u!1 &1240481486
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1240481488}
+  - component: {fileID: 1240481487}
+  m_Layer: 0
+  m_Name: Enemy AI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1240481487
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1240481486}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2daafc1df864cc8bde8363341bbd0dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MiniTactics.Lesson05.Runtime::MiniTactics.Lesson05.EnemyAI
+--- !u!4 &1240481488
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1240481486}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1278421350
 GameObject:
   m_ObjectHideFlags: 0
@@ -2623,6 +2667,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1278421350}
   m_CullTransparentMesh: 1
+--- !u!1 &1368046239
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1368046240}
+  m_Layer: 0
+  m_Name: MovementOverlayRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1368046240
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1368046239}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1464959936
 GameObject:
   m_ObjectHideFlags: 0
@@ -2654,7 +2729,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: MiniTactics.Lesson01.Runtime::MiniTactics.Lesson01.BattleController
   _board: {fileID: 760978245}
   _camera: {fileID: 913643831}
-  _overlayPrefab: {fileID: 743316185858337791, guid: 3ceeb98807da5e3459345b04701b2ea6, type: 3}
+  _overlayRoot: {fileID: 1368046240}
+  _unitLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!4 &1464959938
 Transform:
   m_ObjectHideFlags: 0
@@ -3092,50 +3170,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &2135505487
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2135505489}
-  - component: {fileID: 2135505488}
-  m_Layer: 0
-  m_Name: Enemy AI
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &2135505488
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2135505487}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c2daafc1df864cc8bde8363341bbd0dc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: MiniTactics.Lesson05.Runtime::MiniTactics.Lesson05.EnemyAI
---- !u!4 &2135505489
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2135505487}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -3143,6 +3177,7 @@ SceneRoots:
   - {fileID: 1100000002}
   - {fileID: 760978246}
   - {fileID: 913643832}
+  - {fileID: 1368046240}
   - {fileID: 1464959938}
   - {fileID: 1654824174}
   - {fileID: 181781698}
@@ -3151,5 +3186,5 @@ SceneRoots:
   - {fileID: 173511956}
   - {fileID: 2072413922}
   - {fileID: 2109837936}
-  - {fileID: 1190376866}
-  - {fileID: 2135505489}
+  - {fileID: 1124513002}
+  - {fileID: 1240481488}

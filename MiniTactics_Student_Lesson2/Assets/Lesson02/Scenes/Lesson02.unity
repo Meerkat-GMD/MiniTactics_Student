@@ -2293,6 +2293,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1278421350}
   m_CullTransparentMesh: 1
+--- !u!1 &1368046239
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1368046240}
+  m_Layer: 0
+  m_Name: MovementOverlayRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1368046240
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1368046239}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1464959936
 GameObject:
   m_ObjectHideFlags: 0
@@ -2324,7 +2355,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: MiniTactics.Lesson01.Runtime::MiniTactics.Lesson01.BattleController
   _board: {fileID: 760978245}
   _camera: {fileID: 913643831}
-  _overlayPrefab: {fileID: 7915307613862235410, guid: 1f7d6506e7dbc5a488fe0464595a6270, type: 3}
+  _overlayRoot: {fileID: 1368046240}
+  _unitLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!4 &1464959938
 Transform:
   m_ObjectHideFlags: 0
@@ -2646,6 +2680,7 @@ SceneRoots:
   - {fileID: 140790284}
   - {fileID: 913643832}
   - {fileID: 2137857211}
+  - {fileID: 1368046240}
   - {fileID: 1464959938}
   - {fileID: 1654824174}
   - {fileID: 181781698}

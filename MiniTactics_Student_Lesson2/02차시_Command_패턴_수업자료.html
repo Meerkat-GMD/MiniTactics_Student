@@ -131,21 +131,25 @@
 
         <section class="slide" id="slide-5" data-slide="05 / 31" aria-labelledby="title-5"><div><p class="kicker">Actual Code · BattleController</p><h2 id="title-5">이동 가능하면 MoveTo()를 직접 호출한다</h2><pre>public bool TryMoveSelectedUnit(Vector2Int targetCell)
 {
-    if (!_board.CanMoveTo(SelectedUnit, targetCell))
+    if (SelectedUnit == null || _board == null ||
+        !_board.CanMoveTo(SelectedUnit, targetCell))
         return false;
 
     <span class="code-focus">SelectedUnit.MoveTo(_board, targetCell);</span>
     SelectedUnit = null;
-    HideRange();
+    _overlayPool?.Hide();
     return true;
-}</pre><p class="source">실제 코드: 1차시 BattleController.cs 51–62행</p></div></section>
+}</pre><p class="source">실제 코드: BattleController.cs 74–84행</p></div></section>
 
         <section class="slide" id="slide-6" data-slide="06 / 31" aria-labelledby="title-6"><div><p class="kicker">Observation</p><h2 id="title-6">직접 호출은 결과를 만들지만 요청을 남기지 않는다</h2><div class="two"><div class="panel teal"><h3>남는 것</h3><ul><li>유닛의 새로운 월드 위치</li><li>이동이 끝난 화면</li></ul></div><div class="panel redline"><h3>남지 않는 것</h3><ul><li>어떤 유닛이 이동했는가</li><li>어디에서 출발했는가</li><li>어디로 이동했는가</li><li>어떤 순서로 이동했는가</li></ul></div></div><p class="quote">실행된 행동과 행동의 기록은 서로 다른 문제다.</p></div></section>
 
         <section class="slide" id="slide-7" data-slide="07 / 31" aria-labelledby="title-7"><div><p class="kicker">Actual Code · Unit</p><h2 id="title-7">MoveTo()는 현재 위치를 새 위치로 덮어쓴다</h2><pre>public void MoveTo(BoardView board, Vector2Int targetCell)
 {
+    if (board == null)
+        return;
+
     <span class="code-focus">transform.position = board.CellToWorld(targetCell);</span>
-}</pre><div class="callout danger"><p>대입이 끝난 뒤 <code>transform.position</code>만 살펴보면 출발 위치를 복구할 수 없다.</p></div><p class="source">실제 코드: Unit.cs 13–16행</p></div></section>
+}</pre><div class="callout danger"><p>대입이 끝난 뒤 <code>transform.position</code>만 살펴보면 출발 위치를 복구할 수 없다.</p></div><p class="source">실제 코드: Unit.cs 13–20행</p></div></section>
 
         <section class="slide" id="slide-8" data-slide="08 / 31" aria-labelledby="title-8"><div><p class="kicker">State Change</p><h2 id="title-8">이동 전후 상태를 비교하면 손실이 보인다</h2><div class="state-board"><div class="coord"><span class="green">이동 전</span><br>Unit A<br>cell (5, 4)</div><div class="arrow">→</div><div class="coord"><span class="amber">이동 후</span><br>Unit A<br>cell (5, 6)<br><span class="missing">from (5, 4)</span></div></div><div class="callout"><p>Undo는 단순히 “반대로 이동”하는 기능이 아니다. <strong>과거의 정확한 상태를 알아야 하는 기능</strong>이다.</p></div></div></section>
 
@@ -195,14 +199,11 @@ lastCell = _board.WorldToCell(SelectedUnit.transform.position);</pre><div class=
     private readonly Vector2Int _toCell;
 }</pre><div class="callout"><p>이 네 값이 하나의 객체에 묶이면서 여러 이동 기록을 같은 형태로 보관할 수 있다.</p></div></div></section>
 
-        <section class="slide" id="slide-22" data-slide="22 / 31" aria-labelledby="title-22"><div><p class="kicker">Capture Timing</p><h2 id="title-22">출발 셀은 명령을 만들 때 확정한다</h2><div class="wide"><div><pre>public MoveUnitCommand(
-    Unit unit, BoardView board, Vector2Int toCell)
-{
-    _unit = unit;
-    _board = board;
-    <span class="code-focus">_fromCell = board.WorldToCell(unit.transform.position);</span>
-    _toCell = toCell;
-}</pre></div><div class="panel amber"><h3>왜 지금인가?</h3><p>실행한 뒤에는 유닛의 현재 위치가 도착 셀로 바뀐다. 과거 상태는 바뀌기 전에 캡처해야 한다.</p></div></div></div></section>
+        <section class="slide" id="slide-22" data-slide="22 / 31" aria-labelledby="title-22"><div><p class="kicker">Capture Timing</p><h2 id="title-22">출발 셀은 명령을 만들 때 확정한다</h2><div class="wide"><div><pre>Vector2Int fromCell =
+    board.WorldToCell(unit.transform.position);
+
+var command = new MoveUnitCommand(
+    unit, board, fromCell, targetCell);</pre></div><div class="panel amber"><h3>왜 지금인가?</h3><p>실행한 뒤에는 유닛의 현재 위치가 도착 셀로 바뀐다. 과거 상태는 바뀌기 전에 캡처해야 한다.</p></div></div></div></section>
 
         <section class="slide" id="slide-23" data-slide="23 / 31" aria-labelledby="title-23"><div><p class="kicker">Execute</p><h2 id="title-23">Execute()는 저장된 도착 셀을 사용한다</h2><pre>public void Execute()
 {

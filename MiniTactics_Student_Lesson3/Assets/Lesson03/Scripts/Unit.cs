@@ -1,17 +1,25 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace MiniTactics.Lesson03
 {
     public sealed class Unit : MonoBehaviour
     {
-        [SerializeField, Min(0)] private int _moveDistance = 2;
+        [FormerlySerializedAs("_moveDistance")]
+        [SerializeField, Min(0)] private int _moveBudget = 4;
         [SerializeField] private bool _canMove = true;
 
-        public int MoveDistance => _moveDistance;
+        public int MoveBudget => _moveBudget;
+        public int MoveDistance => _moveBudget;
         public bool CanMove => _canMove;
 
         public void MoveTo(BoardView board, Vector2Int targetCell)
         {
+            if (board == null)
+            {
+                return;
+            }
+
             transform.position = board.CellToWorld(targetCell);
         }
     }

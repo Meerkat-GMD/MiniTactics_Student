@@ -16,14 +16,9 @@ namespace MiniTactics.Lesson06
         public override void HandleBoardClick(Unit clickedUnit, Vector2Int cell)
         {
             if (clickedUnit != null && _controller.CanAct(clickedUnit))
-            {
                 _machine.ChangeState(new UnitSelectedState(_machine, _controller, clickedUnit));
-            }
         }
 
-        public override void HandleUndo()
-        {
-            _controller.UndoLast();
-        }
+        public override void HandleUndo() => _controller.UndoLast();
     }
 }

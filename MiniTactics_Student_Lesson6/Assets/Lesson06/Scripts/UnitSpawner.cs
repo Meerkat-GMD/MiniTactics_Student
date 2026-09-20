@@ -7,14 +7,14 @@ namespace MiniTactics.Lesson06
     {
         [SerializeField] private Unit _unitPrefab;
         [SerializeField] private BoardView _board;
-        [SerializeField] private Vector2Int[] _playerCells;
+        [SerializeField] private Vector2Int[] _spawnCells;
         [SerializeField] private Vector2Int[] _enemyCells;
 
         public List<Unit> Units { get; } = new List<Unit>();
 
         private void Awake()
         {
-            Spawn(_playerCells, Team.Player, "Player");
+            Spawn(_spawnCells, Team.Player, "Player");
             Spawn(_enemyCells, Team.Enemy, "Enemy");
         }
 
