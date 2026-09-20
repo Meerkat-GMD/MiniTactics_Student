@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>8차시 · Subclass Sandbox 패턴 강의자료</title>
+<style>
+:root{color-scheme:light;--bg:#f3f1eb;--paper:#fffefa;--ink:#23323e;--muted:#5c6c75;--accent:#136c61;--line:#d5ddd9;--warm:#8b4c21}*{box-sizing:border-box}html{scroll-behavior:auto;scroll-padding-top:22px}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;font-size:17px;line-height:1.95;overflow-wrap:anywhere}a{color:var(--accent);text-underline-offset:4px}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #b56832;outline-offset:4px}.cover{background:#163446;color:#f5f5ee;padding:64px max(24px,calc((100vw - 1200px)/2));border-bottom:8px solid #65c7b4}.eyebrow{font-size:13px;font-weight:700;letter-spacing:.1em;color:#a8decd;margin:0 0 16px}.cover h1{font-size:clamp(32px,4vw,54px);line-height:1.3;margin:0 0 22px;word-break:keep-all}.cover p{max-width:840px;color:#e2e9e7;font-size:19px}.cover a{color:#a8e5d4}.cover .meta{font-size:14px;color:#c0d1d4}.layout{max-width:1248px;padding:36px 24px 64px;margin:auto;display:grid;grid-template-columns:252px minmax(0,1fr);gap:36px;align-items:start}aside{position:sticky;top:22px;max-height:calc(100vh - 44px);overflow-y:auto;border:1px solid var(--line);padding:22px;background:var(--paper);border-radius:14px}aside h2{font-size:20px;margin:0 0 14px}aside ol{padding-left:1.5em;margin:0}aside li{font-size:14px;line-height:1.6;margin:12px 0}aside a{text-decoration:none}aside .small{font-size:12px;color:var(--muted);line-height:1.6}button{font:inherit;font-size:14px;min-height:44px;padding:8px 15px;background:var(--accent);color:white;border:0;border-radius:8px;cursor:pointer}main{min-width:0}.chapter{padding:38px 42px;margin:0 0 30px;background:var(--paper);border:1px solid var(--line);border-radius:16px;scroll-margin-top:22px}.chapter>h2{font-size:30px;line-height:1.4;margin:0 0 20px;word-break:keep-all}.chapter .kicker{font-size:12px;letter-spacing:.08em;font-weight:700;color:var(--accent);margin:0 0 8px}h3{font-size:22px;line-height:1.5;margin:34px 0 12px;word-break:keep-all}h4{font-size:18px;margin:24px 0 8px}p{margin:15px 0}ul,ol{padding-left:1.5em}li{margin:9px 0}.objectives,.concept,.exercise,.warning{border-left:4px solid var(--accent);padding:15px 19px;margin:22px 0;background:#edf5f0;border-radius:0 10px 10px 0}.objectives{font-size:15px;line-height:1.8;color:#3b5857}.warning{border-color:#b76c31;background:#faf0e5}.exercise{border-color:#63839e;background:#eef3f8}.label{display:block;font-weight:700;font-size:14px;margin-bottom:8px;color:var(--accent)}.warning .label{color:var(--warm)}.exercise .label{color:#385c7b}.code-caption{font-size:14px;color:var(--muted);margin-bottom:8px}pre{font-family:Consolas,monospace;font-size:14px;line-height:1.75;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;max-width:100%;padding:20px;background:#172d3b;color:#e4f0ec;border:1px solid #2e4855;border-radius:10px;tab-size:2;margin:10px 0 18px}code{font-family:Consolas,monospace;font-size:.92em;color:#155e54}pre code{font-size:inherit;color:inherit}.annotation{font-size:15px;line-height:1.8;color:#48616a}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:22px 0}.box{padding:18px;border:1px solid var(--line);border-radius:12px;min-width:0}.box h4{margin:0 0 8px}.box p{font-size:15px;margin:0}.flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:24px 0}.flow span{border:1px solid #b5cdc3;background:#eaf3ee;border-radius:9px;padding:10px 13px;font-size:14px}.flow b{color:var(--accent)}table{border-collapse:collapse;table-layout:fixed;width:100%;font-size:15px;line-height:1.75;margin:20px 0}caption{text-align:left;font-weight:700;font-size:14px;margin-bottom:8px;color:var(--muted)}th,td{border-bottom:1px solid var(--line);padding:11px 9px;text-align:left;vertical-align:top}th{background:#eef3ee;color:#28584f}details{margin:16px 0;padding:13px 17px;border:1px solid var(--line);border-radius:10px;background:#fff}summary{cursor:pointer;font-weight:700;color:var(--accent);font-size:15px}details p{font-size:15px}.back{font-size:13px;display:inline-block;margin-top:20px}.endnote{font-size:14px;color:var(--muted);text-align:center;margin:30px 0}.term{font-weight:700;color:var(--accent)}@media(max-width:840px){.layout{grid-template-columns:1fr;padding:24px 18px 40px;gap:24px}aside{position:static;max-height:none;overflow:visible}aside ol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:24px}aside li{margin:8px 0}.chapter{padding:30px}}@media(max-width:480px){body{font-size:16px;line-height:1.9}.cover{padding:38px 22px}.cover h1{font-size:34px}.cover p{font-size:17px}.layout{padding:20px 14px 32px}aside{padding:20px}aside ol{display:block}.chapter{padding:26px 20px}.chapter>h2{font-size:27px}h3{font-size:21px}.grid{grid-template-columns:1fr}pre{font-size:13px;padding:15px}table{font-size:13px}th,td{padding:9px 6px}.objectives,.concept,.exercise,.warning{padding:13px 15px}.flow span{font-size:13px;padding:8px 10px}}@media print{body{background:white;color:#111;font-size:11pt}.cover{background:white;color:#111;padding:20px 0;border-bottom:2px solid #333}.cover p,.eyebrow,.cover .meta{color:#333}.layout{display:block;max-width:none;padding:0}aside{position:static;max-height:none;overflow:visible;border:0;break-after:page}aside button,.back,.endnote{display:none}.chapter{padding:15px 0;border:0;break-before:page;margin:0;border-radius:0}.chapter>h2{font-size:22pt}h3{break-after:avoid}pre{background:#f2f4f5;color:#111;border-color:#bbb;font-size:10pt;break-inside:avoid}.concept,.exercise,.warning,.grid{break-inside:avoid}details{display:block}details>*{display:block}a{color:#174f48;text-decoration:none}@page{size:A4;margin:18mm}}
+</style>
+</head>
+<body>
+<header class="cover" id="top"><p class="eyebrow">MINI TACTICS · LESSON 08 · REFERENCE TEXTBOOK</p><h1>Subclass Sandbox 패턴<br>부모는 도구를 만들고 자식은 도구를 조합하기</h1><p>이 교재는 Subclass Sandbox 패턴 하나만 다룬다. 패턴이 해결하는 문제, 각 스킬 class가 시스템을 직접 사용하는 첫 시도와 그 한계, 역할과 구조, abstract와 protected로 작성한 코드, 호출 흐름과 수치 추적, 확장, 대가, 적용 기준, 7차시 Type Object와의 결합을 순서대로 설명한다.</p><p class="meta">Unity 6000.5.3f1 · MiniTactics.Lesson08<br>코드 발췌의 기준은 완성본의 Skill.cs, PowerStrikeSkill.cs, HealSkill.cs, UnitClass.cs, Unit.cs, TurnManager.cs, BattleController.cs다.</p><a href="08차시_Subclass_Sandbox_패턴_발표자료.html">23장 발표자료로 이동 →</a></header>
+<div class="layout">
+<aside id="toc" aria-label="교재 목차"><h2>차례</h2><ol><li><a href="#chapter-1">동작이 다른 종류가 늘어날 때</a></li><li><a href="#chapter-2">도구와 빈칸으로 나누는 구조</a></li><li><a href="#chapter-3">부모 Skill: abstract 빈칸과 공개 입구</a></li><li><a href="#chapter-4">부모 Skill: protected 도구</a></li><li><a href="#chapter-5">자식 class: 강타와 치유</a></li><li><a href="#chapter-6">호출 흐름과 수치 추적</a></li><li><a href="#chapter-7">새 스킬과 새 도구로 확장하기</a></li><li><a href="#chapter-8">Type Object와의 결합, 대가, 적용 기준</a></li><li><a href="#chapter-9">복습 질문과 용어</a></li></ol><p class="small">개념별로 찾아 읽는 교재다. 실제 코드, 축약한 코드, 설계 비교용 가상 코드를 구분하여 표시했다. 기능을 구현하는 순서는 교사용 진행안에서 다룬다.</p><button id="print" type="button">교재 인쇄</button></aside>
+<main>
+<section class="chapter" id="chapter-1">
+<p class="kicker">CHAPTER 01 · 문제</p><h2>동작이 다른 종류가 늘어날 때</h2>
+<div class="objectives">학습 목표: 효과가 일반 공격 하나뿐일 때 피해를 주는 코드가 한 곳에 모여 있을 수 있었던 이유를 설명한다. 스킬은 값이 아니고 실행되는 코드가 다르므로 class로 나누어야 한다는 점을 설명한다. 각 스킬 class가 필요한 시스템을 직접 사용하는 첫 시도의 한계를 표와 코드로 확인한다.</div>
+<h3>1.1 지금까지 “효과”는 일반 공격 하나뿐이었다</h3>
+<p>이 교재에서 <span class="term">효과</span>는 한 유닛의 행동이 다른 유닛의 상태를 바꾸는 일을 뜻한다. 지금까지 미니 택틱스에 있던 효과는 일반 공격 하나였다. 일반 공격으로 피해를 주는 절차는 다음 메서드 하나에 모여 있다.</p>
+<p class="code-caption">실제 코드 · TurnManager.cs에서 매개변수가 세 개인 Attack 전체</p><pre><code>public void Attack(Unit attacker, Unit defender, int bonusDamage)
+{
+    Vector2Int cell = _board.WorldToCell(defender.transform.position);
+    int terrainDefense = _board.GetDefenseBonus(cell);
+    int damage = CombatCalculator.CalculateDamage(attacker.AttackPower, defender.Defense, terrainDefense);
+    defender.TakeDamage(damage + bonusDamage);
+}</code></pre>
+<p class="annotation">TurnManager.cs에는 매개변수가 두 개인 <code>Attack(attacker, defender)</code>도 있다. 일반 공격은 그 메서드를 호출하고, 그 메서드는 <code>bonusDamage</code>에 0을 넘겨 위의 메서드를 호출한다. 7차시까지는 <code>bonusDamage</code>가 없었고 마지막 줄이 <code>defender.TakeDamage(damage);</code>였다. 나머지 세 줄은 7차시와 같다.</p>
+<p>본문 네 줄을 순서대로 읽는다. 첫째 줄은 방어하는 유닛이 서 있는 칸을 구한다. 둘째 줄은 그 칸의 지형 방어를 보드에서 읽는다. 셋째 줄은 피해 공식을 호출한다. 피해 공식은 <code>max(1, 공격력 − 방어력 − 지형 방어)</code>다. 넷째 줄은 계산한 피해에 추가 피해를 더해서 방어하는 유닛의 HP를 줄인다.</p>
+<p>이 메서드는 네 가지를 알고 있다. 보드(<code>BoardView</code>), 지형 방어, 피해 공식(<code>CombatCalculator</code>), 유닛의 체력(<code>Unit.TakeDamage</code>)이다. 피해 한 번에 네 가지가 관여하지만 문제가 되지 않았다. 효과의 종류가 하나였기 때문이다. 피해를 주는 절차가 메서드 하나에 모여 있으므로 공식을 고칠 곳도 하나였다. 이 장에서는 이 전제가 맞지 않는 상황을 살펴본다. 효과의 종류가 여럿이고 앞으로 계속 늘어나는 경우다.</p>
+<h3>1.2 새 요구: 스킬은 종류마다 하는 일이 다르다</h3>
+<p><span class="term">스킬</span>은 일반 공격과 별도로 병종이 사용하는 특별한 행동이다. 스킬은 종류마다 대상과 효과가 다르다.</p>
+<table><caption>스킬의 대상과 효과</caption><thead><tr><th>스킬</th><th>대상</th><th>효과</th></tr></thead><tbody><tr><td>강타</td><td>사거리 안의 적 하나</td><td>일반 공격의 피해에 4를 더한다.</td></tr><tr><td>치유</td><td>사거리 안의 부상당한 아군 하나</td><td>HP를 5 회복한다. 최대 HP를 넘지 않는다.</td></tr><tr><td>화염구, 독, 밀치기, 흡혈 등</td><td>스킬마다 다르다.</td><td>아직 없지만 앞으로 추가된다.</td></tr></tbody></table>
+<p>7차시와 비교해 본다. 7차시의 병종은 값만 달랐다. 기사와 궁수는 HP와 공격력의 숫자가 다를 뿐이고 피해를 받고 이동하는 코드는 같았다. 그래서 병종을 class로 나누지 않고 데이터로 만들었다. 스킬은 사정이 다르다. 강타는 피해를 주고 치유는 회복시킨다. 두 스킬은 숫자가 다른 것이 아니고 실행되는 코드가 다르다.</p>
+<div class="concept"><span class="label">핵심 관찰</span>스킬마다 다른 것은 값이 아니고 동작이다. 7차시의 기준은 “동작이 다르면 class로 나눈다”였다. 그 기준에 따라 스킬마다 class가 하나씩 필요하다. class가 많아지는 것은 피할 수 없다. 이번 차시의 문제는 그 많은 class를 어떻게 작성하게 할 것인가다.</div>
+<h3>1.3 첫 시도: 스킬 class가 필요한 시스템을 직접 사용한다</h3>
+<p>가장 먼저 떠올릴 수 있는 방법은 다음과 같다. 공통 부모 class <code>Skill</code>에는 <code>Use</code>라는 메서드의 이름만 정해 둔다. 각 스킬 class는 <code>Use</code>를 다시 정의하고, 그 안에서 필요한 시스템을 직접 사용한다. 여기에서 <span class="term">시스템</span>은 보드, 피해 공식, 턴 관리처럼 스킬의 바깥에 있으면서 게임의 규칙을 맡고 있는 class를 뜻한다.</p>
+<p class="code-caption">설계 비교용 가상 코드 · 프로젝트에 있었던 코드가 아니다</p><pre><code>// 첫 시도: 스킬 class가 보드와 피해 공식을 직접 사용한다.
+public sealed class PowerStrikeSkill : Skill
+{
+    public override void Use(Unit user, Unit target, BoardView board)
+    {
+        Vector2Int cell = board.WorldToCell(target.transform.position);
+        int terrainDefense = board.GetDefenseBonus(cell);
+        int damage = CombatCalculator.CalculateDamage(user.AttackPower, target.Defense, terrainDefense);
+        target.TakeDamage(damage + 4);
+    }
+}</code></pre>
+<p class="annotation">이 코드는 동작한다. 스킬이 두세 개로 고정되어 있다면 이 방식으로도 충분하다. 다만 본문 네 줄을 1.1절의 Attack과 비교해 보면 강타만의 내용은 마지막 줄의 <code>+ 4</code>뿐이다. 나머지는 일반 공격의 코드를 복사한 것이다.</p>
+<h3>1.4 첫 시도의 한계</h3>
+<p>첫 시도에서는 피해를 주는 스킬을 만들 때마다 지형 방어를 읽고 공식을 호출하는 세 줄을 복사한다. 화염구처럼 여러 적에게 피해를 주는 스킬도 피해를 주는 부분에서는 같은 세 줄을 그대로 복사한다. 스킬의 수만큼 같은 코드가 복사되므로 다음과 같은 문제가 생긴다.</p>
+<table><caption>새 요구가 생겼을 때 첫 시도에서 해야 하는 일</caption><thead><tr><th>새 요구</th><th>첫 시도에서 해야 하는 일</th></tr></thead><tbody><tr><td>피해를 주는 스킬이 20개로 늘어난다.</td><td>지형 방어를 읽고 공식을 호출하는 세 줄이 20곳에 복사된다.</td></tr><tr><td>피해 공식에 “치명타”를 추가한다.</td><td>20개의 class를 모두 열어 같은 수정을 한다. 한 곳이라도 빠뜨리면 그 스킬만 다르게 동작한다.</td></tr><tr><td>보드의 API가 바뀐다.</td><td>BoardView를 직접 사용하는 모든 스킬 class가 컴파일되지 않는다.</td></tr></tbody></table>
+<p class="annotation"><span class="term">API</span>는 한 class가 다른 class에게 공개한 메서드와 속성의 이름, 매개변수를 뜻한다. <code>GetDefenseBonus</code>의 이름이나 매개변수가 바뀌는 것이 API가 바뀌는 예다.</p>
+<p>첫 시도의 스킬 class 하나는 세 가지를 알고 있다. <code>BoardView</code>, <code>CombatCalculator</code>, <code>Unit.TakeDamage</code>다. 한 class가 다른 class를 알고 사용하는 것을 <span class="term">의존</span>이라고 한다. 스킬이 30개이면 이 세 가지에 대한 의존이 30번 반복된다.</p>
+<div class="warning"><span class="label">한계의 요약</span>스킬을 만드는 사람은 “무엇을 하는 스킬인가”만 정하고 싶다. 그런데 첫 시도에서는 “어떻게 피해를 주는가”까지 스킬마다 다시 작성해야 한다. 같은 코드가 스킬의 수만큼 복사되고, 다른 시스템에 대한 의존도 스킬의 수만큼 반복된다.</div>
+<div class="exercise"><span class="label">생각할 문제</span>첫 시도의 방식으로 피해를 주는 스킬을 20개 만들었다. 지형 방어를 읽고 공식을 호출하는 세 줄은 프로젝트 전체에 몇 줄 있는가? 피해 공식에 치명타를 추가하면서 20개 가운데 19개만 고쳤다면 어떤 일이 일어나는가?</div><details><summary>해설 보기</summary><p>세 줄이 20곳에 있으므로 3 × 20 = 60줄이다. 일반 공격의 Attack에 있는 세 줄까지 세면 63줄이다. 19개만 고치면 고치지 않은 스킬 하나만 치명타가 적용되지 않는다. 그 스킬의 코드는 문법에 맞으므로 컴파일러는 이 실수를 알려 주지 않는다. 게임을 실행해서 그 스킬을 사용해 보아야 알 수 있다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
+</section>
+<section class="chapter" id="chapter-2">
+<p class="kicker">CHAPTER 02 · 구조</p><h2>도구와 빈칸으로 나누는 구조</h2>
+<div class="objectives">학습 목표: 스킬마다 다른 것과 모든 스킬에 공통인 것을 구분한다. 부모 class, 도구, 샌드박스 메서드, 자식 class의 역할을 실제 class와 대응시킨다. 패턴의 이름에 있는 샌드박스의 뜻을 설명한다.</div>
+<h3>2.1 스킬마다 다른 것과 모든 스킬에 공통인 것을 나눈다</h3>
+<p>1장의 한계는 서로 성격이 다른 두 가지가 스킬 class 하나에 섞여 있어서 생겼다. 두 가지를 나누어 적어 본다.</p>
+<div class="grid"><div class="box"><h4>스킬마다 다른 것</h4><p>누구를 대상으로 하는가. 어떤 효과를 어떤 값으로 주는가. 강타는 사거리 안의 적에게 공격 + 4를 준다. 치유는 사거리 안의 부상당한 아군에게 회복 5를 준다.</p></div><div class="box"><h4>모든 스킬에 공통인 것</h4><p>사거리 안의 유닛을 찾는 방법. 피해를 주는 방법(지형 방어와 공식). 회복시키는 방법(최대 HP 제한).</p></div></div>
+<p>공통인 것은 부모 class에 한 번만 작성한다. 자식 class는 부모가 작성해 둔 메서드를 골라서 호출하기만 한다. 그러면 다른 시스템을 아는 class는 부모 하나로 끝난다. 자식 class에는 “이 스킬이 무엇을 하는가”만 남는다.</p>
+<h3>2.2 Subclass Sandbox 패턴의 역할</h3>
+<p>이 구조의 이름이 Subclass Sandbox 패턴이다. 정의는 다음과 같다. 부모 class가 제공하는 도구만 사용해서 자식 class가 자신의 동작을 정의한다. Subclass는 자식 class를 뜻하는 영어다.</p>
+<p>이 교재에서 사용하는 말 두 개를 먼저 정한다. <span class="term">도구</span>는 부모 class가 자식을 위해 작성해 둔 메서드다. 자식은 도구를 호출해서 자신의 동작을 만든다. <span class="term">샌드박스 메서드</span>는 부모가 이름과 매개변수만 선언하고 본문은 자식이 작성하게 한 메서드다. 자식이 채워야 하는 자리이므로 이 교재에서는 <span class="term">빈칸</span>이라고도 부른다.</p>
+<table><caption>Subclass Sandbox의 역할과 미니 택틱스의 코드</caption><thead><tr><th>역할</th><th>미니 택틱스에서</th><th>책임</th></tr></thead><tbody><tr><td>부모 class</td><td>Skill</td><td>도구를 구현한다. 다른 시스템(TurnManager)과의 연결은 이 class에만 있다.</td></tr><tr><td>도구(protected 메서드)</td><td>EnemiesInRange, WoundedAlliesInRange, Strike, Restore</td><td>공통인 일을 한 번만 구현한다. 자식만 호출할 수 있다.</td></tr><tr><td>샌드박스 메서드(abstract 메서드)</td><td>FindTargets, Activate</td><td>자식이 반드시 작성해야 하는 빈칸이다.</td></tr><tr><td>자식 class</td><td>PowerStrikeSkill, HealSkill</td><td>빈칸을 도구의 조합으로 채운다. 다른 시스템을 알지 못한다.</td></tr></tbody></table>
+<p class="annotation"><code>protected</code>와 <code>abstract</code>는 C#의 키워드다. 뜻은 3장과 4장에서 코드와 함께 설명한다. 지금은 protected가 “자식만 호출할 수 있다”, abstract가 “자식이 반드시 작성해야 한다”를 코드로 표현하는 키워드라는 것만 알면 된다.</p>
+<div class="flow" aria-label="스킬 한 번이 실행되는 순서"><span>바깥이 부모의 공개 메서드를 호출한다</span><b>→</b><span>부모가 자식의 빈칸을 호출한다</span><b>→</b><span>자식이 부모의 도구를 호출한다</span><b>→</b><span>도구가 다른 시스템을 사용한다</span></div>
+<h3>2.3 이름의 유래: 모래 놀이터</h3>
+<p>샌드박스(sandbox)는 아이들이 안전하게 노는 모래 놀이터다. 놀이터에는 울타리가 있고, 안에는 놀이에 쓸 도구가 준비되어 있다. 자식 class는 부모가 마련한 놀이터 안에서 주어진 도구만 가지고 자신의 동작을 만든다. 놀이터 밖에 있는 시스템에는 손을 대지 않는다. 패턴의 이름은 이 제한을 가리킨다. 자식이 할 수 있는 일의 범위를 부모가 도구로 정해 준다는 뜻이다.</p>
+<h3>2.4 다른 시스템을 아는 class의 수</h3>
+<table><caption>스킬이 30개일 때</caption><thead><tr><th>구분</th><th>첫 시도</th><th>Subclass Sandbox</th></tr></thead><tbody><tr><td>스킬 class의 수</td><td>30개</td><td>30개</td></tr><tr><td>다른 시스템을 직접 사용하는 class의 수</td><td>30개</td><td>부모 Skill 1개</td></tr><tr><td>피해를 주는 절차가 적힌 곳</td><td>피해를 주는 스킬의 수만큼</td><td>1곳</td></tr></tbody></table>
+<p>두 구조에서 스킬 class의 수는 같다. 이 패턴은 class의 수를 줄이지 않는다. 줄어드는 것은 class 하나에 적는 코드의 양과 다른 시스템에 대한 의존의 수다.</p>
+<h3>2.5 흔한 오해</h3>
+<div class="warning"><span class="label">주의</span>상속을 사용했다고 해서 모두 Subclass Sandbox인 것은 아니다. 1.3절의 첫 시도도 Skill을 상속했다. 이 패턴의 핵심은 자식이 부모가 제공한 도구만 사용한다는 제한이다. 자식이 다른 시스템을 직접 사용하기 시작하면 상속 구조는 그대로여도 첫 시도와 같아진다.</div>
+<p>7차시의 첫 시도도 상속이었다는 점을 떠올릴 수 있다. 7차시에는 병종마다 값만 달랐기 때문에 상속이 맞지 않았다. 이번에는 스킬마다 동작이 다르므로 class로 나누는 것이 맞다. 상속은 그대로 사용하고, 자식 class를 작성하는 방법을 정하는 것이 이번 차시의 내용이다.</p>
+<div class="exercise"><span class="label">생각할 문제</span>스킬이 30개이고 그중 20개가 피해를 주는 스킬이다. BoardView의 <code>GetDefenseBonus</code>의 이름이 바뀌었다. 첫 시도에서는 고쳐야 하는 스킬 파일이 몇 개인가? Subclass Sandbox에서는 몇 개인가?</div><details><summary>해설 보기</summary><p>첫 시도에서는 피해를 주는 스킬 20개가 모두 <code>board.GetDefenseBonus</code>를 호출하므로 스킬 파일 20개를 고쳐야 한다. Subclass Sandbox에서는 고쳐야 하는 스킬 파일이 0개다. <code>GetDefenseBonus</code>를 호출하는 곳은 1.1절의 <code>TurnManager.Attack</code> 한 곳뿐이므로 TurnManager.cs 하나만 고친다. 자식 class는 물론이고 부모 Skill도 보드를 직접 사용하지 않는다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
+</section>
+<section class="chapter" id="chapter-3">
+<p class="kicker">CHAPTER 03 · 부모 ①</p><h2>부모 Skill: abstract 빈칸과 공개 입구</h2>
+<div class="objectives">학습 목표: abstract 메서드와 abstract class의 뜻을 설명하고 virtual과 구분한다. 바깥에서 호출하는 공개 메서드 두 개가 하는 일을 순서대로 읽는다. 자식의 메서드가 반드시 부모의 공개 메서드를 거쳐서 실행되는 이유를 설명한다.</div>
+<h3>3.1 Skill의 뼈대</h3>
+<p class="code-caption">실제 코드 · Skill.cs · 축약한 발췌이며 속성 한 개, 공개 메서드 두 개, 도구 네 개를 생략했다</p><pre><code>public abstract class Skill : ScriptableObject
+{
+    [SerializeField] private string _displayName;
+    [SerializeField, Min(1)] private int _range = 1;
+
+    private Unit _user;
+    private TurnManager _turns;
+
+    protected abstract List&lt;Unit&gt; FindTargets();
+    protected abstract void Activate(Unit target);
+}</code></pre>
+<p>필드는 네 개다. <code>_displayName</code>과 <code>_range</code>는 모든 스킬이 공통으로 가지는 값이며 Inspector에서 입력한다. 스킬의 이름과 사거리다. <code>_user</code>와 <code>_turns</code>는 “지금 이 스킬을 사용하는 유닛”과 TurnManager를 적어 두는 자리다. 이 두 필드는 3.4절에서 값이 들어가고 4장의 도구에서 사용된다.</p>
+<p class="annotation">Skill은 7차시의 UnitClass와 같이 <code>ScriptableObject</code>를 상속한다. 스킬도 프로젝트에 에셋으로 저장하는 객체라는 뜻이다. <code>_range = 1</code>의 1은 새 에셋을 만들었을 때 처음 들어 있는 기본값이다.</p>
+<h3>3.2 abstract 메서드: 본문이 없는 메서드</h3>
+<p>아래쪽 두 줄을 본다. <code>FindTargets</code>와 <code>Activate</code>에는 중괄호로 둘러싼 본문이 없고 세미콜론으로 끝난다. <code>abstract</code>는 “이 메서드의 이름, 매개변수, 반환 형식은 부모가 정하고, 본문은 자식이 반드시 작성한다”는 뜻의 키워드다. 자식 class가 부모의 메서드를 다시 정의하는 것을 <span class="term">override</span>라고 하며, 자식은 같은 이름의 메서드 앞에 <code>override</code> 키워드를 붙여서 작성한다.</p>
+<p><code>FindTargets</code>는 “이 스킬의 대상이 될 수 있는 유닛의 목록을 돌려준다”는 빈칸이다. <code>Activate</code>는 “대상 하나에게 이 스킬의 효과를 준다”는 빈칸이다. 2.1절에서 찾은 “스킬마다 다른 것” 두 가지가 그대로 abstract 메서드 두 개가 되었다.</p>
+<p>7차시의 첫 시도에서 본 <code>virtual</code>과 비교하면 차이가 분명해진다.</p>
+<table><caption>virtual과 abstract</caption><thead><tr><th>구분</th><th>virtual 메서드</th><th>abstract 메서드</th></tr></thead><tbody><tr><td>부모의 본문</td><td>기본 본문이 있다.</td><td>본문이 없다.</td></tr><tr><td>자식의 override</td><td>선택이다.</td><td>필수다.</td></tr><tr><td>자식이 override를 빠뜨리면</td><td>부모의 기본 본문이 실행된다.</td><td>자식 class가 컴파일되지 않는다.</td></tr></tbody></table>
+<p>빈칸을 virtual과 빈 본문으로 선언할 수도 있다. 그러면 Activate를 작성하지 않은 스킬은 사용해도 아무 일도 일어나지 않고, 컴파일러는 이 실수를 알려 주지 않는다. abstract로 선언하면 같은 실수가 컴파일 오류가 된다. 게임을 실행하기 전에 실수를 발견할 수 있다.</p>
+<h3>3.3 abstract class: 그 자체로는 객체를 만들 수 없는 class</h3>
+<p>abstract 메서드를 하나라도 가진 class는 class 선언에도 <code>abstract</code>를 붙여야 한다. 첫 줄의 <code>public abstract class Skill</code>이 그것이다. abstract class는 그 자체로는 객체를 만들 수 없다. 본문이 없는 메서드를 가진 객체가 만들어지면 그 메서드를 호출했을 때 실행할 코드가 없기 때문이다.</p>
+<p>그래서 “Skill 에셋”은 만들 수 없다. 만들 수 있는 것은 빈칸을 모두 채운 자식 class의 에셋이다. 실제로 Skill.cs에는 7차시에서 배운 <code>[CreateAssetMenu]</code>가 없고, 5장에서 볼 자식 class에만 있다.</p>
+<p>객체는 만들 수 없지만 변수의 형식으로는 사용할 수 있다. <code>Skill</code> 형식의 변수에는 PowerStrikeSkill 에셋도, HealSkill 에셋도 담을 수 있다. 이 점은 6장과 8장에서 사용한다.</p>
+<h3>3.4 바깥에서 부르는 입구는 공개 메서드 두 개다</h3>
+<p class="code-caption">실제 코드 · Skill.cs의 공개 메서드 두 개 전체</p><pre><code>public List&lt;Unit&gt; GetTargets(Unit user, TurnManager turns)
+{
+    _user = user;
+    _turns = turns;
+    return FindTargets();
+}
+
+public void Use(Unit user, Unit target, TurnManager turns)
+{
+    _user = user;
+    _turns = turns;
+    Activate(target);
+}</code></pre>
+<p>스킬의 바깥에 있는 코드가 호출하는 메서드는 이 두 개다. 이 교재에서는 이 두 메서드를 <span class="term">입구</span>라고 부른다. 두 메서드는 같은 순서로 일한다.</p>
+<ol><li>누가 사용하는지(<code>user</code>)와 TurnManager(<code>turns</code>)를 private 필드 <code>_user</code>와 <code>_turns</code>에 적어 둔다.</li><li>자식이 작성한 메서드를 호출한다. GetTargets는 <code>FindTargets()</code>를, Use는 <code>Activate(target)</code>을 호출한다.</li><li>자식이 그 안에서 도구를 호출하면, 도구는 1번에서 적어 둔 값을 사용한다.</li></ol>
+<p>Use가 <code>_user</code>와 <code>_turns</code>를 다시 적는다는 점을 눈여겨본다. GetTargets에서 이미 적었더라도 Use는 그 값을 믿지 않고 새로 적는다. 스킬 에셋 하나는 여러 유닛이 함께 사용하므로 두 호출 사이에 다른 유닛이 같은 에셋의 입구를 지나갔을 수 있기 때문이다. 이 점은 8장의 대가에서 다시 다룬다.</p>
+<h3>3.5 자식의 메서드는 반드시 입구를 거쳐서 실행된다</h3>
+<p><code>FindTargets</code>와 <code>Activate</code>는 <code>protected</code>로 선언되어 있다. protected의 자세한 뜻은 4.4절에서 다룬다. 여기에서 필요한 사실은 하나다. Skill과 그 자식이 아닌 class는 이 두 메서드를 직접 호출할 수 없다. 바깥의 코드가 <code>skill.Activate(target)</code>이라고 적으면 컴파일 오류가 된다.</p>
+<div class="concept"><span class="label">입구가 보장하는 것</span>바깥은 <code>GetTargets</code>와 <code>Use</code>만 호출할 수 있다. 자식의 메서드는 반드시 부모의 입구를 지나서 실행된다. 입구는 항상 <code>_user</code>와 <code>_turns</code>를 먼저 적는다. 그러므로 자식이 도구를 호출하는 시점에는 도구가 사용할 값이 항상 준비되어 있다.</div>
+<div class="exercise"><span class="label">연습</span>5장에서 볼 HealSkill은 FindTargets와 Activate를 모두 override한다. HealSkill에서 Activate를 override한 줄을 지우면 어떤 일이 일어나는가? 빈칸을 abstract가 아니고 “virtual과 빈 본문”으로 선언했다면 같은 실수는 어떻게 나타나는가?</div><details><summary>해설 보기</summary><p>HealSkill이 컴파일되지 않는다. 컴파일러는 HealSkill이 상속받은 abstract 메서드 <code>Skill.Activate(Unit)</code>을 구현하지 않았다고 알려 준다. 프로젝트에 컴파일 오류가 있으면 Unity는 Play를 시작하지 않으므로 이 실수는 게임에 들어갈 수 없다. virtual과 빈 본문이었다면 컴파일은 통과한다. 치유를 사용하면 부모의 빈 본문이 실행되어 HP가 회복되지 않고, 오류 메시지도 나오지 않는다. 직접 플레이해서 회복되지 않는다는 것을 발견해야 한다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
+</section>
+<section class="chapter" id="chapter-4">
+<p class="kicker">CHAPTER 04 · 부모 ②</p><h2>부모 Skill: protected 도구</h2>
+<div class="objectives">학습 목표: 도구 네 개가 각각 어떤 시스템과의 연결을 감추는지 설명한다. public, protected, private의 차이를 Skill의 멤버로 설명한다. 도구가 protected이고 _turns가 private인 이유를 설명한다.</div>
+<h3>4.1 도구는 네 개다</h3>
+<table><caption>Skill이 제공하는 도구</caption><thead><tr><th>도구</th><th>하는 일</th><th>도구가 사용하는 것</th></tr></thead><tbody><tr><td>EnemiesInRange()</td><td>사거리 안에 있는 살아 있는 적의 목록을 돌려준다.</td><td>TurnManager.GetUnitsInRange</td></tr><tr><td>WoundedAlliesInRange()</td><td>사거리 안에 있는 살아 있는 아군 가운데 부상당한 유닛의 목록을 돌려준다.</td><td>TurnManager.GetUnitsInRange</td></tr><tr><td>Strike(target, bonusDamage)</td><td>대상에게 추가 피해를 더한 공격을 한다.</td><td>TurnManager.Attack</td></tr><tr><td>Restore(target, amount)</td><td>대상의 HP를 회복시킨다.</td><td>Unit.Heal</td></tr></tbody></table>
+<p>앞의 두 개는 대상을 찾는 도구이고 뒤의 두 개는 효과를 주는 도구다. 3.2절의 빈칸 두 개와 짝이 맞는다. FindTargets는 대상을 찾는 도구로 채우고, Activate는 효과를 주는 도구로 채운다.</p>
+<h3>4.2 대상을 찾는 도구</h3>
+<p class="code-caption">실제 코드 · Skill.cs의 EnemiesInRange와 WoundedAlliesInRange 전체</p><pre><code>protected List&lt;Unit&gt; EnemiesInRange()
+{
+    Team enemyTeam = _user.Team == Team.Player ? Team.Enemy : Team.Player;
+    return _turns.GetUnitsInRange(_user, _range, enemyTeam);
+}
+
+protected List&lt;Unit&gt; WoundedAlliesInRange()
+{
+    List&lt;Unit&gt; allies = _turns.GetUnitsInRange(_user, _range, _user.Team);
+    List&lt;Unit&gt; targets = new List&lt;Unit&gt;();
+    foreach (Unit unit in allies)
+    {
+        if (unit.CurrentHp &lt; unit.MaxHp)
+        {
+            targets.Add(unit);
+        }
+    }
+
+    return targets;
+}</code></pre>
+<p>EnemiesInRange의 첫 줄은 상대 진영을 구한다. <code>조건 ? A : B</code>는 조건이 참이면 A를, 거짓이면 B를 값으로 가지는 연산자다. 사용하는 유닛이 아군(Player)이면 상대 진영은 Enemy이고, 그렇지 않으면 Player다. 둘째 줄은 TurnManager에게 사거리 안에 있는 그 진영의 유닛을 요청한다.</p>
+<p>WoundedAlliesInRange는 먼저 사거리 안의 같은 진영 유닛을 요청한다. 그 목록에서 현재 HP가 최대 HP보다 작은 유닛만 골라서 돌려준다. HP가 가득 찬 유닛은 회복시킬 필요가 없으므로 대상에서 뺀다.</p>
+<p>두 도구는 모두 <code>_user</code>, <code>_range</code>, <code>_turns</code>를 사용한다. 자식은 이 값들을 넘기지 않는다. 자식은 <code>EnemiesInRange()</code>라고 인수 없이 호출하고, 필요한 값은 부모가 입구에서 적어 둔 것을 도구가 읽는다.</p>
+<p class="code-caption">실제 코드 · TurnManager.cs의 GetUnitsInRange 전체</p><pre><code>public List&lt;Unit&gt; GetUnitsInRange(Unit user, int range, Team team)
+{
+    List&lt;Unit&gt; targets = new List&lt;Unit&gt;();
+    Vector2Int origin = _board.WorldToCell(user.transform.position);
+    foreach (Unit unit in _spawner.Units)
+    {
+        Vector2Int cell = _board.WorldToCell(unit.transform.position);
+        int distance = Mathf.Abs(cell.x - origin.x) + Mathf.Abs(cell.y - origin.y);
+        if (unit.IsAlive &amp;&amp; unit.Team == team &amp;&amp; distance &lt;= range)
+        {
+            targets.Add(unit);
+        }
+    }
+
+    return targets;
+}</code></pre>
+<p>도구의 뒤에서 실제로 일하는 메서드다. 전장의 모든 유닛을 하나씩 확인하여 살아 있고, 요청한 진영이고, 거리가 사거리 이하인 유닛을 목록에 담는다. 거리는 7차시와 같이 가로 차이와 세로 차이를 더한 값이다. 이 메서드는 보드(<code>_board</code>)와 유닛 목록(<code>_spawner</code>)을 사용한다. 자식 class는 이 둘의 존재를 알지 못한다.</p>
+<p class="annotation">조건에 거리의 아래쪽 제한이 없다. 사용하는 유닛 자신은 거리가 0이고 자신과 같은 진영이므로, 아군을 찾을 때에는 자신도 목록에 들어간다. 그래서 부상당한 마법사는 치유의 대상으로 자기 자신을 고를 수 있다. 적을 찾을 때에는 자신의 진영이 다르므로 자신이 들어가지 않는다.</p>
+<h3>4.3 효과를 주는 도구</h3>
+<p class="code-caption">실제 코드 · Skill.cs의 Strike와 Restore 전체</p><pre><code>protected void Strike(Unit target, int bonusDamage)
+{
+    _turns.Attack(_user, target, bonusDamage);
+}
+
+protected void Restore(Unit target, int amount)
+{
+    target.Heal(amount);
+}</code></pre>
+<p><code>Strike</code>의 본문은 한 줄이지만 그 뒤에 1.1절의 Attack 전체가 있다. 칸을 구하고, 지형 방어를 읽고, 피해 공식을 호출하고, HP를 줄인다. HP가 줄면 6차시에서 배운 대로 <code>Unit.TakeDamage</code>가 HpChanged와 Died 알림을 발행하므로 체력바 갱신과 전멸 판정도 이어서 실행된다. 이 모든 일이 <code>Strike</code> 한 줄로 실행된다. 자식은 <code>Strike</code>라는 이름과 매개변수 두 개만 알면 된다.</p>
+<p class="code-caption">실제 코드 · Unit.cs의 Heal 전체</p><pre><code>public void Heal(int amount)
+{
+    CurrentHp = Mathf.Min(MaxHp, CurrentHp + amount);
+    HpChanged?.Invoke(this);
+}</code></pre>
+<p><code>Restore</code>의 뒤에는 이 메서드가 있다. <code>Mathf.Min</code>은 두 값 가운데 작은 쪽을 돌려준다. 회복한 뒤의 HP가 최대 HP를 넘으면 최대 HP로 제한된다. 둘째 줄은 6차시의 HpChanged 알림을 발행하므로 체력바가 회복된 HP로 갱신된다.</p>
+<p>Restore는 한 줄을 그대로 전달할 뿐인데도 도구로 만들었다. 이유는 Strike와 같다. “회복시키는 방법”을 한 곳에 두기 위해서다. 나중에 회복에 공통 규칙이 추가되더라도 Restore 한 곳만 고치면 회복시키는 모든 스킬에 반영된다.</p>
+<h3>4.4 접근 수준: public, protected, private</h3>
+<p><span class="term">접근 수준</span>은 class의 멤버(필드, 속성, 메서드)를 어디에서 사용할 수 있는지를 정하는 표시다. Skill은 세 가지 접근 수준을 모두 사용한다.</p>
+<table><caption>Skill의 멤버와 접근 수준</caption><thead><tr><th>접근 수준</th><th>Skill에서의 예</th><th>사용할 수 있는 곳</th></tr></thead><tbody><tr><td><code>public</code></td><td>GetTargets, Use, DisplayName</td><td>어디에서나 사용할 수 있다. BattleController가 사용한다.</td></tr><tr><td><code>protected</code></td><td>Strike, Restore, EnemiesInRange, WoundedAlliesInRange, FindTargets, Activate</td><td>Skill과 Skill의 자식 class 안에서만 사용할 수 있다.</td></tr><tr><td><code>private</code></td><td>_user, _turns, _range, _displayName</td><td>Skill 안에서만 사용할 수 있다. 자식도 사용할 수 없다.</td></tr></tbody></table>
+<p>지금까지의 차시에서는 public과 private 두 가지만 사용했다. <code>protected</code>는 그 사이에 있다. 바깥에는 private처럼 닫혀 있고, 자식 class에게만 열려 있다. 부모와 자식 사이에서만 사용할 멤버에 붙인다. Subclass Sandbox에서 도구가 바로 그런 멤버다.</p>
+<h3>4.5 도구가 protected이고 _turns가 private인 이유</h3>
+<div class="grid"><div class="box"><h4>도구가 public이 아닌 이유</h4><p>도구가 public이면 BattleController가 <code>skill.Strike(...)</code>를 직접 호출할 수 있다. 이 호출은 입구를 지나지 않으므로 <code>_user</code>와 <code>_turns</code>가 준비되지 않았거나 이전 호출의 값이 남아 있다. 도구는 스킬을 작성하는 자식만 사용해야 한다.</p></div><div class="box"><h4>_turns가 protected가 아닌 이유</h4><p>자식이 <code>_turns</code>를 사용할 수 있으면 도구를 거치지 않고 <code>_turns.Attack(...)</code>처럼 TurnManager를 직접 사용할 수 있다. 그러면 자식이 다시 다른 시스템을 알게 되고 첫 시도와 같아진다.</p></div></div>
+<p>두 결정은 방향이 반대다. 도구는 private보다 넓혀서 자식에게 열었고, 필드는 protected보다 좁혀서 자식에게도 닫았다. 결과는 하나다. 자식이 할 수 있는 일은 도구를 호출하는 것뿐이다. 2.3절에서 말한 놀이터의 울타리를 코드에서는 접근 수준이 만든다.</p>
+<div class="warning"><span class="label">흔한 실수</span>자식 class를 작성하다가 필요한 값에 접근할 수 없으면 부모의 private 필드를 protected로 바꾸고 싶어진다. 컴파일은 통과하지만 그 순간부터 자식이 시스템을 직접 사용할 수 있게 된다. 필요한 것은 필드를 여는 일이 아니고 도구를 추가하는 일이다. 7장에서 다룬다.</div>
+<div class="exercise"><span class="label">연습</span>어떤 자식 class가 <code>Activate</code> 안에서 <code>_turns.Attack(_user, target, 4);</code>를 호출하려고 한다. 현재 코드에서 이 줄은 어떻게 되는가? <code>_turns</code>와 <code>_user</code>를 protected로 바꾸면 어떻게 되고, 그때 잃는 것은 무엇인가?</div><details><summary>해설 보기</summary><p>현재 코드에서는 컴파일 오류다. <code>_turns</code>와 <code>_user</code>가 private이므로 자식은 사용할 수 없다. 두 필드를 protected로 바꾸면 컴파일되고 강타와 같은 결과가 나온다. 그러나 이 자식은 이제 TurnManager의 Attack이라는 이름과 매개변수 세 개를 알고 있다. Attack의 매개변수가 바뀌면 이 자식도 컴파일되지 않는다. 다른 시스템과의 연결이 부모 한 곳에만 있다는 이 패턴의 이득을 잃는다. 올바른 코드는 <code>Strike(target, 4)</code>다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
+</section>
+<section class="chapter" id="chapter-5">
+<p class="kicker">CHAPTER 05 · 자식</p><h2>자식 class: 강타와 치유</h2>
+<div class="objectives">학습 목표: override 키워드로 빈칸을 채운 자식 class를 한 줄씩 읽는다. 강타와 치유의 코드에서 같은 부분과 다른 부분을 구분한다. 새 class가 필요한 차이와 새 에셋으로 충분한 차이를 구분한다.</div>
+<h3>5.1 강타는 도구 두 개를 고른 것이 전부다</h3>
+<p class="code-caption">실제 코드 · PowerStrikeSkill.cs의 class 전체</p><pre><code>[CreateAssetMenu(menuName = "Mini Tactics/Skills/Power Strike")]
+public sealed class PowerStrikeSkill : Skill
+{
+    [SerializeField, Min(0)] private int _bonusDamage = 4;
+
+    protected override List&lt;Unit&gt; FindTargets() =&gt; EnemiesInRange();
+    protected override void Activate(Unit target) =&gt; Strike(target, _bonusDamage);
+}</code></pre>
+<p>이 class는 세 줄로 읽는다.</p>
+<ol><li>이 스킬만의 값은 추가 피해이고 기본값은 4다.</li><li>대상은 사거리 안의 적이다. FindTargets를 도구 <code>EnemiesInRange()</code>로 채웠다.</li><li>효과는 추가 피해를 더한 공격이다. Activate를 도구 <code>Strike(target, _bonusDamage)</code>로 채웠다.</li></ol>
+<p><code>override</code>는 부모가 선언한 메서드를 자식이 다시 정의한다는 표시다. 부모의 abstract 메서드와 이름, 매개변수, 반환 형식이 같아야 한다. 접근 수준도 같아야 하므로 부모가 protected로 선언한 메서드는 자식도 <code>protected override</code>로 작성한다. <code>=&gt;</code>는 본문이 식 하나인 메서드를 짧게 적는 문법이다. 중괄호 안에 그 식 하나를 적은 것과 같다.</p>
+<p class="annotation"><code>: Skill</code>은 Skill을 상속한다는 뜻이다. <code>sealed</code>는 이 class를 더 이상 상속할 수 없게 한다. <code>[CreateAssetMenu]</code>는 7차시에서 배운 대로 Create 메뉴에 항목을 추가한다. abstract인 Skill에는 없고 객체를 만들 수 있는 자식에만 있다.</p>
+<p>1.3절의 첫 시도와 비교한다. 첫 시도의 본문 네 줄이 도구 호출 한 줄이 되었다. 첫 시도에 코드로 적혀 있던 숫자 4는 Inspector에서 조정할 수 있는 값이 되었다.</p>
+<h3>5.2 치유는 다른 도구 두 개를 고른다</h3>
+<p class="code-caption">실제 코드 · HealSkill.cs의 class 전체</p><pre><code>[CreateAssetMenu(menuName = "Mini Tactics/Skills/Heal")]
+public sealed class HealSkill : Skill
+{
+    [SerializeField, Min(1)] private int _healAmount = 5;
+
+    protected override List&lt;Unit&gt; FindTargets() =&gt; WoundedAlliesInRange();
+    protected override void Activate(Unit target) =&gt; Restore(target, _healAmount);
+}</code></pre>
+<table><caption>두 자식 class의 비교</caption><thead><tr><th>구분</th><th>PowerStrikeSkill</th><th>HealSkill</th></tr></thead><tbody><tr><td>대상을 찾는 도구</td><td>EnemiesInRange</td><td>WoundedAlliesInRange</td></tr><tr><td>효과를 주는 도구</td><td>Strike</td><td>Restore</td></tr><tr><td>이 스킬만의 값</td><td>_bonusDamage</td><td>_healAmount</td></tr><tr><td>class의 모양</td><td colspan="2">같다. 값 하나와 override 두 개다.</td></tr></tbody></table>
+<p>두 class를 나란히 놓으면 “이 스킬이 무엇을 하는가”만 남아 있다. 다른 것은 고른 도구와 값뿐이다.</p>
+<h3>5.3 자식 파일에 없는 것</h3>
+<p>두 파일에는 <code>BoardView</code>도, <code>CombatCalculator</code>도, <code>TurnManager</code>도 등장하지 않는다. 자식이 사용하는 이름은 부모의 도구 이름과, 매개변수의 형식으로 쓰인 <code>Unit</code>뿐이다. 자식은 Unit의 메서드를 하나도 호출하지 않는다. 받은 대상을 도구에 그대로 넘길 뿐이다.</p>
+<div class="concept"><span class="label">자식이 모르는 것</span>지형 방어가 있다는 사실, 피해 공식의 모양, 유닛의 목록이 어디에 있는지, 거리를 어떻게 계산하는지, 최대 HP 제한. 자식은 이 가운데 어느 것도 알지 못한다. 그래서 이것들이 바뀌어도 자식 파일은 바뀌지 않는다.</div>
+<h3>5.4 동작이 다르면 class, 값이 다르면 에셋</h3>
+<p>7차시의 기준을 스킬에 적용한다. 강타와 치유는 동작이 다르므로 class로 나누었다. 같은 강타라도 추가 피해가 다른 스킬은 동작이 같고 값만 다르다. 이 경우에는 class를 새로 만들지 않고 PowerStrikeSkill 에셋을 하나 더 만든다.</p>
+<table><caption>현재 프로젝트의 스킬 에셋 두 개</caption><thead><tr><th>에셋</th><th>class</th><th>DisplayName</th><th>Range</th><th>이 스킬만의 값</th></tr></thead><tbody><tr><td>PowerStrike</td><td>PowerStrikeSkill</td><td>Power Strike</td><td>1</td><td>BonusDamage 4</td></tr><tr><td>Heal</td><td>HealSkill</td><td>Heal</td><td>2</td><td>HealAmount 5</td></tr></tbody></table>
+<p>스킬의 사거리는 스킬 에셋의 값이다. 유닛의 공격 사거리인 <code>AttackRange</code>와는 별개다. 4.2절의 도구가 <code>_range</code>를 사용한다는 점에서 확인할 수 있다.</p>
+<div class="exercise"><span class="label">연습</span>다음 세 가지 가운데 새 class를 작성해야 하는 것은 무엇인가? (가) 추가 피해가 6인 강타. (나) 회복량이 3이고 사거리가 1인 치유. (다) 사거리 안의 부상당한 아군 모두를 한 번에 회복시키는 광역 치유.</div><details><summary>해설 보기</summary><p>(다)만 새 class가 필요하다. (가)는 PowerStrikeSkill 에셋을 하나 더 만들고 BonusDamage에 6을 입력하면 된다. (나)는 HealSkill 에셋을 하나 더 만들고 HealAmount에 3, Range에 1을 입력하면 된다. 두 경우는 실행되는 코드가 같고 값만 다르다. (다)는 Activate가 대상 하나가 아니고 여러 유닛에게 Restore를 반복해서 호출해야 한다. 실행되는 코드가 다르므로 새 class를 작성한다. 그 방법은 7.1절의 화염구와 같다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
+</section>
+<section class="chapter" id="chapter-6">
+<p class="kicker">CHAPTER 06 · 흐름</p><h2>호출 흐름과 수치 추적</h2>
+<div class="objectives">학습 목표: 스킬을 사용하는 호출 한 줄이 입구, 빈칸, 도구를 차례로 지나가는 과정을 설명한다. 호출하는 쪽이 스킬의 종류를 알지 못한다는 점을 설명한다. 강타의 피해와 치유의 회복을 실제 값으로 직접 계산한다.</div>
+<h3>6.1 호출하는 쪽의 코드는 한 줄이다</h3>
+<p class="code-caption">실제 코드 · BattleController.UseSkill의 첫 줄</p><pre><code>user.UnitClass.Skill.Use(user, target, _turnManager);</code></pre>
+<p>왼쪽에서부터 읽는다. <code>user.UnitClass</code>는 7차시에서 배운 대로 그 유닛의 타입 객체, 즉 병종 에셋이다. <code>.Skill</code>은 그 병종 에셋에 연결된 스킬 에셋이다. 이 연결은 8장에서 다룬다. <code>.Use(...)</code>는 3.4절의 입구다. 사용하는 유닛, 대상, TurnManager를 넘긴다.</p>
+<h3>6.2 호출 한 번이 입구, 빈칸, 도구를 차례로 지나간다</h3>
+<p>기사가 강타를 사용한 경우를 따라간다.</p>
+<div class="flow" aria-label="강타를 사용했을 때의 호출 흐름"><span>Skill.Use · 사용자와 TurnManager를 적는다</span><b>→</b><span>PowerStrikeSkill.Activate · 자식이 작성한 빈칸</span><b>→</b><span>Skill.Strike · 부모의 도구</span><b>→</b><span>TurnManager.Attack · 실제 피해 처리</span></div>
+<ol><li><code>Skill.Use</code>가 실행된다. <code>_user</code>에 기사를, <code>_turns</code>에 TurnManager를 적고 <code>Activate(target)</code>을 호출한다.</li><li>이 에셋은 PowerStrikeSkill의 객체이므로 <code>PowerStrikeSkill.Activate</code>가 실행된다. 본문은 <code>Strike(target, _bonusDamage)</code>이고 <code>_bonusDamage</code>는 4다.</li><li><code>Skill.Strike</code>가 실행된다. 1번에서 적어 둔 값을 사용하여 <code>_turns.Attack(_user, target, 4)</code>를 호출한다.</li><li><code>TurnManager.Attack</code>이 지형 방어를 읽고, 공식으로 피해를 계산하고, 4를 더해서 대상의 HP를 줄인다.</li></ol>
+<p>호출이 오가는 방향을 본다. 부모(Use)에서 자식(Activate)으로 갔다가 다시 부모(Strike)로 돌아온다. 부모가 자식을 부르고, 자식이 다시 부모의 도구를 부른다. 흐름의 시작과 끝을 부모가 맡고 있고, 자식은 가운데에서 “어떤 도구를 어떤 값으로 부를 것인가”만 정한다.</p>
+<h3>6.3 호출하는 쪽은 스킬의 종류를 알지 못한다</h3>
+<p>6.1절의 한 줄에는 “강타”도 “치유”도 없다. <code>user.UnitClass.Skill</code>의 형식은 부모인 <code>Skill</code>이다. C#에서는 부모 형식의 변수로 메서드를 호출해도 그 변수에 담긴 실제 객체의 class에 있는 override가 실행된다. 이 성질을 <span class="term">다형성</span>이라고 한다. 같은 호출이 객체에 따라 다른 동작을 한다는 뜻이다.</p>
+<p>그래서 같은 한 줄이 기사에게서는 강타를, 마법사에게서는 치유를 실행한다. 어떤 자식의 Activate가 실행될지는 코드가 아니고 병종 에셋에 연결된 스킬 에셋이 정한다. 스킬이 30개로 늘어나도 호출하는 쪽의 이 한 줄은 바뀌지 않는다.</p>
+<h3>6.4 추적: 기사의 강타</h3>
+<p>출발 상태는 다음과 같다. 기사의 공격력은 6이다. 적 궁수는 방어력 1, HP 9 / 9다. 강타 에셋의 추가 피해는 4다. 피해 공식은 max(1, 공격력 − 방어력 − 지형 방어)다. 평지의 지형 방어는 0이고 숲의 지형 방어는 1이다. 궁수가 평지에 있을 때와 숲에 있을 때를 나란히 계산한다.</p>
+<table><caption>기사가 궁수에게 강타를 사용했을 때</caption><thead><tr><th>단계</th><th>평지의 궁수에게 강타</th><th>숲(지형 방어 1)의 궁수에게 강타</th></tr></thead><tbody><tr><td>공식의 결과</td><td>max(1, 6 − 1 − 0) = 5</td><td>max(1, 6 − 1 − 1) = 4</td></tr><tr><td>추가 피해를 더한다</td><td>5 + 4 = 9</td><td>4 + 4 = 8</td></tr><tr><td>궁수의 HP</td><td>max(0, 9 − 9) = 0, 쓰러진다.</td><td>max(0, 9 − 8) = 1, 살아남는다.</td></tr></tbody></table>
+<p class="annotation">마지막 행의 max(0, …)은 <code>Unit.TakeDamage</code>가 HP를 0 아래로 내려가지 않게 하는 계산이다. 추가 피해는 공식의 결과가 나온 뒤에 더한다. 그래서 공식의 결과가 최솟값인 1이어도 강타의 피해는 1 + 4 = 5가 된다.</p>
+<div class="concept"><span class="label">추적에서 확인할 점</span>지형 방어는 강타에도 적용된다. PowerStrikeSkill에는 지형에 대한 코드가 한 줄도 없다. 그런데도 숲에서 피해가 1 줄어든 것은 <code>Strike</code>가 일반 공격과 같은 <code>TurnManager.Attack</code>을 지나가기 때문이다. 공통인 규칙은 자식이 신경 쓰지 않아도 모든 스킬에 똑같이 적용된다.</div>
+<h3>6.5 추적: 마법사의 치유</h3>
+<p>먼저 대상을 찾는 과정을 따라간다. 출발 상태는 다음과 같다. 아군 마법사가 (2, 3)에 있고 HP는 7 / 7이다. 치유 에셋의 사거리는 2다. 아군 기사 A는 (3, 3)에 있고 HP 6 / 14다. 아군 기사 B는 (2, 5)에 있고 HP 14 / 14다. 아군 궁수 C는 (5, 3)에 있고 HP 4 / 9다.</p>
+<table><caption>WoundedAlliesInRange가 대상을 고르는 과정</caption><thead><tr><th>유닛</th><th>마법사와의 거리</th><th>사거리 2 이하인가</th><th>CurrentHp &lt; MaxHp 인가</th><th>대상인가</th></tr></thead><tbody><tr><td>마법사 자신</td><td>0</td><td>그렇다.</td><td>7 &lt; 7 이 아니다.</td><td>아니다.</td></tr><tr><td>기사 A</td><td>|3 − 2| + |3 − 3| = 1</td><td>그렇다.</td><td>6 &lt; 14 이다.</td><td>대상이다.</td></tr><tr><td>기사 B</td><td>|2 − 2| + |5 − 3| = 2</td><td>그렇다.</td><td>14 &lt; 14 가 아니다.</td><td>아니다.</td></tr><tr><td>궁수 C</td><td>|5 − 2| + |3 − 3| = 3</td><td>아니다.</td><td>확인하지 않는다.</td><td>아니다.</td></tr></tbody></table>
+<p>대상은 기사 A 하나다. 궁수 C는 부상당했지만 사거리 밖에 있어서 <code>GetUnitsInRange</code>가 돌려준 목록에 들어 있지 않다. 이제 회복을 계산한다. 회복량은 5다. HP가 다른 두 기사를 나란히 계산한다.</p>
+<table><caption>기사에게 치유를 사용했을 때</caption><thead><tr><th>단계</th><th>HP 6 / 14인 기사를 치유</th><th>HP 12 / 14인 기사를 치유</th></tr></thead><tbody><tr><td>Heal(5)</td><td>min(14, 6 + 5) = 11</td><td>min(14, 12 + 5) = min(14, 17) = 14</td></tr><tr><td>체력바</td><td>11 / 14 ≈ 0.786, 약 79%</td><td>14 / 14 = 1, 100%</td></tr></tbody></table>
+<p>오른쪽 열에서 최대 HP 제한이 적용되었다. HealSkill에는 최대 HP에 대한 코드가 한 줄도 없다. 이 제한은 <code>Restore</code>의 뒤에 있는 <code>Unit.Heal</code>이 맡는다.</p>
+<div class="exercise"><span class="label">손으로 계산하기</span>아군 기사(공격력 6)가 산(지형 방어 2) 위에 있는 적 기사(방어력 3, HP 14 / 14)를 공격한다. 일반 공격일 때와 강타일 때 적 기사에게 남는 HP는 각각 얼마인가?</div><details><summary>해설 보기</summary><p>공식의 결과는 max(1, 6 − 3 − 2) = max(1, 1) = 1이다. 일반 공격은 추가 피해가 0이므로 피해가 1이고 14 − 1 = 13이 남는다. 강타는 1 + 4 = 5의 피해를 주므로 14 − 5 = 9가 남는다. 두 경우 모두 같은 <code>TurnManager.Attack</code>이 실행되었고 다른 것은 <code>bonusDamage</code>의 값 0과 4뿐이다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
+</section>
+<section class="chapter" id="chapter-7">
+<p class="kicker">CHAPTER 07 · 확장</p><h2>새 스킬과 새 도구로 확장하기</h2>
+<div class="objectives">학습 목표: 새 스킬을 추가할 때 작성해야 하는 것이 새 class 하나뿐임을 코드로 확인한다. 도구를 조합한다는 말의 뜻을 설명한다. 도구가 부족할 때 자식이 시스템을 직접 사용하지 않고 부모에 도구를 추가해야 하는 이유를 설명한다.</div>
+<h3>7.1 화염구를 추가하려면 무엇을 작성해야 하는가</h3>
+<p>새 스킬 “화염구”를 추가한다고 가정한다. 화염구는 사거리 안의 모든 적에게 추가 피해 2의 공격을 한다. 사거리 안의 적 하나를 대상으로 선택하면 발동한다.</p>
+<p class="code-caption">설계 비교용 가상 코드 · 실제 프로젝트에는 FireballSkill이 없다 · CreateAssetMenu 줄을 생략했다</p><pre><code>public sealed class FireballSkill : Skill
+{
+    [SerializeField] private int _bonusDamage = 2;
+
+    protected override List&lt;Unit&gt; FindTargets()
+        =&gt; EnemiesInRange();
+
+    protected override void Activate(Unit target)
+    {
+        foreach (Unit enemy in EnemiesInRange())
+        {
+            Strike(enemy, _bonusDamage);
+        }
+    }
+}</code></pre>
+<p>작성해야 하는 것은 새 class 하나다. Skill.cs, TurnManager.cs, 호출하는 쪽의 코드는 한 줄도 고치지 않는다. 6.3절에서 본 대로 호출하는 쪽은 스킬의 종류를 알지 못하기 때문이다. class를 작성한 뒤에는 이 class의 에셋을 만들어 병종 에셋에 연결하면 된다.</p>
+<table><caption>새 스킬 하나를 추가할 때 필요한 것</caption><thead><tr><th>방법</th><th>새 class</th><th>새 class가 알아야 하는 시스템</th><th>기존 코드 수정</th></tr></thead><tbody><tr><td>첫 시도</td><td>1개</td><td>BoardView, CombatCalculator, Unit.TakeDamage</td><td>없다.</td></tr><tr><td>Subclass Sandbox</td><td>1개</td><td>없다. 부모의 도구만 안다.</td><td>없다.</td></tr></tbody></table>
+<p>두 방법 모두 새 class 하나가 필요하다. 차이는 그 class를 작성하는 사람이 알아야 하는 것의 양이다. Subclass Sandbox에서 화염구를 작성하는 사람은 도구 네 개의 이름과 뜻만 알면 된다.</p>
+<h3>7.2 자식은 도구를 조합한다</h3>
+<p>화염구의 Activate는 강타와 같은 도구 <code>Strike</code>를 사용하지만 호출하는 방법이 다르다. 반복문 안에서 적의 수만큼 호출한다. 도구는 여러 번 호출해도 되고, 반복문이나 조건문 안에서 호출해도 되고, 여러 도구를 차례로 호출해도 된다. 자식은 도구를 고르기만 하는 것이 아니고 <span class="term">조합</span>한다. 도구는 네 개뿐이어도 조합의 수는 그보다 훨씬 많다.</p>
+<p>화염구를 수치로 확인한다. 출발 상태는 다음과 같다. 화염구 에셋의 사거리는 2이고 추가 피해는 2다. 이 에셋을 마법사(공격력 8)의 병종 에셋에 연결했다고 가정한다. 사거리 안에 적이 둘 있다. 평지의 궁수(방어력 1, HP 9 / 9)와 숲의 기사(방어력 3, HP 14 / 14)다.</p>
+<table><caption>마법사가 화염구를 사용했을 때</caption><thead><tr><th>단계</th><th>평지의 궁수</th><th>숲(지형 방어 1)의 기사</th></tr></thead><tbody><tr><td>공식의 결과</td><td>max(1, 8 − 1 − 0) = 7</td><td>max(1, 8 − 3 − 1) = 4</td></tr><tr><td>추가 피해를 더한다</td><td>7 + 2 = 9</td><td>4 + 2 = 6</td></tr><tr><td>남는 HP</td><td>max(0, 9 − 9) = 0, 쓰러진다.</td><td>max(0, 14 − 6) = 8</td></tr></tbody></table>
+<p>Strike가 두 번 호출되었고, 호출마다 대상이 서 있는 칸의 지형 방어가 따로 적용되었다. 화염구의 코드에는 지형에 대한 내용이 없다.</p>
+<h3>7.3 도구가 부족하면 부모에 도구를 추가한다</h3>
+<p>“밀치기” 스킬을 만들려고 한다. 대상을 한 칸 뒤로 이동시켜야 하는데 그런 도구가 없다. 이때 하지 말아야 할 일이 있다. 밀치기 class 안에서 BoardView를 찾아 대상을 직접 이동시키는 것이다. 이것은 2.3절의 놀이터 밖으로 나가는 일이다. 첫 시도의 문제가 그 class에서 다시 시작된다. 올바른 방법은 부모에 도구를 추가하는 것이다.</p>
+<p class="code-caption">설계 비교용 가상 코드 · 실제 프로젝트에는 Push 도구, PushSkill, TurnManager.PushAway가 없다 · CreateAssetMenu 줄을 생략했다</p><pre><code>// Skill.cs에 도구를 하나 추가한다.
+protected void Push(Unit target)
+{
+    _turns.PushAway(_user, target);
+}
+
+// 새 자식은 새 도구를 호출하기만 한다.
+public sealed class PushSkill : Skill
+{
+    protected override List&lt;Unit&gt; FindTargets() =&gt; EnemiesInRange();
+    protected override void Activate(Unit target) =&gt; Push(target);
+}</code></pre>
+<p class="annotation"><code>PushAway</code>는 “사용자의 반대 방향으로 대상을 한 칸 이동시킨다”는 일을 TurnManager가 맡는다고 가정한 이름이다. 빈 칸인지, 지도 밖인지를 확인하는 코드는 그 메서드 안에 들어간다.</p>
+<div class="flow" aria-label="새 도구를 추가하는 과정"><span>Skill에 Push 도구를 추가한다</span><b>→</b><span>Push가 보드와의 연결을 감춘다</span><b>→</b><span>PushSkill은 Push를 호출한다</span><b>→</b><span>이후의 모든 스킬이 Push를 쓸 수 있다</span></div>
+<p>새 도구는 한 번 만들면 모든 자식의 것이 된다. Strike와 Push를 차례로 호출하는 “충격 화살”처럼 조합할 수 있는 재료가 늘어난다. 이때 기존 자식 class는 고칠 필요가 없다. 도구를 추가하는 일은 기존 도구의 이름과 매개변수를 바꾸지 않기 때문이다.</p>
+<h3>7.4 도구 한 곳을 고치면 모든 스킬에 반영된다</h3>
+<p>“피해를 주는 모든 스킬이 기록을 남기게 한다”는 요구가 생겼다고 가정한다.</p>
+<p class="code-caption">설계 비교용 가상 코드 · 실제 Strike에는 로그를 남기는 줄이 없다</p><pre><code>protected void Strike(Unit target, int bonusDamage)
+{
+    Debug.Log($"{_user.name} → {target.name} : {DisplayName}");
+    _turns.Attack(_user, target, bonusDamage);
+}</code></pre>
+<p class="annotation"><code>Debug.Log</code>는 Unity의 Console 창에 글을 출력하는 메서드다. <code>$"..."</code>는 중괄호 안의 값을 문자열에 끼워 넣는 문법이다.</p>
+<table><caption>같은 변경을 두 구조에서 할 때</caption><thead><tr><th>변경</th><th>첫 시도</th><th>Subclass Sandbox</th></tr></thead><tbody><tr><td>피해를 주는 모든 스킬이 기록을 남기게 한다.</td><td>피해를 주는 모든 스킬 class에 한 줄씩 추가한다.</td><td>Strike에 한 줄을 추가한다.</td></tr><tr><td>피해 공식에 치명타를 추가한다.</td><td>모든 스킬 class의 복사된 공식을 고친다.</td><td>TurnManager.Attack 한 곳을 고친다. 스킬은 바뀌지 않는다.</td></tr></tbody></table>
+<p>공통인 코드가 한 곳에만 있기 때문이다. 자식이 30개여도 다른 시스템과 연결된 곳은 부모 하나다. 1.4절의 표에 있던 한계가 이 표에서 풀렸다.</p>
+<div class="exercise"><span class="label">생각할 문제</span>“흡혈” 스킬을 만들려고 한다. 사거리 안의 적 하나를 추가 피해 0으로 공격하고, 사용한 유닛 자신의 HP를 3 회복한다. 현재의 도구 네 개만으로 Activate를 작성할 수 있는가? 작성할 수 없다면 무엇을 해야 하는가?</div><details><summary>해설 보기</summary><p>공격은 <code>Strike(target, 0)</code>으로 작성할 수 있다. 회복은 작성할 수 없다. <code>Restore</code>에는 회복시킬 유닛을 넘겨야 하는데, 사용한 유닛을 담고 있는 <code>_user</code>는 private이어서 자식이 사용할 수 없다. <code>_user</code>를 protected로 바꾸는 것은 4.5절에서 본 대로 울타리를 허무는 일이다. 부모에 도구를 추가한다. 예를 들어 Skill에 <code>protected void RestoreUser(int amount)</code>를 추가하고 본문을 <code>_user.Heal(amount);</code>로 작성한다. 그러면 흡혈의 Activate는 <code>Strike(target, 0);</code>과 <code>RestoreUser(3);</code> 두 줄이 된다. 새 도구는 이후에 만드는 모든 스킬이 사용할 수 있다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
+</section>
+<section class="chapter" id="chapter-8">
+<p class="kicker">CHAPTER 08 · 결합과 판단</p><h2>Type Object와의 결합, 대가, 적용 기준</h2>
+<div class="objectives">학습 목표: 7차시의 Type Object와 이번 차시의 Subclass Sandbox가 각각 어떤 차이를 맡는지 설명한다. Subclass Sandbox의 대가 세 가지를 구체적인 모습으로 설명한다. 이 패턴을 적용할지 판단하는 질문을 사용한다.</div>
+<h3>8.1 병종 에셋이 스킬 에셋을 참조한다</h3>
+<p class="code-caption">실제 코드 · UnitClass.cs에 추가된 두 줄 · 축약한 발췌이며 필드 한 줄과 속성 한 줄만 옮겼다. 파일에서는 두 줄이 서로 떨어져 있다</p><pre><code>[SerializeField] private Skill _skill;
+public Skill Skill =&gt; _skill;</code></pre>
+<p>7차시의 타입 객체 UnitClass에 값이 하나 늘었다. 그 병종이 사용하는 스킬이다. 필드의 형식이 부모인 <code>Skill</code>이므로 Inspector에서 PowerStrikeSkill 에셋도, HealSkill 에셋도 연결할 수 있다. 3.3절에서 말한 “abstract class는 변수의 형식으로 사용할 수 있다”는 점이 여기에서 쓰인다.</p>
+<table><caption>현재 프로젝트의 병종과 스킬</caption><thead><tr><th>병종 에셋</th><th>Skill에 연결된 에셋</th><th>결과</th></tr></thead><tbody><tr><td>Knight</td><td>PowerStrike</td><td>기사는 강타를 쓴다.</td></tr><tr><td>Archer</td><td>없다.</td><td>궁수는 스킬이 없다.</td></tr><tr><td>Mage</td><td>Heal</td><td>마법사는 치유를 쓴다.</td></tr></tbody></table>
+<p>6.1절의 <code>user.UnitClass.Skill.Use(...)</code>가 이 연결을 따라간다. 유닛에서 병종 에셋으로, 병종 에셋에서 스킬 에셋으로 간다.</p>
+<h3>8.2 스킬이 없는 병종은 정상적인 상태다</h3>
+<p>궁수의 Skill은 비어 있다. 코드에서는 <code>null</code>이다. 7차시에서 병종이 연결되지 않은 유닛은 실수였지만, 스킬이 없는 병종은 의도한 상태다. 그래서 사용하는 쪽이 이 경우를 확인한다.</p>
+<p class="code-caption">실제 코드 · BattleController.HasSkillTargets의 본문 두 줄</p><pre><code>Skill skill = user.UnitClass.Skill;
+return skill != null &amp;&amp; skill.GetTargets(user, _turnManager).Count &gt; 0;</code></pre>
+<p><code>&amp;&amp;</code>는 왼쪽이 거짓이면 오른쪽을 실행하지 않는다. 궁수는 <code>skill != null</code>이 거짓이므로 <code>GetTargets</code>를 호출하지 않고 false를 돌려준다. 기사와 마법사는 3.4절의 입구 <code>GetTargets</code>를 호출하여 대상이 하나 이상 있는지 확인한다. 이 코드에도 강타와 치유라는 단어는 없다.</p>
+<h3>8.3 두 패턴이 맡는 차이</h3>
+<div class="grid"><div class="box"><h4>Type Object · 값의 차이</h4><p>병종의 HP, 공격력, 사거리는 값이다. UnitClass 에셋에 적는다. 스킬의 추가 피해 4, 회복량 5, 사거리도 값이다. 스킬 에셋에 적는다. 어떤 병종이 어떤 스킬을 쓰는지도 에셋의 연결로 정한다.</p></div><div class="box"><h4>Subclass Sandbox · 동작의 차이</h4><p>강타와 치유는 실행되는 코드가 다르다. class로 나누고 부모의 도구로 작성한다. 7차시의 대가였던 “값으로 표현할 수 없는 차이”를 이 패턴이 맡는다.</p></div></div>
+<p>7차시 교재의 8장에서 “동작의 차이가 필요해지면 다른 구조를 함께 사용한다”고 했다. 그 구조가 이것이다. 누가 어떤 스킬을 쓰는지는 데이터(Type Object)가 정하고, 스킬이 무엇을 하는지는 도구의 조합(Subclass Sandbox)이 정한다.</p>
+<h3>8.4 Subclass Sandbox의 대가</h3>
+<table><caption>대가와 대응</caption><thead><tr><th>대가</th><th>구체적인 모습</th><th>대응</th></tr></thead><tbody><tr><td>부모 class가 계속 커진다.</td><td>스킬이 다양해질수록 도구가 늘어난다. 도구가 50개가 되면 Skill.cs가 가장 크고 가장 자주 바뀌는 파일이 된다.</td><td>도구를 주제별 class로 나누고 부모가 그것을 꺼내 주게 한다.</td></tr><tr><td>모든 자식이 부모에 묶인다.</td><td>Strike의 매개변수를 바꾸면 Strike를 호출하는 모든 자식이 컴파일되지 않는다.</td><td>도구의 이름과 매개변수를 신중하게 정하고 쉽게 바꾸지 않는다.</td></tr><tr><td>부모가 상태를 잠시 보관한다.</td><td><code>_user</code>와 <code>_turns</code>는 호출할 때마다 다시 적는다. 스킬 에셋은 여러 유닛이 공유하므로 이 값을 나중에 다시 읽으면 다른 유닛의 값일 수 있다.</td><td>도구는 입구가 실행되는 동안에만 사용한다.</td></tr></tbody></table>
+<p>셋째 대가를 예로 확인한다. 전장에 기사 A와 기사 B가 있다. 두 기사는 같은 Knight 에셋을 참조하고, Knight 에셋은 PowerStrike 에셋 하나를 참조한다. 그러므로 두 기사는 같은 스킬 객체 하나를 사용한다. A가 입구를 지나가면 <code>_user</code>는 A가 되고, 이어서 B가 입구를 지나가면 <code>_user</code>는 B가 된다. 7차시의 규칙은 “공유하는 객체에는 실행 중에 바뀌는 값을 두지 않는다”였다. <code>_user</code>는 이 규칙의 예외에 가깝다. 예외가 안전한 이유는 두 가지다. 입구가 매번 값을 새로 적고, 도구는 protected여서 입구가 실행되는 동안에만 호출된다. 3.4절과 4.5절의 결정이 이 대가에 대한 대응이다.</p>
+<p class="annotation"><code>_user</code>와 <code>_turns</code>에는 <code>[SerializeField]</code>가 없다. 그래서 이 값은 에셋 파일에 저장되지 않고 실행 중에만 잠시 존재한다.</p>
+<div class="warning"><span class="label">대가의 요약</span>결합이 사라진 것이 아니다. <span class="term">결합</span>은 한 class가 바뀌면 다른 class도 함께 바뀌어야 하는 관계를 뜻한다. 자식 30개에 흩어져 있던 다른 시스템과의 결합을 부모 한 곳으로 모은 것이다. 그래서 부모는 더 무거워지고, 자식은 모두 부모에 결합된다.</div>
+<h3>8.5 적용 기준: 비슷한 자식이 많고 같은 시스템을 반복해서 쓰는가</h3>
+<div class="grid"><div class="box"><h4>Subclass Sandbox가 이득인 경우</h4><p>자식 class가 많거나 앞으로 늘어난다. 자식들이 같은 시스템을 비슷한 방법으로 사용한다. 자식을 작성하는 사람이 다른 시스템을 몰라도 되게 하고 싶다. 예: 스킬, 아이템 효과, 적의 행동 방식.</p></div><div class="box"><h4>필요하지 않은 경우</h4><p>자식이 두세 개로 고정되어 있다. 자식마다 사용하는 시스템이 전혀 달라서 공통 도구를 뽑을 수 없다. 예: 4차시부터 만든 입력 상태들. 상태의 수가 적고, BattleController의 메서드를 직접 호출해도 복사되는 코드가 거의 없다.</p></div></div>
+<div class="concept"><span class="label">판단하는 질문</span>“자식 class들에 같은 코드가 복사되고 있는가?” 복사되고 있다면 그 코드를 부모의 도구로 올린다. 복사되는 코드가 없다면 도구로 올릴 것이 없으므로 이 패턴은 필요하지 않다. 패턴은 실제로 해결할 문제가 있을 때에만 도입한다.</div>
+<div class="exercise"><span class="label">손으로 계산하기</span>Archer 에셋의 Skill에 PowerStrike 에셋(사거리 1, 추가 피해 4)을 연결했다. 궁수(공격력 5, 공격 사거리 2)가 산(지형 방어 2) 위의 적 기사(방어력 3, HP 14 / 14)에게 강타를 사용한다. 적 기사가 거리 1에 있을 때 남는 HP는 얼마인가? 적 기사가 거리 2에 있다면 어떠한가? 이 변경을 위해 고친 코드는 몇 줄인가?</div><details><summary>해설 보기</summary><p>거리 1일 때: 공식의 결과는 max(1, 5 − 3 − 2) = max(1, 0) = 1이다. 추가 피해를 더하면 1 + 4 = 5이고 14 − 5 = 9가 남는다. 거리 2일 때: 강타의 대상이 아니다. 궁수의 공격 사거리는 2이지만 <code>EnemiesInRange</code>는 스킬 에셋의 사거리 1을 사용하기 때문이다. 일반 공격은 할 수 있고 그때의 피해는 1이다. 고친 코드는 0줄이다. 병종 에셋의 Skill 연결만 바꾸었다. 누가 어떤 스킬을 쓰는지는 Type Object가 정하고, 강타가 무엇을 하는지는 Subclass Sandbox가 정한다.</p></details><a class="back" href="#top">↑ 처음과 목차로</a>
+</section>
+<section class="chapter" id="chapter-9">
+<p class="kicker">CHAPTER 09 · 복습</p><h2>복습 질문과 용어</h2>
+<div class="objectives">학습 목표: 다섯 질문에 자신의 말로 답한다. 이번 차시의 용어를 정확한 뜻으로 사용한다.</div>
+<h3>9.1 스스로 설명하는 다섯 질문</h3>
+<ol><li>PowerStrikeSkill.cs와 HealSkill.cs에서 “TurnManager”, “BoardView”, “CombatCalculator”를 검색하면 몇 번 나오는가? 그것은 무엇을 뜻하는가?</li><li><code>abstract</code>, <code>protected</code>, <code>override</code>는 Skill과 그 자식에서 각각 어떤 일을 하는가?</li><li>도구는 왜 public이 아니고 protected인가? <code>_turns</code>는 왜 protected가 아니고 private인가?</li><li>공격력 8인 마법사의 병종 에셋에 추가 피해 4의 강타 에셋을 연결했다. 이 마법사가 산(지형 방어 2) 위에 있는 방어력 3, HP 14인 기사에게 강타를 사용한다. 남는 HP는 얼마인가? 이를 위해 고친 코드는 몇 줄인가?</li><li>“밀치기” 스킬을 만들려는데 필요한 도구가 없다. 무엇을 해야 하고 무엇을 하지 말아야 하는가? 이 패턴의 대가 세 가지와 적용을 판단하는 질문은 무엇인가?</li></ol>
+<details><summary>답 확인</summary><p>1. 0번이다. 자식은 다른 시스템을 알지 못한다는 뜻이다. 그 시스템들이 바뀌어도 자식 파일은 바뀌지 않는다. 2. abstract는 자식이 반드시 작성해야 하는 빈칸 FindTargets와 Activate를 선언한다. 작성하지 않은 자식은 컴파일되지 않는다. protected는 도구와 빈칸을 Skill과 그 자식만 사용할 수 있게 한다. override는 자식이 부모의 abstract 메서드를 다시 정의한다는 표시다. 3. 도구가 public이면 바깥의 코드가 입구를 지나지 않고 도구를 호출할 수 있고, 그때에는 <code>_user</code>와 <code>_turns</code>가 준비되어 있지 않다. <code>_turns</code>가 protected이면 자식이 도구를 거치지 않고 TurnManager를 직접 사용할 수 있어서 첫 시도와 같아진다. 4. max(1, 8 − 3 − 2) = 3이고 3 + 4 = 7이다. 14 − 7 = 7이 남는다. 고친 코드는 0줄이다. 강타의 코드는 그대로이고 병종 에셋의 Skill 연결만 바꾸었다. 5. 부모 Skill에 Push 도구를 추가하고 새 자식은 그 도구를 호출한다. 자식 class 안에서 BoardView를 직접 사용하지 않는다. 대가는 커지는 부모, 부모에 묶이는 자식, 부모가 잠시 보관하는 상태다. 판단하는 질문은 “자식 class들에 같은 코드가 복사되고 있는가”다.</p></details>
+<h3>9.2 용어 사전</h3>
+<table><thead><tr><th>용어</th><th>이번 차시에서의 뜻</th></tr></thead><tbody><tr><td>Subclass Sandbox 패턴</td><td>부모 class가 제공하는 도구만 사용해서 자식 class가 자신의 동작을 정의하는 구조.</td></tr><tr><td>샌드박스(sandbox)</td><td>모래 놀이터. 자식이 부모가 정해 준 범위 안에서 주어진 도구만 사용한다는 제한을 가리킨다.</td></tr><tr><td>도구</td><td>부모가 자식을 위해 작성해 둔 protected 메서드. EnemiesInRange, WoundedAlliesInRange, Strike, Restore.</td></tr><tr><td>샌드박스 메서드(빈칸)</td><td>부모가 abstract로 선언하고 자식이 본문을 작성하는 메서드. FindTargets, Activate.</td></tr><tr><td>입구</td><td>바깥에서 호출하는 부모의 public 메서드. GetTargets, Use. 사용자와 TurnManager를 적은 뒤에 자식의 메서드를 호출한다.</td></tr><tr><td>abstract</td><td>메서드에 붙이면 본문이 없고 자식이 반드시 override해야 한다는 뜻. class에 붙이면 그 자체로는 객체를 만들 수 없다는 뜻.</td></tr><tr><td>override</td><td>자식이 부모의 virtual 또는 abstract 메서드를 다시 정의한다는 표시.</td></tr><tr><td>protected</td><td>그 class와 자식 class 안에서만 사용할 수 있는 접근 수준.</td></tr><tr><td>접근 수준</td><td>멤버를 어디에서 사용할 수 있는지를 정하는 표시. public, protected, private.</td></tr><tr><td>다형성</td><td>부모 형식의 변수로 호출해도 실제 객체의 class에 있는 override가 실행되는 성질.</td></tr><tr><td>의존 / 결합</td><td>한 class가 다른 class를 알고 사용하는 것 / 한 class가 바뀌면 다른 class도 함께 바뀌어야 하는 관계.</td></tr><tr><td>스킬</td><td>일반 공격과 별도로 병종이 사용하는 특별한 행동. 이번 차시에서는 강타와 치유.</td></tr><tr><td>Skill</td><td>모든 스킬의 부모인 abstract ScriptableObject class. 이름, 사거리, 입구 두 개, 빈칸 두 개, 도구 네 개를 가진다.</td></tr></tbody></table>
+<h3>9.3 요약</h3>
+<div class="concept"><span class="label">이번 차시의 기준</span>동작이 다른 종류는 class로 나눈다. 그 class들에 복사되는 코드는 부모의 <code>protected</code> 도구로 올린다. 자식이 채울 빈칸은 <code>abstract</code> 메서드로 선언하고, 바깥은 부모의 공개 입구만 호출한다. 자식은 다른 시스템을 알지 못하고, 다른 시스템과의 연결은 부모 한 곳에만 있다. 도구가 부족하면 자식이 시스템을 직접 사용하지 않고 부모에 도구를 추가한다. 값의 차이는 7차시의 Type Object가, 동작의 차이는 Subclass Sandbox가 맡는다. 대가는 커지는 부모, 부모에 묶이는 자식, 잠시 보관하는 상태다. 새 스킬을 작성할 때 부모의 도구 말고 다른 시스템을 열어 보지 않아도 된다면 Subclass Sandbox가 제 역할을 하고 있는 것이다.</div><a class="back" href="#top">↑ 처음과 목차로</a>
+</section>
+<p class="endnote">Mini Tactics · 8차시 Subclass Sandbox 패턴 · 네트워크 없이 읽는 독립 교재</p>
+</main>
+</div>
+<script>
+(()=>{'use strict';document.getElementById('print').addEventListener('click',()=>window.print());let opened=[];window.addEventListener('beforeprint',()=>{opened=[...document.querySelectorAll('details')].map(detail=>detail.open);document.querySelectorAll('details').forEach(detail=>detail.open=true)});window.addEventListener('afterprint',()=>document.querySelectorAll('details').forEach((detail,index)=>detail.open=opened[index]??false));})();
+</script>
+</body>
+</html>

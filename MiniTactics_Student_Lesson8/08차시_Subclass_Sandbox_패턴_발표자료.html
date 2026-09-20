@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>8차시 — Subclass Sandbox 패턴 | 미니 택틱스</title>
+  <style>
+    :root {
+      --bg:#040a13; --slide:#091526; --panel:#10233a; --panel2:#142b45;
+      --text:#eef5ff; --muted:#afbed1; --teal:#55e4cf; --violet:#b8a4ff;
+      --amber:#ffd16f; --red:#ff8c99; --line:#2a405b; --green:#83e58f;
+    }
+    * { box-sizing:border-box; }
+    html, body { width:100%; height:100%; margin:0; overflow:hidden; }
+    body { background:var(--bg); color:var(--text); font-family:"Pretendard","Noto Sans KR",system-ui,sans-serif; word-break:keep-all; overflow-wrap:break-word; }
+    button, a { font:inherit; }
+    button { color:inherit; }
+    .app { min-height:100%; display:grid; grid-template-rows:1fr auto; }
+    .stage { min-height:0; display:grid; place-items:center; padding:14px 18px 6px; }
+    .deck { position:relative; width:min(100%,calc((100vh - 80px) * 16 / 9)); max-height:calc(100vh - 80px); aspect-ratio:16/9; overflow:hidden; border:1px solid #263b56; border-radius:18px; background:var(--slide); box-shadow:0 28px 88px #000a; container-type:inline-size; }
+    .slide { position:absolute; inset:0; display:none; overflow:auto; padding:clamp(28px,3.6cqw,56px) clamp(36px,5cqw,78px); background:radial-gradient(circle at 94% 7%,#253969 0,transparent 27%),linear-gradient(145deg,#0c1a2d 0%,#07121f 74%); }
+    .slide.is-active { display:grid; align-content:center; animation:reveal .24s ease-out; }
+    .slide::after { content:attr(data-slide); position:absolute; right:26px; top:20px; color:#7189a6; font-size:.76rem; font-weight:850; letter-spacing:.13em; }
+    @keyframes reveal { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:none; } }
+    h1,h2,h3,p { margin-top:0; }
+    h1 { max-width:78cqw; margin-bottom:20px; font-size:clamp(2.3rem,5.1cqw,4.9rem); line-height:1.08; letter-spacing:-.05em; }
+    h2 { max-width:82cqw; margin-bottom:clamp(16px,2.2cqw,30px); font-size:clamp(1.75rem,3.35cqw,3.15rem); line-height:1.17; letter-spacing:-.035em; }
+    h3 { margin-bottom:8px; color:var(--teal); font-size:clamp(.98rem,1.38cqw,1.3rem); }
+    p,li { font-size:clamp(.83rem,1.23cqw,1.13rem); line-height:1.53; }
+    p { margin-bottom:.72em; }
+    ul,ol { margin:.1em 0 0; padding-left:1.25em; }
+    li { margin:.38em 0; }
+    li::marker { color:var(--teal); font-weight:800; }
+    strong { color:#fff; }
+    .kicker { margin:0 0 7px; color:var(--teal); font-size:clamp(.68rem,1cqw,.9rem); font-weight:900; letter-spacing:.13em; text-transform:uppercase; }
+    .subtitle { max-width:72cqw; color:var(--muted); font-size:clamp(1rem,1.68cqw,1.5rem); line-height:1.5; }
+    .accent { color:var(--teal); } .violet { color:var(--violet); } .amber { color:var(--amber); } .red { color:var(--red); } .green { color:var(--green); }
+    .big { max-width:78cqw; font-size:clamp(1.28rem,2.3cqw,2.12rem); line-height:1.45; letter-spacing:-.02em; }
+    .quote { max-width:76cqw; margin:12px 0; padding-left:22px; border-left:5px solid var(--violet); font-size:clamp(1.2rem,2.25cqw,2rem); line-height:1.43; font-weight:760; }
+    .two { display:grid; grid-template-columns:1fr 1fr; gap:clamp(15px,2.2cqw,30px); align-items:stretch; }
+    .wide { display:grid; grid-template-columns:1.3fr .85fr; gap:clamp(18px,2.6cqw,36px); align-items:center; }
+    .panel { padding:clamp(14px,1.8cqw,23px); border:1px solid var(--line); border-radius:14px; background:#0f2138d9; }
+    .panel.teal { border-top:4px solid var(--teal); } .panel.violet { border-top:4px solid var(--violet); } .panel.amber { border-top:4px solid var(--amber); } .panel.redline { border-top:4px solid var(--red); }
+    .callout { margin-top:15px; padding:13px 18px; border-left:4px solid var(--teal); border-radius:8px; background:#10243c; }
+    .callout.warning { border-left-color:var(--amber); } .callout.danger { border-left-color:var(--red); }
+    .callout p:last-child,.panel p:last-child { margin-bottom:0; }
+    pre { margin:10px 0 0; padding:clamp(13px,1.65cqw,21px); overflow:auto; border:1px solid var(--line); border-radius:12px; background:#030a13; color:#dceafa; white-space:pre; font:clamp(.68rem,1.04cqw,.96rem)/1.58 Consolas,"D2Coding",monospace; }
+    p code,li code { padding:.08em .32em; border:1px solid #344d69; border-radius:5px; background:#081522; color:var(--amber); font-family:Consolas,"D2Coding",monospace; font-size:.92em; }
+    .code-focus { color:var(--amber); font-weight:800; }
+    .source { margin-top:10px; color:#7f94ad; font-size:clamp(.62rem,.82cqw,.76rem); }
+    .flow { display:grid; grid-template-columns:repeat(7,auto); align-items:center; justify-content:center; gap:9px; margin-top:22px; }
+    .node { min-width:9cqw; min-height:66px; display:grid; place-items:center; padding:10px 12px; border:1px solid #3b5575; border-radius:12px; background:var(--panel); text-align:center; font-size:clamp(.7rem,.95cqw,.9rem); font-weight:800; }
+    .arrow { color:var(--teal); font-size:1.35rem; font-weight:900; }
+    .state-board { display:grid; grid-template-columns:1fr auto 1fr; gap:18px; align-items:center; margin-top:14px; }
+    .coord { min-height:140px; display:grid; place-items:center; padding:22px; border:1px solid var(--line); border-radius:14px; background:#07111e; text-align:center; font:800 clamp(1rem,1.7cqw,1.55rem)/1.6 Consolas,monospace; }
+    .missing { color:var(--red); text-decoration:line-through; text-decoration-thickness:3px; }
+    .compare { width:100%; border-collapse:collapse; font-size:clamp(.72rem,1cqw,.94rem); line-height:1.42; }
+    .compare th,.compare td { padding:10px 13px; border:1px solid var(--line); vertical-align:top; text-align:left; }
+    .compare th { color:var(--teal); background:#071321; }
+    .stack { width:min(440px,70cqw); margin:14px auto 0; display:grid; gap:8px; }
+    .stack-item { padding:11px 16px; border:1px solid #405c7d; border-radius:9px; background:var(--panel); text-align:center; font-weight:800; }
+    .stack-item.top { border-color:var(--amber); color:var(--amber); }
+    .question { padding:clamp(20px,2.7cqw,38px); border:1px solid #5b4e25; border-radius:15px; background:linear-gradient(135deg,#221d10,#101c2d); }
+    .question .big { margin-bottom:0; }
+    .role-map { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:18px; }
+    .role { min-height:125px; padding:15px; border-top:4px solid var(--teal); border-radius:12px; background:var(--panel); }
+    .role:nth-child(2) { border-color:var(--violet); } .role:nth-child(3) { border-color:var(--amber); } .role:nth-child(4) { border-color:var(--red); }
+    .role b { display:block; margin-bottom:7px; font-size:clamp(.82rem,1.12cqw,1rem); }
+    .role span { color:var(--muted); font-size:clamp(.7rem,.92cqw,.86rem); line-height:1.45; }
+    .controls { min-height:60px; display:flex; align-items:center; justify-content:center; gap:9px; padding:7px 14px 10px; }
+    .control-btn { min-width:44px; min-height:40px; padding:7px 15px; border:1px solid #354c68; border-radius:10px; background:#0d1d30; cursor:pointer; }
+    .control-btn:hover:not(:disabled) { border-color:var(--teal); color:var(--teal); }
+    .control-btn:focus-visible,.toc-link:focus-visible { outline:3px solid var(--amber); outline-offset:2px; }
+    .control-btn:disabled { opacity:.35; cursor:not-allowed; }
+    #slideCounter { min-width:76px; color:var(--muted); text-align:center; font-weight:850; font-variant-numeric:tabular-nums; }
+    dialog { width:min(780px,calc(100% - 32px)); max-height:min(80vh,740px); padding:0; border:1px solid #405b7a; border-radius:18px; background:#091526; color:var(--text); box-shadow:0 30px 100px #000d; }
+    dialog::backdrop { background:#020710df; backdrop-filter:blur(4px); }
+    .toc-head { position:sticky; top:0; z-index:2; display:flex; align-items:center; justify-content:space-between; padding:18px 21px; border-bottom:1px solid var(--line); background:#091526; }
+    .toc-head h2 { margin:0; font-size:1.4rem; }
+    .toc-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; padding:16px; }
+    .toc-link { display:grid; grid-template-columns:34px 1fr; gap:8px; padding:9px 11px; border:1px solid transparent; border-radius:8px; color:var(--muted); text-decoration:none; font-size:.88rem; }
+    .toc-link:hover { color:var(--text); background:var(--panel); border-color:var(--line); }
+    .toc-link span { color:var(--teal); font-weight:900; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @media (max-height:650px) and (min-width:721px) {
+      .slide { padding:24px 40px; }
+      h1 { font-size:3rem; } h2 { font-size:1.72rem; margin-bottom:12px; } h3 { font-size:.91rem; }
+      p,li { font-size:.76rem; line-height:1.38; } li { margin:.25em 0; }
+      .panel { padding:10px 13px; } .callout { margin-top:8px; padding:8px 13px; }
+      pre { margin-top:6px; padding:9px 12px; font-size:.64rem; line-height:1.4; }
+      .node { min-height:48px; padding:6px 9px; font-size:.65rem; }
+      .role { min-height:90px; padding:10px; } .coord { min-height:105px; padding:14px; }
+    }
+    @media (max-width:720px) {
+      .stage { padding:0; }
+      .deck { width:100%; height:calc(100vh - 60px); max-height:none; aspect-ratio:auto; border:0; border-radius:0; }
+      .slide { padding:48px 21px 28px; }
+      .slide.is-active { align-content:start; }
+      .two,.wide,.state-board,.role-map { grid-template-columns:1fr; }
+      .flow { grid-template-columns:1fr; }
+      .flow .arrow { transform:rotate(90deg); }
+      .toc-grid { grid-template-columns:1fr; }
+      h1 { font-size:clamp(2.05rem,10.5cqw,3.25rem); }
+      h2 { font-size:clamp(1.6rem,7.2cqw,2.25rem); }
+      p,li { font-size:1rem; }
+      pre { font-size:.75rem; white-space:pre-wrap; overflow-wrap:anywhere; }
+    }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; } }
+    @media print {
+      html,body { height:auto; overflow:visible; background:#fff; color:#111; }
+      .app,.stage,.deck { display:block; width:auto; height:auto; max-height:none; padding:0; overflow:visible; border:0; box-shadow:none; }
+      .slide,.slide.is-active { position:relative; display:grid; width:100%; min-height:175mm; padding:15mm; break-after:page; overflow:hidden; background:#fff; color:#111; animation:none; }
+      .slide:last-child { break-after:auto; }
+      .controls,dialog { display:none !important; }
+      h1,h2,h3,p,li,strong,.subtitle,.kicker,.accent,.violet,.amber,.red,.green,.source { color:#111; }
+      .panel,.callout,pre,.node,.coord,.role,.stack-item,.question,.compare th,.compare td { background:#fff; color:#111; border-color:#777; }
+    }
+  </style>
+<style id="layout-safety">
+    .slide > div,.two > div,.wide > div,.role,.node { min-width:0; }
+    .compare { table-layout:fixed; overflow-wrap:anywhere; }
+    .role b,.role span { overflow-wrap:anywhere; }
+    @media (max-width:720px) { .state-board > .arrow { transform:rotate(90deg); justify-self:center; } .flow > .arrow { justify-self:center; } }
+    @media print { .deck { container-type:normal; aspect-ratio:auto; } .slide,.slide.is-active { height:auto; overflow:visible; break-inside:avoid; } }
+    </style>
+</head>
+<body>
+  <div class="app">
+    <main class="stage">
+      <div class="deck" id="deck">
+        <section class="slide is-active" id="slide-1" data-slide="01 / 23" aria-labelledby="title-1"><div><p class="kicker">Mini Tactics · Lesson 08</p><h1 id="title-1">미니 택틱스로 이해하는<br><span class="accent">Subclass Sandbox 패턴</span></h1><p class="subtitle">스킬이 30개가 되어도 피해 공식은 한 곳에만 있어야 한다.<br>부모가 도구를 제공하고, 자식은 도구를 조합하기만 한다.</p></div></section>
+
+<section class="slide" id="slide-2" data-slide="02 / 23" aria-labelledby="title-2"><div><p class="kicker">Starting Point</p><h2 id="title-2">지금까지 “효과”는 일반 공격 하나뿐이었다</h2><pre><code>public void Attack(Unit attacker, Unit defender, int bonusDamage)
+{
+    Vector2Int cell = _board.WorldToCell(defender.transform.position);
+    int terrainDefense = _board.GetDefenseBonus(cell);
+    int damage = CombatCalculator.CalculateDamage(attacker.AttackPower, defender.Defense, terrainDefense);
+    defender.TakeDamage(damage + bonusDamage);
+}</code></pre><p class="source">TurnManager.cs의 Attack이다. 7차시까지는 <code>bonusDamage</code> 매개변수가 없었고 마지막 줄이 <code>defender.TakeDamage(damage);</code>였다. 지금은 일반 공격이 <code>bonusDamage</code>에 0을 넘겨 이 메서드를 호출한다.</p><div class="two"><div class="panel teal"><h3>이 방식으로 충분했던 이유</h3><p>효과의 종류가 하나였다. 피해를 주는 절차가 메서드 하나에 모여 있어서 공식을 고칠 곳도 하나였다.</p></div><div class="panel violet"><h3>이 메서드가 알고 있는 것</h3><p>보드, 지형 방어, 피해 공식, 유닛의 체력이다. 피해 한 번에 네 가지 시스템이 관여한다.</p></div></div><div class="callout"><p>오늘은 효과의 종류가 여럿이고 앞으로 계속 늘어나는 상황을 다룬다.</p></div></div></section>
+
+<section class="slide" id="slide-3" data-slide="03 / 23" aria-labelledby="title-3"><div><p class="kicker">New Requirement</p><h2 id="title-3">스킬은 종류마다 하는 일이 다르다</h2><table class="compare"><thead><tr><th>스킬</th><th>대상</th><th>효과</th></tr></thead><tbody><tr><td>강타</td><td>사거리 안의 적 하나</td><td>일반 공격의 피해에 4를 더한다.</td></tr><tr><td>치유</td><td>사거리 안의 부상당한 아군 하나(자기 자신 포함)</td><td>HP를 5 회복한다. 최대 HP를 넘지 않는다.</td></tr><tr><td>화염구, 독, 밀치기, 흡혈 …</td><td>스킬마다 다르다.</td><td>아직 없지만 앞으로 추가된다.</td></tr></tbody></table><div class="two" style="margin-top:16px"><div class="panel teal"><h3>7차시와 다른 점</h3><p>병종은 값만 달랐다. 그래서 데이터로 만들었다. 스킬은 실행되는 코드가 다르다. 강타는 피해를 주고 치유는 회복시킨다.</p></div><div class="panel violet"><h3>그래서 필요한 것</h3><p>스킬마다 class가 하나씩 필요하다. 동작이 다르면 class로 나눈다는 7차시의 기준 그대로다.</p></div></div><div class="callout"><p>class가 많아지는 것은 피할 수 없다. 문제는 그 많은 class를 어떻게 작성하게 할 것인가다.</p></div></div></section>
+
+<section class="slide" id="slide-4" data-slide="04 / 23" aria-labelledby="title-4"><div><p class="kicker">First Attempt</p><h2 id="title-4">첫 시도: 스킬 class가 필요한 시스템을 직접 사용한다</h2><pre><code>public sealed class PowerStrikeSkill : Skill
+{
+    public override void Use(Unit user, Unit target, BoardView board)
+    {
+        Vector2Int cell = board.WorldToCell(target.transform.position);
+        int terrainDefense = board.GetDefenseBonus(cell);
+        int damage = CombatCalculator.CalculateDamage(user.AttackPower, target.Defense, terrainDefense);
+        target.TakeDamage(damage + 4);
+    }
+}</code></pre><p class="source">설계 비교용 가상 코드다. 실제 프로젝트에는 이런 코드가 없다.</p><div class="callout warning"><p>이 코드는 동작한다. 스킬이 두세 개로 고정되어 있다면 이 방식으로도 충분하다. 본문 네 줄 가운데 강타만의 내용은 마지막 줄의 <code>+ 4</code>뿐이고, 나머지는 일반 공격에서 복사한 것이다.</p></div></div></section>
+
+<section class="slide" id="slide-5" data-slide="05 / 23" aria-labelledby="title-5"><div><p class="kicker">Observe the Limit</p><h2 id="title-5">첫 시도에서는 스킬의 수만큼 같은 코드가 복사된다</h2><table class="compare"><thead><tr><th style="width:36%">새 요구</th><th>첫 시도에서 해야 하는 일</th></tr></thead><tbody><tr><td>피해를 주는 스킬이 20개로 늘어난다.</td><td>지형 방어를 읽고 공식을 호출하는 세 줄이 20곳에 복사된다.</td></tr><tr><td>피해 공식에 “치명타”를 추가한다.</td><td>20개의 class를 모두 열어 같은 수정을 한다. 한 곳이라도 빠뜨리면 그 스킬만 다르게 동작한다.</td></tr><tr><td>보드의 API가 바뀐다.</td><td>BoardView를 직접 사용하는 모든 스킬 class가 컴파일되지 않는다.</td></tr></tbody></table><div class="panel redline" style="margin-top:14px"><h3>스킬 class 하나가 알고 있는 것</h3><p><code>BoardView</code>, <code>CombatCalculator</code>, <code>Unit.TakeDamage</code>다. 스킬이 30개면 이 세 시스템에 대한 의존이 30번 반복된다.</p></div><div class="callout danger"><p>스킬을 만드는 사람은 “무엇을 하는 스킬인가”만 정하고 싶다. 그런데 첫 시도에서는 “어떻게 피해를 주는가”까지 매번 다시 작성해야 한다.</p></div></div></section>
+
+<section class="slide" id="slide-6" data-slide="06 / 23" aria-labelledby="title-6"><div><p class="kicker">Find the Boundary</p><h2 id="title-6">스킬마다 다른 것과 모든 스킬에 공통인 것을 나눈다</h2><div class="two"><div class="panel teal"><h3>스킬마다 다른 것</h3><p>누구를 대상으로 하는가.<br>어떤 효과를 어떤 값으로 주는가.</p><p>강타: 사거리 안의 적에게 공격 + 4<br>치유: 사거리 안의 부상당한 아군에게 회복 5</p></div><div class="panel violet"><h3>모든 스킬에 공통인 것</h3><p>사거리 안의 유닛을 찾는 방법.<br>피해를 주는 방법(지형 방어와 공식).<br>회복시키는 방법(최대 HP 제한).</p></div></div><div class="callout"><p>공통인 것은 부모 class에 한 번만 작성해서 “도구”로 제공한다. 자식 class는 도구를 골라서 호출하기만 한다. 다른 시스템을 아는 것은 부모 하나로 끝난다.</p></div></div></section>
+
+<section class="slide" id="slide-7" data-slide="07 / 23" aria-labelledby="title-7"><div><p class="kicker">Subclass Sandbox Pattern</p><h2 id="title-7">이 구조의 이름이 Subclass Sandbox 패턴이다</h2><p class="quote">부모 class가 제공하는 도구만 사용해서 자식 class가 자신의 동작을 정의한다.</p><div class="role-map"><div class="role"><b>부모 class · Skill</b><span>도구를 구현한다. 다른 시스템(TurnManager)과의 연결은 이 class에만 있다.</span></div><div class="role"><b>도구 · protected 메서드</b><span>EnemiesInRange, WoundedAlliesInRange, Strike, Restore다. 자식만 호출할 수 있다.</span></div><div class="role"><b>샌드박스 메서드 · abstract 메서드</b><span>FindTargets와 Activate다. 자식이 반드시 작성해야 하는 빈칸이다.</span></div><div class="role"><b>자식 class · PowerStrikeSkill, HealSkill</b><span>빈칸을 도구의 조합으로 채운다. 다른 시스템을 알지 못한다.</span></div></div><div class="callout"><p>샌드박스(sandbox)는 아이들이 안전하게 노는 모래 놀이터다. 자식 class는 부모가 마련한 놀이터 안에서 주어진 도구만 가지고 논다. 놀이터 밖의 시스템에는 손을 대지 않는다.</p></div></div></section>
+
+<section class="slide" id="slide-8" data-slide="08 / 23" aria-labelledby="title-8"><div><p class="kicker">Actual Code · Skill.cs</p><h2 id="title-8">부모: 자식이 채울 빈칸을 abstract로 선언한다</h2><div class="wide"><pre><code>public abstract class Skill : ScriptableObject
+{
+    [SerializeField] private string _displayName;
+    [SerializeField, Min(1)] private int _range = 1;
+
+    private Unit _user;
+    private TurnManager _turns;
+
+    <span class="code-focus">protected abstract List&lt;Unit&gt; FindTargets();</span>
+    <span class="code-focus">protected abstract void Activate(Unit target);</span>
+}</code></pre><div class="panel teal"><h3>abstract의 뜻</h3><p>본문이 없는 메서드다. “자식이 반드시 작성해야 한다”는 약속이다. 작성하지 않은 자식은 컴파일되지 않는다.</p><p>abstract 메서드를 가진 class도 abstract여야 한다. Skill 자체로는 에셋을 만들 수 없고 자식으로만 만들 수 있다.</p></div></div><p class="source">축약한 발췌다. 속성, 공개 메서드 두 개, 도구 네 개를 생략했다. 이어지는 장에서 다룬다.</p></div></section>
+
+<section class="slide" id="slide-9" data-slide="09 / 23" aria-labelledby="title-9"><div><p class="kicker">Actual Code · Skill.cs</p><h2 id="title-9">부모: 바깥에서 부르는 입구는 공개 메서드 두 개다</h2><div class="wide"><pre><code>public List&lt;Unit&gt; GetTargets(Unit user, TurnManager turns)
+{
+    _user = user;
+    _turns = turns;
+    return <span class="code-focus">FindTargets();</span>
+}
+
+public void Use(Unit user, Unit target, TurnManager turns)
+{
+    _user = user;
+    _turns = turns;
+    <span class="code-focus">Activate(target);</span>
+}</code></pre><div class="panel teal"><h3>실행 순서</h3><ol><li>누가 사용하는지와 TurnManager를 private 필드에 적어 둔다.</li><li>자식이 작성한 메서드를 호출한다.</li><li>자식이 도구를 호출하면 도구가 적어 둔 값을 사용한다.</li></ol></div></div><div class="callout"><p>바깥(BattleController)은 <code>GetTargets</code>와 <code>Use</code>만 안다. 자식의 메서드는 protected여서 바깥에서 직접 호출할 수 없다. 반드시 부모의 입구를 지나가므로 도구가 사용할 값이 항상 준비되어 있다.</p></div><p class="source">Skill.cs의 공개 메서드 두 개 전체다.</p></div></section>
+
+<section class="slide" id="slide-10" data-slide="10 / 23" aria-labelledby="title-10"><div><p class="kicker">Actual Code · Skill.cs</p><h2 id="title-10">부모: 도구가 다른 시스템과의 연결을 감춘다</h2><div class="two"><pre><code>protected List&lt;Unit&gt; EnemiesInRange()
+{
+    Team enemyTeam = _user.Team == Team.Player
+        ? Team.Enemy : Team.Player;
+    return _turns.GetUnitsInRange(
+        _user, _range, enemyTeam);
+}</code></pre><pre><code>protected void Strike(Unit target, int bonusDamage)
+{
+    _turns.Attack(_user, target, bonusDamage);
+}
+
+protected void Restore(Unit target, int amount)
+{
+    target.Heal(amount);
+}</code></pre></div><div class="callout"><p><code>Strike</code>의 본문은 한 줄이지만 그 뒤에 2장의 Attack 전체가 있다. 지형 방어, 피해 공식, 체력 감소, 체력바 갱신, 전멸 판정이 모두 이 한 줄로 실행된다. 자식은 <code>Strike</code>라는 이름만 알면 된다.</p></div><p class="source">Skill.cs의 도구 세 개다. 왼쪽은 읽기 편하게 줄을 나누었다. 부상당한 아군을 찾는 <code>WoundedAlliesInRange</code>는 생략했다.</p></div></section>
+
+<section class="slide" id="slide-11" data-slide="11 / 23" aria-labelledby="title-11"><div><p class="kicker">protected</p><h2 id="title-11">protected는 자식 class에게만 호출을 허용한다</h2><table class="compare"><thead><tr><th style="width:20%">접근 수준</th><th style="width:30%">Skill에서의 예</th><th>호출할 수 있는 곳</th></tr></thead><tbody><tr><td><code>public</code></td><td>GetTargets, Use, DisplayName</td><td>어디에서나 호출할 수 있다. BattleController가 사용한다.</td></tr><tr><td><code>protected</code></td><td>Strike, Restore, EnemiesInRange, FindTargets, Activate</td><td>Skill과 Skill의 자식 class 안에서만 호출할 수 있다.</td></tr><tr><td><code>private</code></td><td>_user, _turns, _range, _displayName</td><td>Skill 안에서만 사용할 수 있다. 자식도 볼 수 없다.</td></tr></tbody></table><div class="two" style="margin-top:14px"><div class="panel teal"><h3>도구가 protected인 이유</h3><p>BattleController가 <code>skill.Strike(...)</code>를 직접 호출하면 입구를 지나지 않아 <code>_user</code>가 준비되지 않는다. 도구는 스킬을 작성하는 자식만 사용해야 한다.</p></div><div class="panel violet"><h3>_turns가 private인 이유</h3><p>자식이 <code>_turns</code>를 볼 수 있으면 도구를 거치지 않고 TurnManager를 직접 사용할 수 있다. 그러면 첫 시도와 같아진다.</p></div></div></div></section>
+
+<section class="slide" id="slide-12" data-slide="12 / 23" aria-labelledby="title-12"><div><p class="kicker">Actual Code · PowerStrikeSkill.cs</p><h2 id="title-12">자식: 강타는 도구 두 개를 고른 것이 전부다</h2><div class="wide"><pre><code>[CreateAssetMenu(menuName = "Mini Tactics/Skills/Power Strike")]
+public sealed class PowerStrikeSkill : Skill
+{
+    [SerializeField, Min(0)] private int _bonusDamage = 4;
+
+    protected override List&lt;Unit&gt; FindTargets() =&gt; <span class="code-focus">EnemiesInRange();</span>
+    protected override void Activate(Unit target) =&gt; <span class="code-focus">Strike(target, _bonusDamage);</span>
+}</code></pre><div class="panel teal"><h3>읽는 방법</h3><ol><li>대상: 사거리 안의 적이다.</li><li>효과: 추가 피해를 더해서 공격한다.</li><li>이 스킬만의 값: 추가 피해 4다.</li></ol></div></div><div class="callout"><p>첫 시도의 본문 네 줄이 도구 호출 한 줄이 되었다. 이 파일에는 BoardView도, CombatCalculator도, TurnManager도 등장하지 않는다.</p></div><p class="source">PowerStrikeSkill.cs의 class 전체다.</p></div></section>
+
+<section class="slide" id="slide-13" data-slide="13 / 23" aria-labelledby="title-13"><div><p class="kicker">Actual Code · HealSkill.cs</p><h2 id="title-13">자식: 치유는 다른 도구 두 개를 고른다</h2><div class="wide"><pre><code>[CreateAssetMenu(menuName = "Mini Tactics/Skills/Heal")]
+public sealed class HealSkill : Skill
+{
+    [SerializeField, Min(1)] private int _healAmount = 5;
+
+    protected override List&lt;Unit&gt; FindTargets() =&gt; <span class="code-focus">WoundedAlliesInRange();</span>
+    protected override void Activate(Unit target) =&gt; <span class="code-focus">Restore(target, _healAmount);</span>
+}</code></pre><div class="panel teal"><h3>강타와 비교한다</h3><p>class의 모양이 같다. 다른 것은 고른 도구와 값뿐이다.</p><p>두 class를 나란히 놓으면 “이 스킬이 무엇을 하는가”만 남아 있다.</p></div></div><div class="callout"><p>7차시의 기준을 다시 확인한다. 강타와 치유는 값이 아니라 동작이 다르므로 class로 나누었다. 같은 강타라도 추가 피해가 다른 스킬은 에셋을 하나 더 만들면 된다. 그 차이는 값이기 때문이다.</p></div><p class="source">HealSkill.cs의 class 전체다.</p></div></section>
+
+<section class="slide" id="slide-14" data-slide="14 / 23" aria-labelledby="title-14"><div><p class="kicker">Call Flow</p><h2 id="title-14">호출 한 번이 입구, 빈칸, 도구를 차례로 지나간다</h2><pre><code>user.UnitClass.Skill.Use(user, target, _turnManager);</code></pre><p class="source">BattleController.UseSkill의 첫 줄이다.</p><div class="flow"><div class="node">Skill.Use<br>사용자와 TurnManager 기록</div><div class="arrow">→</div><div class="node">PowerStrikeSkill.Activate<br>자식이 작성한 빈칸</div><div class="arrow">→</div><div class="node">Skill.Strike<br>부모의 도구</div><div class="arrow">→</div><div class="node">TurnManager.Attack<br>실제 피해 처리</div></div><div class="two" style="margin-top:18px"><div class="panel teal"><h3>호출이 오가는 방향</h3><p>부모(Use) → 자식(Activate) → 부모(Strike)의 순서다. 부모가 자식을 부르고 자식이 다시 부모의 도구를 부른다.</p></div><div class="panel violet"><h3>호출하는 쪽이 아는 것</h3><p>BattleController는 그 스킬이 강타인지 치유인지 알지 못한다. <code>Skill</code> 타입의 <code>Use</code>를 호출할 뿐이다. 어떤 자식의 Activate가 실행될지는 에셋이 정한다.</p></div></div></div></section>
+
+<section class="slide" id="slide-15" data-slide="15 / 23" aria-labelledby="title-15"><div><p class="kicker">Trace the Numbers</p><h2 id="title-15">추적: 기사의 강타와 마법사의 치유</h2><p>출발 상태: 기사는 공격력 6이다. 적 궁수는 방어력 1, HP 9 / 9다. 피해 공식은 max(1, 공격력 − 방어력 − 지형 방어)다.</p><table class="compare"><thead><tr><th style="width:24%">단계</th><th>평지의 궁수에게 강타</th><th>숲(지형 방어 1)의 궁수에게 강타</th></tr></thead><tbody><tr><td>공식의 결과</td><td>max(1, 6 − 1 − 0) = 5</td><td>max(1, 6 − 1 − 1) = 4</td></tr><tr><td>추가 피해를 더한다</td><td>5 + 4 = 9</td><td>4 + 4 = 8</td></tr><tr><td>궁수의 HP</td><td>max(0, 9 − 9) = 0, 쓰러진다.</td><td>max(0, 9 − 8) = 1, 살아남는다.</td></tr></tbody></table><table class="compare" style="margin-top:12px"><thead><tr><th style="width:24%">단계</th><th>HP 6 / 14인 기사를 치유</th><th>HP 12 / 14인 기사를 치유</th></tr></thead><tbody><tr><td>Heal(5)</td><td>min(14, 6 + 5) = 11</td><td>min(14, 12 + 5) = 14</td></tr><tr><td>체력바</td><td>11 / 14 ≈ 79%</td><td>14 / 14 = 100%</td></tr></tbody></table><div class="callout"><p>지형 방어는 강타에도 적용된다. 강타의 class에는 지형에 대한 코드가 한 줄도 없지만 <code>Strike</code>가 일반 공격과 같은 길을 지나가기 때문이다.</p></div></div></section>
+
+<section class="slide" id="slide-16" data-slide="16 / 23" aria-labelledby="title-16"><div><p class="kicker">Think · New Skill</p><h2 id="title-16">화염구를 추가하려면 무엇을 작성해야 하는가?</h2><div class="two"><div class="question"><p class="big">화염구: 사거리 안의<br><span class="amber">모든 적</span>에게<br>추가 피해 2의 공격을 한다.<br>대상 하나를 클릭하면 발동한다.</p></div><div><pre><code>public sealed class FireballSkill : Skill
+{
+    [SerializeField] private int _bonusDamage = 2;
+
+    protected override List&lt;Unit&gt; FindTargets()
+        =&gt; EnemiesInRange();
+
+    protected override void Activate(Unit target)
+    {
+        foreach (Unit enemy in EnemiesInRange())
+        {
+            Strike(enemy, _bonusDamage);
+        }
+    }
+}</code></pre></div></div><div class="callout"><p>답: 새 class 하나다. 기존 파일은 한 줄도 고치지 않는다. 도구는 여러 번 호출해도 되고 반복문 안에서 호출해도 된다. 자식은 도구를 “조합”한다.</p></div><p class="source">설계 비교용 가상 코드다. 실제 프로젝트에는 FireballSkill이 없다. CreateAssetMenu 줄을 생략했다.</p></div></section>
+
+<section class="slide" id="slide-17" data-slide="17 / 23" aria-labelledby="title-17"><div><p class="kicker">Extension · New Tool</p><h2 id="title-17">도구가 부족하면 부모에 도구를 추가한다</h2><div class="two"><div class="panel amber"><h3>상황</h3><p>“밀치기” 스킬을 만들려고 한다. 대상을 한 칸 뒤로 이동시켜야 하는데 그런 도구가 없다.</p></div><div class="panel redline"><h3>하지 말아야 할 일</h3><p>밀치기 class 안에서 BoardView를 찾아 직접 이동시킨다. 놀이터 밖으로 나가는 것이다. 첫 시도의 문제가 그 class에서 다시 시작된다.</p></div></div><div class="flow" style="margin-top:16px"><div class="node">Skill에<br>Push 도구를 추가</div><div class="arrow">→</div><div class="node">Push가 보드와의<br>연결을 감춘다</div><div class="arrow">→</div><div class="node">PushSkill은<br>Push를 호출</div><div class="arrow">→</div><div class="node">이후의 모든 스킬이<br>Push를 쓸 수 있다</div></div><div class="callout"><p>새 도구는 한 번 만들면 모든 자식의 것이 된다. “충격 화살 = Strike + Push”처럼 조합할 수 있는 재료가 늘어난다.</p></div></div></section>
+
+<section class="slide" id="slide-18" data-slide="18 / 23" aria-labelledby="title-18"><div><p class="kicker">Benefit</p><h2 id="title-18">도구 한 곳을 고치면 모든 스킬에 반영된다</h2><pre><code>protected void Strike(Unit target, int bonusDamage)
+{
+    <span class="code-focus">Debug.Log($"{_user.name} → {target.name} : {DisplayName}");</span>
+    _turns.Attack(_user, target, bonusDamage);
+}</code></pre><p class="source">설계 비교용 가상 코드다. 실제 Strike에는 로그를 남기는 줄이 없다.</p><table class="compare"><thead><tr><th style="width:34%">변경</th><th>첫 시도</th><th>Subclass Sandbox</th></tr></thead><tbody><tr><td>피해를 주는 모든 스킬이 기록을 남기게 한다.</td><td>피해를 주는 모든 스킬 class에 한 줄씩 추가한다.</td><td>Strike에 한 줄을 추가한다.</td></tr><tr><td>피해 공식에 치명타를 추가한다.</td><td>모든 스킬 class의 복사된 공식을 고친다.</td><td>TurnManager.Attack 한 곳을 고친다. 스킬은 바뀌지 않는다.</td></tr></tbody></table><div class="callout"><p>공통인 코드가 한 곳에만 있기 때문이다. 자식이 30개여도 다른 시스템과 연결된 곳은 부모 하나다.</p></div></div></section>
+
+<section class="slide" id="slide-19" data-slide="19 / 23" aria-labelledby="title-19"><div><p class="kicker">With Type Object</p><h2 id="title-19">7차시의 Type Object와 함께 쓰인다</h2><pre><code>[SerializeField] private Skill _skill;
+public Skill Skill =&gt; _skill;</code></pre><p class="source">UnitClass.cs에 추가된 두 줄이다. 실제 파일에서는 필드와 속성이 떨어져 있다.</p><div class="two"><div class="panel violet"><h3>Type Object · 값의 차이</h3><p>병종의 HP, 공격력, 사거리는 값이다. UnitClass 에셋에 적는다.</p><p>스킬의 추가 피해 4, 회복량 5도 값이다. 스킬 에셋에 적는다.</p></div><div class="panel teal"><h3>Subclass Sandbox · 동작의 차이</h3><p>강타와 치유는 실행되는 코드가 다르다. class로 나누고 도구로 작성한다.</p><p>7차시에 남았던 “값으로 표현할 수 없는 차이”의 답이다.</p></div></div><div class="callout"><p>기사 에셋의 Skill 칸에 강타 에셋을 끼우면 기사가 강타를 쓴다. 궁수의 칸은 비어 있다. 스킬이 없는 병종은 정상적인 상태이므로 사용하는 쪽이 <code>skill != null</code>을 확인한다.</p></div></div></section>
+
+<section class="slide" id="slide-20" data-slide="20 / 23" aria-labelledby="title-20"><div><p class="kicker">Cost</p><h2 id="title-20">Subclass Sandbox에는 대가가 있다</h2><table class="compare"><thead><tr><th style="width:26%">대가</th><th>구체적인 모습</th><th style="width:30%">대응</th></tr></thead><tbody><tr><td>부모 class가 계속 커진다.</td><td>스킬이 다양해질수록 도구가 늘어난다. 도구가 50개가 되면 Skill.cs가 가장 크고 가장 자주 바뀌는 파일이 된다.</td><td>도구를 주제별 class로 나누고 부모가 그것을 꺼내 주게 한다.</td></tr><tr><td>모든 자식이 부모에 묶인다.</td><td>Strike의 매개변수를 바꾸면 Strike를 호출하는 모든 자식이 컴파일되지 않는다.</td><td>도구의 이름과 매개변수를 신중하게 정하고 쉽게 바꾸지 않는다.</td></tr><tr><td>부모가 상태를 잠시 보관한다.</td><td><code>_user</code>와 <code>_turns</code>는 호출할 때마다 다시 적는다. 스킬 에셋은 여러 유닛이 공유하므로 이 값을 나중에 다시 읽으면 다른 유닛의 값일 수 있다.</td><td>도구는 입구가 실행되는 동안에만 사용한다.</td></tr></tbody></table><div class="callout warning"><p>결합이 사라진 것이 아니다. 자식 30개에 흩어져 있던 결합을 부모 한 곳으로 모은 것이다. 그래서 부모는 더 무거워진다.</p></div></div></section>
+
+<section class="slide" id="slide-21" data-slide="21 / 23" aria-labelledby="title-21"><div><p class="kicker">Judgment</p><h2 id="title-21">적용 기준: 비슷한 자식이 많고, 같은 시스템을 반복해서 쓰는가?</h2><div class="two"><div class="panel teal"><h3>Subclass Sandbox가 이득인 경우</h3><p>자식 class가 많거나 앞으로 늘어난다. 자식들이 같은 시스템을 비슷한 방법으로 사용한다. 자식을 작성하는 사람이 다른 시스템을 몰라도 되게 하고 싶다.</p><p>예: 스킬, 아이템 효과, 적의 행동 방식.</p></div><div class="panel amber"><h3>필요하지 않은 경우</h3><p>자식이 두세 개로 고정되어 있다. 자식마다 사용하는 시스템이 전혀 달라서 공통 도구를 뽑을 수 없다.</p><p>예: 4차시부터 만든 입력 상태들. 상태의 수가 적고, BattleController의 메서드를 직접 호출해도 복사되는 코드가 거의 없다.</p></div></div><div class="callout"><p>판단하는 질문은 하나다. “자식 class들에 같은 코드가 복사되고 있는가?” 복사되고 있다면 그 코드를 부모의 도구로 올린다.</p></div></div></section>
+
+<section class="slide" id="slide-22" data-slide="22 / 23" aria-labelledby="title-22"><div><p class="kicker">Check Yourself</p><h2 id="title-22">이해 확인: 답을 먼저 예측한 뒤에 확인한다</h2><div class="two"><div class="panel amber"><h3>질문 1</h3><p><strong>PowerStrikeSkill.cs와 HealSkill.cs에서 “TurnManager”, “BoardView”, “CombatCalculator”를 검색하면 몇 번 나오는가?</strong></p><p>답: 0번이다. 자식은 다른 시스템을 알지 못한다. 그 시스템들이 바뀌어도 자식 파일은 바뀌지 않는다.</p></div><div class="panel amber"><h3>질문 2</h3><p><strong>공격력 8인 마법사가 추가 피해 4의 강타 에셋을 끼우고, 산(지형 방어 2) 위에 있는 방어력 3, HP 14인 기사를 공격한다. 남는 HP는 얼마인가?</strong></p><p>답: max(1, 8 − 3 − 2) = 3이고 3 + 4 = 7이다. 14 − 7 = 7이 남는다. 강타의 코드는 그대로이고 병종 에셋의 Skill 칸만 바꾸었다.</p></div></div><div class="callout"><p>질문 2가 두 패턴이 함께 동작하는 모습이다. 누가 어떤 스킬을 쓰는지는 데이터(Type Object)가 정하고, 스킬이 무엇을 하는지는 도구의 조합(Subclass Sandbox)이 정한다.</p></div></div></section>
+
+<section class="slide" id="slide-23" data-slide="23 / 23" aria-labelledby="title-23"><div><p class="kicker">Takeaway</p><h2 id="title-23">부모는 도구를 만들고, 자식은 도구를 조합한다</h2><ol><li>동작이 다른 종류는 class로 나눈다. 그 class들에 복사되는 코드는 부모의 <code>protected</code> 도구로 올린다.</li><li>자식이 채울 빈칸은 <code>abstract</code> 메서드로 선언한다. 바깥은 부모의 공개 입구만 호출한다.</li><li>자식은 다른 시스템을 알지 못한다. 다른 시스템과의 연결은 부모 한 곳에만 있다.</li><li>도구가 부족하면 자식이 밖으로 나가지 않고 부모에 도구를 추가한다.</li><li>대가는 커지는 부모, 부모에 묶이는 자식, 잠시 보관하는 상태다.</li></ol><div class="question"><p class="big">새 스킬을 작성할 때<br>부모의 도구 말고 다른 시스템을 열어 보아야 하는가?<br>답이 <span class="amber">“아니다”</span>라면 Subclass Sandbox가 제 역할을 하고 있다.</p></div></div></section>
+      </div>
+    </main>
+
+    <nav class="controls" aria-label="슬라이드 탐색">
+      <button class="control-btn" id="prevBtn" type="button" aria-label="이전 슬라이드">←</button>
+      <button class="control-btn" id="tocBtn" type="button">목차</button>
+      <span id="slideCounter" aria-live="polite">1 / 23</span>
+      <button class="control-btn" id="nextBtn" type="button" aria-label="다음 슬라이드">→</button>
+    </nav>
+  </div>
+
+  <dialog id="tocDialog" aria-labelledby="tocTitle">
+    <div class="toc-head"><h2 id="tocTitle">전체 목차</h2><button class="control-btn" id="tocCloseBtn" type="button">닫기</button></div>
+    <div class="toc-grid">
+<a class="toc-link" href="#slide-1"><span>01</span>Subclass Sandbox 패턴</a><a class="toc-link" href="#slide-2"><span>02</span>지금까지 “효과”는 일반 공격 하나뿐이었다</a><a class="toc-link" href="#slide-3"><span>03</span>스킬은 종류마다 하는 일이 다르다</a><a class="toc-link" href="#slide-4"><span>04</span>첫 시도: 스킬 class가 필요한 시스템을 직접 사용한다</a><a class="toc-link" href="#slide-5"><span>05</span>첫 시도에서는 스킬의 수만큼 같은 코드가 복사된다</a><a class="toc-link" href="#slide-6"><span>06</span>스킬마다 다른 것과 모든 스킬에 공통인 것을 나눈다</a><a class="toc-link" href="#slide-7"><span>07</span>이 구조의 이름이 Subclass Sandbox 패턴이다</a><a class="toc-link" href="#slide-8"><span>08</span>부모: 자식이 채울 빈칸을 abstract로 선언한다</a><a class="toc-link" href="#slide-9"><span>09</span>부모: 바깥에서 부르는 입구는 공개 메서드 두 개다</a><a class="toc-link" href="#slide-10"><span>10</span>부모: 도구가 다른 시스템과의 연결을 감춘다</a><a class="toc-link" href="#slide-11"><span>11</span>protected는 자식 class에게만 호출을 허용한다</a><a class="toc-link" href="#slide-12"><span>12</span>자식: 강타는 도구 두 개를 고른 것이 전부다</a><a class="toc-link" href="#slide-13"><span>13</span>자식: 치유는 다른 도구 두 개를 고른다</a><a class="toc-link" href="#slide-14"><span>14</span>호출 한 번이 입구, 빈칸, 도구를 차례로 지나간다</a><a class="toc-link" href="#slide-15"><span>15</span>추적: 기사의 강타와 마법사의 치유</a><a class="toc-link" href="#slide-16"><span>16</span>화염구를 추가하려면 무엇을 작성해야 하는가?</a><a class="toc-link" href="#slide-17"><span>17</span>도구가 부족하면 부모에 도구를 추가한다</a><a class="toc-link" href="#slide-18"><span>18</span>도구 한 곳을 고치면 모든 스킬에 반영된다</a><a class="toc-link" href="#slide-19"><span>19</span>7차시의 Type Object와 함께 쓰인다</a><a class="toc-link" href="#slide-20"><span>20</span>Subclass Sandbox에는 대가가 있다</a><a class="toc-link" href="#slide-21"><span>21</span>적용 기준: 비슷한 자식이 많고, 같은 시스템을 반복해서 쓰는가?</a><a class="toc-link" href="#slide-22"><span>22</span>이해 확인: 답을 먼저 예측한 뒤에 확인한다</a><a class="toc-link" href="#slide-23"><span>23</span>부모는 도구를 만들고, 자식은 도구를 조합한다</a>
+</div>
+  </dialog>
+
+  <script>
+    const slides = [...document.querySelectorAll('.slide')];
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const tocBtn = document.getElementById('tocBtn');
+    const tocDialog = document.getElementById('tocDialog');
+    const tocCloseBtn = document.getElementById('tocCloseBtn');
+    const slideCounter = document.getElementById('slideCounter');
+    let current = 0;
+
+    function showSlide(index, updateHash = true) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      slides.forEach((slide, slideIndex) => slide.classList.toggle('is-active', slideIndex === current));
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current === slides.length - 1;
+      slideCounter.textContent = `${current + 1} / ${slides.length}`;
+      if (updateHash) history.replaceState(null, '', `#slide-${current + 1}`);
+    }
+
+    function indexFromHash() {
+      const match = location.hash.match(/^#slide-(\d+)$/);
+      const index = match ? Number(match[1]) - 1 : -1;
+      if (index >= 0 && index < slides.length) return index;
+      history.replaceState(null, '', '#slide-1');
+      return 0;
+    }
+
+    function openToc() { if (!tocDialog.open) tocDialog.showModal(); }
+    function closeToc() { if (tocDialog.open) tocDialog.close(); }
+
+    prevBtn.addEventListener('click', () => showSlide(current - 1));
+    nextBtn.addEventListener('click', () => showSlide(current + 1));
+    tocBtn.addEventListener('click', openToc);
+    tocCloseBtn.addEventListener('click', closeToc);
+    tocDialog.addEventListener('click', (event) => { if (event.target === tocDialog) closeToc(); });
+    tocDialog.querySelectorAll('.toc-link').forEach((link) => link.addEventListener('click', (event) => {
+      event.preventDefault();
+      const index = Number(link.hash.replace('#slide-', '')) - 1;
+      closeToc();
+      showSlide(index);
+    }));
+    window.addEventListener('hashchange', () => showSlide(indexFromHash(), false));
+    window.addEventListener('keydown', (event) => {
+      if (tocDialog.open) return;
+      const tag = document.activeElement?.tagName;
+      if (['ArrowRight','ArrowLeft','PageDown','PageUp','Home','End'].includes(event.key)) event.preventDefault();
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (event.key === 'ArrowRight' || event.key === 'PageDown') showSlide(current + 1);
+      else if (event.key === 'ArrowLeft' || event.key === 'PageUp') showSlide(current - 1);
+      else if (event.key === 'Home') showSlide(0);
+      else if (event.key === 'End') showSlide(slides.length - 1);
+    });
+
+    const initialIndex = indexFromHash();
+    showSlide(initialIndex);
+  </script>
+<noscript><style>
+    html,body{height:auto;overflow:visible}.app,.stage,.deck{display:block;width:100%;height:auto;max-height:none;aspect-ratio:auto;overflow:visible;container-type:normal}
+    .slide,.slide.is-active{position:relative;display:block;overflow:visible;animation:none;margin-bottom:20px}.controls,dialog{display:none}
+    </style></noscript></body>
+</html>
