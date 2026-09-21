@@ -77,6 +77,14 @@ namespace MiniTactics.Lesson07
 
         public void EndPlayerPhase()
         {
+            foreach (Unit unit in _spawner.Units)
+            {
+                if (unit.Team == Team.Player && unit.IsAlive && CheckBase(unit))
+                {
+                    return;
+                }
+            }
+
             Phase = BattlePhase.Enemy;
             RunEnemyPhaseAsync(destroyCancellationToken).Forget();
         }
