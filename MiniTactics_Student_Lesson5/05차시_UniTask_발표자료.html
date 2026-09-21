@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>5차시 — UniTask | 미니 택틱스</title>
+  <style>
+    :root {
+      --bg:#040a13; --slide:#091526; --panel:#10233a; --panel2:#142b45;
+      --text:#eef5ff; --muted:#afbed1; --teal:#55e4cf; --violet:#b8a4ff;
+      --amber:#ffd16f; --red:#ff8c99; --line:#2a405b; --green:#83e58f;
+    }
+    * { box-sizing:border-box; }
+    html, body { width:100%; height:100%; margin:0; overflow:hidden; }
+    body { background:var(--bg); color:var(--text); font-family:"Pretendard","Noto Sans KR",system-ui,sans-serif; word-break:keep-all; overflow-wrap:break-word; }
+    button, a { font:inherit; }
+    button { color:inherit; }
+    .app { min-height:100%; display:grid; grid-template-rows:1fr auto; }
+    .stage { min-height:0; display:grid; place-items:center; padding:14px 18px 6px; }
+    .deck { position:relative; width:min(100%,calc((100vh - 80px) * 16 / 9)); max-height:calc(100vh - 80px); aspect-ratio:16/9; overflow:hidden; border:1px solid #263b56; border-radius:18px; background:var(--slide); box-shadow:0 28px 88px #000a; container-type:inline-size; }
+    .slide { position:absolute; inset:0; display:none; overflow:auto; padding:clamp(28px,3.6cqw,56px) clamp(36px,5cqw,78px); background:radial-gradient(circle at 94% 7%,#253969 0,transparent 27%),linear-gradient(145deg,#0c1a2d 0%,#07121f 74%); }
+    .slide.is-active { display:grid; align-content:center; animation:reveal .24s ease-out; }
+    .slide::after { content:attr(data-slide); position:absolute; right:26px; top:20px; color:#7189a6; font-size:.76rem; font-weight:850; letter-spacing:.13em; }
+    @keyframes reveal { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:none; } }
+    h1,h2,h3,p { margin-top:0; }
+    h1 { max-width:78cqw; margin-bottom:20px; font-size:clamp(2.3rem,5.1cqw,4.9rem); line-height:1.08; letter-spacing:-.05em; }
+    h2 { max-width:82cqw; margin-bottom:clamp(16px,2.2cqw,30px); font-size:clamp(1.75rem,3.35cqw,3.15rem); line-height:1.17; letter-spacing:-.035em; }
+    h3 { margin-bottom:8px; color:var(--teal); font-size:clamp(.98rem,1.38cqw,1.3rem); }
+    p,li { font-size:clamp(.83rem,1.23cqw,1.13rem); line-height:1.53; }
+    p { margin-bottom:.72em; }
+    ul,ol { margin:.1em 0 0; padding-left:1.25em; }
+    li { margin:.38em 0; }
+    li::marker { color:var(--teal); font-weight:800; }
+    strong { color:#fff; }
+    .kicker { margin:0 0 7px; color:var(--teal); font-size:clamp(.68rem,1cqw,.9rem); font-weight:900; letter-spacing:.13em; text-transform:uppercase; }
+    .subtitle { max-width:72cqw; color:var(--muted); font-size:clamp(1rem,1.68cqw,1.5rem); line-height:1.5; }
+    .accent { color:var(--teal); } .violet { color:var(--violet); } .amber { color:var(--amber); } .red { color:var(--red); } .green { color:var(--green); }
+    .big { max-width:78cqw; font-size:clamp(1.28rem,2.3cqw,2.12rem); line-height:1.45; letter-spacing:-.02em; }
+    .quote { max-width:76cqw; margin:12px 0; padding-left:22px; border-left:5px solid var(--violet); font-size:clamp(1.2rem,2.25cqw,2rem); line-height:1.43; font-weight:760; }
+    .two { display:grid; grid-template-columns:1fr 1fr; gap:clamp(15px,2.2cqw,30px); align-items:stretch; }
+    .wide { display:grid; grid-template-columns:1.3fr .85fr; gap:clamp(18px,2.6cqw,36px); align-items:center; }
+    .panel { padding:clamp(14px,1.8cqw,23px); border:1px solid var(--line); border-radius:14px; background:#0f2138d9; }
+    .panel.teal { border-top:4px solid var(--teal); } .panel.violet { border-top:4px solid var(--violet); } .panel.amber { border-top:4px solid var(--amber); } .panel.redline { border-top:4px solid var(--red); }
+    .callout { margin-top:15px; padding:13px 18px; border-left:4px solid var(--teal); border-radius:8px; background:#10243c; }
+    .callout.warning { border-left-color:var(--amber); } .callout.danger { border-left-color:var(--red); }
+    .callout p:last-child,.panel p:last-child { margin-bottom:0; }
+    pre { margin:10px 0 0; padding:clamp(13px,1.65cqw,21px); overflow:auto; border:1px solid var(--line); border-radius:12px; background:#030a13; color:#dceafa; white-space:pre; font:clamp(.68rem,1.04cqw,.96rem)/1.58 Consolas,"D2Coding",monospace; }
+    p code,li code { padding:.08em .32em; border:1px solid #344d69; border-radius:5px; background:#081522; color:var(--amber); font-family:Consolas,"D2Coding",monospace; font-size:.92em; }
+    .code-focus { color:var(--amber); font-weight:800; }
+    .source { margin-top:10px; color:#7f94ad; font-size:clamp(.62rem,.82cqw,.76rem); }
+    .flow { display:grid; grid-template-columns:repeat(7,auto); align-items:center; justify-content:center; gap:9px; margin-top:22px; }
+    .node { min-width:9cqw; min-height:66px; display:grid; place-items:center; padding:10px 12px; border:1px solid #3b5575; border-radius:12px; background:var(--panel); text-align:center; font-size:clamp(.7rem,.95cqw,.9rem); font-weight:800; }
+    .arrow { color:var(--teal); font-size:1.35rem; font-weight:900; }
+    .state-board { display:grid; grid-template-columns:1fr auto 1fr; gap:18px; align-items:center; margin-top:14px; }
+    .coord { min-height:140px; display:grid; place-items:center; padding:22px; border:1px solid var(--line); border-radius:14px; background:#07111e; text-align:center; font:800 clamp(1rem,1.7cqw,1.55rem)/1.6 Consolas,monospace; }
+    .missing { color:var(--red); text-decoration:line-through; text-decoration-thickness:3px; }
+    .compare { width:100%; border-collapse:collapse; font-size:clamp(.72rem,1cqw,.94rem); line-height:1.42; }
+    .compare th,.compare td { padding:10px 13px; border:1px solid var(--line); vertical-align:top; text-align:left; }
+    .compare th { color:var(--teal); background:#071321; }
+    .stack { width:min(440px,70cqw); margin:14px auto 0; display:grid; gap:8px; }
+    .stack-item { padding:11px 16px; border:1px solid #405c7d; border-radius:9px; background:var(--panel); text-align:center; font-weight:800; }
+    .stack-item.top { border-color:var(--amber); color:var(--amber); }
+    .question { padding:clamp(20px,2.7cqw,38px); border:1px solid #5b4e25; border-radius:15px; background:linear-gradient(135deg,#221d10,#101c2d); }
+    .question .big { margin-bottom:0; }
+    .role-map { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:18px; }
+    .role { min-height:125px; padding:15px; border-top:4px solid var(--teal); border-radius:12px; background:var(--panel); }
+    .role:nth-child(2) { border-color:var(--violet); } .role:nth-child(3) { border-color:var(--amber); } .role:nth-child(4) { border-color:var(--red); }
+    .role b { display:block; margin-bottom:7px; font-size:clamp(.82rem,1.12cqw,1rem); }
+    .role span { color:var(--muted); font-size:clamp(.7rem,.92cqw,.86rem); line-height:1.45; }
+    .controls { min-height:60px; display:flex; align-items:center; justify-content:center; gap:9px; padding:7px 14px 10px; }
+    .control-btn { min-width:44px; min-height:40px; padding:7px 15px; border:1px solid #354c68; border-radius:10px; background:#0d1d30; cursor:pointer; }
+    .control-btn:hover:not(:disabled) { border-color:var(--teal); color:var(--teal); }
+    .control-btn:focus-visible,.toc-link:focus-visible { outline:3px solid var(--amber); outline-offset:2px; }
+    .control-btn:disabled { opacity:.35; cursor:not-allowed; }
+    #slideCounter { min-width:76px; color:var(--muted); text-align:center; font-weight:850; font-variant-numeric:tabular-nums; }
+    dialog { width:min(780px,calc(100% - 32px)); max-height:min(80vh,740px); padding:0; border:1px solid #405b7a; border-radius:18px; background:#091526; color:var(--text); box-shadow:0 30px 100px #000d; }
+    dialog::backdrop { background:#020710df; backdrop-filter:blur(4px); }
+    .toc-head { position:sticky; top:0; z-index:2; display:flex; align-items:center; justify-content:space-between; padding:18px 21px; border-bottom:1px solid var(--line); background:#091526; }
+    .toc-head h2 { margin:0; font-size:1.4rem; }
+    .toc-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; padding:16px; }
+    .toc-link { display:grid; grid-template-columns:34px 1fr; gap:8px; padding:9px 11px; border:1px solid transparent; border-radius:8px; color:var(--muted); text-decoration:none; font-size:.88rem; }
+    .toc-link:hover { color:var(--text); background:var(--panel); border-color:var(--line); }
+    .toc-link span { color:var(--teal); font-weight:900; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @media (max-height:650px) and (min-width:721px) {
+      .slide { padding:24px 40px; }
+      h1 { font-size:3rem; } h2 { font-size:1.72rem; margin-bottom:12px; } h3 { font-size:.91rem; }
+      p,li { font-size:.76rem; line-height:1.38; } li { margin:.25em 0; }
+      .panel { padding:10px 13px; } .callout { margin-top:8px; padding:8px 13px; }
+      pre { margin-top:6px; padding:9px 12px; font-size:.64rem; line-height:1.4; }
+      .node { min-height:48px; padding:6px 9px; font-size:.65rem; }
+      .role { min-height:90px; padding:10px; } .coord { min-height:105px; padding:14px; }
+    }
+    @media (max-width:720px) {
+      .stage { padding:0; }
+      .deck { width:100%; height:calc(100vh - 60px); max-height:none; aspect-ratio:auto; border:0; border-radius:0; }
+      .slide { padding:48px 21px 28px; }
+      .slide.is-active { align-content:start; }
+      .two,.wide,.state-board,.role-map { grid-template-columns:1fr; }
+      .flow { grid-template-columns:1fr; }
+      .flow .arrow { transform:rotate(90deg); }
+      .toc-grid { grid-template-columns:1fr; }
+      h1 { font-size:clamp(2.05rem,10.5cqw,3.25rem); }
+      h2 { font-size:clamp(1.6rem,7.2cqw,2.25rem); }
+      p,li { font-size:1rem; }
+      pre { font-size:.75rem; white-space:pre-wrap; overflow-wrap:anywhere; }
+    }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; } }
+    @media print {
+      html,body { height:auto; overflow:visible; background:#fff; color:#111; }
+      .app,.stage,.deck { display:block; width:auto; height:auto; max-height:none; padding:0; overflow:visible; border:0; box-shadow:none; }
+      .slide,.slide.is-active { position:relative; display:grid; width:100%; min-height:175mm; padding:15mm; break-after:page; overflow:hidden; background:#fff; color:#111; animation:none; }
+      .slide:last-child { break-after:auto; }
+      .controls,dialog { display:none !important; }
+      h1,h2,h3,p,li,strong,.subtitle,.kicker,.accent,.violet,.amber,.red,.green,.source { color:#111; }
+      .panel,.callout,pre,.node,.coord,.role,.stack-item,.question,.compare th,.compare td { background:#fff; color:#111; border-color:#777; }
+    }
+  </style>
+<style id="layout-safety">
+    .slide > div,.two > div,.wide > div,.role,.node { min-width:0; }
+    .compare { table-layout:fixed; overflow-wrap:anywhere; }
+    .role b,.role span { overflow-wrap:anywhere; }
+    @media (max-width:720px) { .state-board > .arrow { transform:rotate(90deg); justify-self:center; } .flow > .arrow { justify-self:center; } }
+    @media print { .deck { container-type:normal; aspect-ratio:auto; } .slide,.slide.is-active { height:auto; overflow:visible; break-inside:avoid; } }
+    </style>
+</head>
+<body>
+  <div class="app">
+    <main class="stage">
+      <div class="deck" id="deck">
+
+<section class="slide is-active" id="slide-1" data-slide="01 / 22" aria-labelledby="title-1"><div><p class="kicker">Mini Tactics · Lesson 05 · Library</p><h1 id="title-1">기다리는 코드를<br><span class="accent">UniTask로 순서대로 작성하기</span></h1><p class="subtitle">적이 한 명씩, 0.35초 간격으로 움직여야 한다.<br>화면을 멈추지 않고 기다리는 방법과 기다림을 멈추는 방법을 배운다.</p></div></section>
+
+<section class="slide" id="slide-2" data-slide="02 / 22" aria-labelledby="title-2"><div><p class="kicker">Starting Point</p><h2 id="title-2">게임의 한 프레임은 빨리 끝나야 한다</h2><div class="wide"><div><div class="flow"><div class="node">입력 확인</div><div class="arrow">→</div><div class="node">스크립트의<br>Update 실행</div><div class="arrow">→</div><div class="node">화면 그리기</div><div class="arrow">→</div><div class="node">다음 프레임</div></div><p class="source" style="text-align:center">Unity가 초당 약 60번 반복하는 한 바퀴다.</p></div><div class="panel teal"><h3>프레임이란</h3><p>Unity는 입력을 읽고, 스크립트를 실행하고, 화면을 한 번 그린다. 이 한 바퀴가 프레임이다. 60fps라면 한 바퀴는 약 16.7ms다.</p><p>스크립트가 끝나야 화면이 그려진다. 스크립트가 1초 동안 끝나지 않으면 그 1초 동안 화면은 멈춘다.</p></div></div><div class="callout"><p>지금까지 작성한 메서드는 모두 “호출되면 끝까지 실행되고 돌아오는” 메서드였다. 이동 명령, Undo, 상태 전환은 한 프레임 안에서 끝났기 때문에 문제가 없었다.</p></div></div></section>
+
+<section class="slide" id="slide-3" data-slide="03 / 22" aria-labelledby="title-3"><div><p class="kicker">New Requirement</p><h2 id="title-3">적은 한 명씩, 간격을 두고 움직여야 한다</h2><table class="compare"><thead><tr><th style="width:24%">경과 시간</th><th>플레이어가 보아야 하는 장면</th></tr></thead><tbody><tr><td>0ms</td><td>적 1이 이동한다.</td></tr><tr><td>350ms</td><td>적 2가 이동한다.</td></tr><tr><td>700ms</td><td>적 3이 이동한다.</td></tr><tr><td>1050ms</td><td>플레이어의 차례가 다시 시작된다.</td></tr></tbody></table><div class="two" style="margin-top:14px"><div class="panel violet"><h3>원하는 것</h3><p>“이동한다 → 기다린다 → 다음 적”을 읽히는 순서 그대로 작성하고 싶다.</p></div><div class="panel amber"><h3>지켜야 하는 것</h3><p>기다리는 1초 동안에도 화면은 계속 그려지고 게임은 멈추지 않아야 한다.</p></div></div></div></section>
+
+<section class="slide" id="slide-4" data-slide="04 / 22" aria-labelledby="title-4"><div><p class="kicker">First Attempt · 설계 비교용 가상 코드</p><h2 id="title-4">첫 시도: 기다리는 동안 스레드를 재운다</h2><div class="wide"><pre><code>private void RunEnemyPhase()
+{
+    foreach (Unit unit in _spawner.Units)
+    {
+        MoveEnemy(unit);
+        <span class="code-focus">Thread.Sleep(350);</span>
+    }
+    BeginPlayerPhase();
+}</code></pre><div class="panel redline"><h3>실행하면 벌어지는 일</h3><ol><li><code>Thread.Sleep</code>은 이 메서드를 실행하는 스레드 전체를 멈춘다.</li><li>Unity의 스크립트와 화면은 모두 같은 스레드(메인 스레드)에서 실행된다.</li><li>적이 세 명이면 1050ms 동안 게임이 완전히 멈춘다.</li><li>멈춘 뒤 한 번에 그려지므로 세 명이 동시에 움직인 것처럼 보인다.</li></ol></div></div><div class="callout danger"><p>코드는 원하는 순서대로 읽히지만 결과는 원하는 것과 정반대다. “기다린다”가 “게임 전체를 멈춘다”가 되었다.</p></div></div></section>
+
+<section class="slide" id="slide-5" data-slide="05 / 22" aria-labelledby="title-5"><div><p class="kicker">Second Attempt · 설계 비교용 가상 코드</p><h2 id="title-5">두 번째 시도: Update에서 시간을 직접 잰다</h2><div class="wide"><pre><code>private int _index = -1;
+private float _timer;
+
+private void Update()
+{
+    if (_index &lt; 0) return;
+    _timer -= Time.deltaTime;
+    if (_timer &gt; 0f) return;
+    MoveEnemy(_spawner.Units[_index++]);
+    _timer = 0.35f;
+    if (_index == _spawner.Units.Count) { _index = -1; BeginPlayerPhase(); }
+}</code></pre><div class="panel teal"><h3>이 방법은 동작한다</h3><p>매 프레임 조금씩 시간을 줄이다가 0 이하가 되면 한 명을 움직인다. 한 프레임은 금방 끝나므로 화면이 멈추지 않는다.</p><p>요구가 이 정도로 단순하다면 충분히 쓸 수 있는 방법이다.</p></div></div><p class="source">적 팀인지 확인하는 조건은 생략했다. 이해를 돕기 위한 가상 코드이며 수업 코드에는 없다.</p></div></section>
+
+<section class="slide" id="slide-6" data-slide="06 / 22" aria-labelledby="title-6"><div><p class="kicker">Observe the Limit</p><h2 id="title-6">요구가 늘면 “순서”가 필드와 조건문으로 흩어진다</h2><table class="compare"><thead><tr><th style="width:34%">새 요구</th><th>Update 방식에서 해야 하는 일</th></tr></thead><tbody><tr><td>적이 이동한 뒤 공격도 한다.</td><td>“이동 중인가, 공격 중인가”를 나타내는 필드를 추가하고 Update에 분기를 추가한다.</td></tr><tr><td>적이 목표에 도착하면 즉시 멈춘다.</td><td>모든 분기에서 종료 조건을 검사하고 <code>_index</code>를 되돌린다.</td></tr><tr><td>이동과 공격의 대기 시간이 다르다.</td><td><code>_timer</code>에 넣을 값을 분기마다 따로 정한다.</td></tr></tbody></table><div class="two" style="margin-top:14px"><div class="panel redline"><h3>읽는 사람이 겪는 일</h3><p>“적 1 이동 → 대기 → 공격 → 대기 → 적 2 …”라는 순서가 코드 어디에도 한 줄로 적혀 있지 않다. 필드의 값을 머릿속으로 따라가야 순서가 보인다.</p></div><div class="panel violet"><h3>실제로 원하는 코드</h3><p>순서는 위에서 아래로 적고, “기다린다”라는 줄에서만 잠시 멈췄다가 다음 프레임 이후에 이어서 실행되는 메서드다.</p></div></div></div></section>
+
+<section class="slide" id="slide-7" data-slide="07 / 22" aria-labelledby="title-7"><div><p class="kicker">Built-in Option · 설계 비교용 가상 코드</p><h2 id="title-7">Unity의 코루틴은 순서를 되살리지만 제약이 있다</h2><div class="wide"><pre><code>private IEnumerator RunEnemyPhase()
+{
+    foreach (Unit unit in _spawner.Units)
+    {
+        MoveEnemy(unit);
+        <span class="code-focus">yield return new WaitForSeconds(0.35f);</span>
+    }
+    BeginPlayerPhase();
+}
+// 시작: StartCoroutine(RunEnemyPhase());</code></pre><div class="panel teal"><h3>코루틴이 해결한 것</h3><p><code>yield return</code>에서 메서드가 멈추고, Unity가 0.35초 뒤에 그 다음 줄부터 이어서 실행한다. 순서가 코드에 그대로 보인다.</p></div></div><table class="compare" style="margin-top:12px"><thead><tr><th style="width:34%">코루틴의 제약</th><th>구체적인 모습</th></tr></thead><tbody><tr><td>결과 값을 돌려줄 수 없다.</td><td><code>IEnumerator</code>는 “다 끝났다”는 것 외의 값을 호출한 쪽에 돌려주지 못한다.</td></tr><tr><td>예외 처리가 어렵다.</td><td>C#은 catch가 있는 try 블록 안에 <code>yield return</code>을 허용하지 않는다.</td></tr><tr><td>MonoBehaviour가 필요하다.</td><td><code>StartCoroutine</code>은 MonoBehaviour의 메서드다. 일반 class에서는 시작할 수 없다.</td></tr></tbody></table></div></section>
+
+<section class="slide" id="slide-8" data-slide="08 / 22" aria-labelledby="title-8"><div><p class="kicker">Find the Boundary</p><h2 id="title-8">필요한 기능을 네 가지로 정리한다</h2><div class="two"><div class="panel teal"><h3>1. 순서대로 작성한다</h3><p>이동, 대기, 다음 적의 순서가 코드에 위에서 아래로 보인다.</p></div><div class="panel violet"><h3>2. 기다려도 멈추지 않는다</h3><p>기다리는 동안 메서드만 잠시 빠져나가고 프레임은 계속 돈다.</p></div><div class="panel amber"><h3>3. 결과를 기다리고 받을 수 있다</h3><p>“적 한 명의 행동이 끝날 때까지” 기다렸다가 다음 줄을 실행한다. 필요하면 값도 돌려받는다.</p></div><div class="panel redline"><h3>4. 도중에 멈출 수 있다</h3><p>기다리는 사이에 씬이 사라지면 남은 작업을 실행하지 않고 끝낸다.</p></div></div><div class="callout"><p>C#에는 1~3을 위한 문법 <code>async</code>/<code>await</code>가 이미 있다. 4를 위한 도구는 <code>CancellationToken</code>이다. UniTask는 이것들을 Unity에 맞게 사용하게 해 주는 라이브러리다.</p></div></div></section>
+
+<section class="slide" id="slide-9" data-slide="09 / 22" aria-labelledby="title-9"><div><p class="kicker">async · await · UniTask</p><h2 id="title-9">네 가지 역할에 이름을 붙인다</h2><p class="quote">await를 만나면 메서드는 잠시 빠져나가고, 기다리던 일이 끝나면 그 다음 줄부터 다시 실행된다.</p><div class="role-map"><div class="role"><b>async</b><span>“이 메서드 안에서 await를 쓰겠다”는 표시다. 메서드 선언에 붙인다.</span></div><div class="role"><b>await</b><span>기다리는 지점이다. 여기서 메서드를 빠져나가 프레임을 돌려주고, 끝나면 돌아와 이어서 실행한다.</span></div><div class="role"><b>UniTask</b><span>“아직 끝나지 않았을 수도 있는 작업”을 나타내는 반환 타입이다. 호출한 쪽은 이것을 await한다.</span></div><div class="role"><b>CancellationToken</b><span>“그만하라”는 신호를 전달하는 값이다. 신호가 오면 기다리던 작업이 취소된다.</span></div></div><div class="callout"><p>C# 표준의 반환 타입은 <code>Task</code>다. UniTask는 Cysharp가 만든 Unity용 대체 타입이며, Unity의 프레임 반복(PlayerLoop) 위에서 동작하고 메모리 할당을 줄이도록 설계되었다.</p></div></div></section>
+
+<section class="slide" id="slide-10" data-slide="10 / 22" aria-labelledby="title-10"><div><p class="kicker">Setup</p><h2 id="title-10">패키지를 추가하고 네임스페이스를 가져온다</h2><pre><code>"com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask#2.5.11",</code></pre><p class="source">Packages/manifest.json의 dependencies에 들어 있는 한 줄이다. 끝의 #2.5.11은 사용할 버전이다.</p><div class="wide" style="margin-top:14px"><pre><code>using System.Threading;          // CancellationToken
+using Cysharp.Threading.Tasks;   // UniTask, UniTask.Delay, Forget</code></pre><div class="panel teal"><h3>두 using의 역할</h3><p><code>CancellationToken</code>은 UniTask가 아니라 .NET 표준에 있다. 그래서 두 네임스페이스가 모두 필요하다.</p></div></div><div class="callout"><p>EnemyAI.cs와 TurnManager.cs의 맨 위에 이 두 줄이 있다. 오른쪽 주석은 설명을 위해 덧붙였다.</p></div></div></section>
+
+<section class="slide" id="slide-11" data-slide="11 / 22" aria-labelledby="title-11"><div><p class="kicker">Actual Code · EnemyAI.cs</p><h2 id="title-11">적 한 명의 행동: 이동하고 기다린다</h2><div class="wide"><pre><code>public <span class="code-focus">async UniTask</span> TakeTurnAsync(
+    Unit enemy, Vector2Int goalCell, <span class="code-focus">CancellationToken token</span>)
+{
+    enemy.MoveTo(_board, ChooseDestination(enemy, goalCell));
+    <span class="code-focus">await UniTask.Delay(_delayMilliseconds,
+        cancellationToken: token);</span>
+}</code></pre><div class="panel teal"><h3>한 줄씩 읽기</h3><ol><li><code>async UniTask</code>: 끝날 때까지 시간이 걸리는 메서드다. 호출한 쪽이 끝나기를 기다릴 수 있다.</li><li>첫 줄은 평소처럼 즉시 실행된다. 적이 목적지로 옮겨진다.</li><li><code>UniTask.Delay</code>: <code>_delayMilliseconds</code>(기본 350)ms가 지나면 끝나는 작업이다.</li><li><code>await</code>: 그 시간이 지날 때까지 이 메서드는 빠져나가 있는다.</li></ol></div></div><p class="source">EnemyAI.cs의 메서드 전체다. 화면에 맞추려고 긴 줄 두 곳만 나누었다.</p><div class="callout"><p>이름 끝의 <code>Async</code>는 “await해서 쓰는 메서드”라는 C#의 관례다. 문법이 아니다.</p></div></div></section>
+
+<section class="slide" id="slide-12" data-slide="12 / 22" aria-labelledby="title-12"><div><p class="kicker">Actual Code · TurnManager.cs</p><h2 id="title-12">적의 차례 전체: 한 명씩 await한다</h2><div class="wide"><pre><code>private async UniTask RunEnemyPhaseAsync(CancellationToken token)
+{
+    Vector2Int goalCell = _board.WorldToCell(_playerBase.position);
+    foreach (Unit unit in _spawner.Units)
+    {
+        if (unit.Team != Team.Enemy) continue;
+
+        <span class="code-focus">await _enemyAi.TakeTurnAsync(unit, goalCell, token);</span>
+        if (CheckBase(unit)) return;
+    }
+    BeginPlayerPhase();
+}</code></pre><div class="panel teal"><h3>읽히는 순서 = 실행되는 순서</h3><p>적 한 명의 행동(이동 + 대기)이 완전히 끝나야 다음 줄로 넘어간다. 그래서 적은 한 명씩 움직인다.</p><p>목표에 도착한 적이 있으면 <code>return</code>으로 끝낸다. 기다림이 중간에 있어도 평소의 <code>return</code>, <code>foreach</code>, <code>if</code>를 그대로 쓴다.</p></div></div><p class="source">5차시 TurnManager.cs의 발췌다. 한 줄짜리 if 블록은 읽기 편하게 중괄호를 줄였다.</p></div></section>
+
+<section class="slide" id="slide-13" data-slide="13 / 22" aria-labelledby="title-13"><div><p class="kicker">Actual Code · TurnManager.cs</p><h2 id="title-13">일반 메서드에서 async 메서드를 시작한다</h2><div class="wide"><pre><code>public void EndPlayerPhase()
+{
+    Phase = BattlePhase.Enemy;
+    RunEnemyPhaseAsync(<span class="code-focus">destroyCancellationToken</span>).<span class="code-focus">Forget()</span>;
+}</code></pre><div><div class="panel teal"><h3>Forget()</h3><p><code>EndPlayerPhase</code>는 일반 메서드라서 await할 수 없다. <code>Forget</code>은 “시작만 하고 끝나기를 기다리지 않는다”는 뜻이다. 이 줄은 즉시 돌아온다.</p></div><div class="panel violet" style="margin-top:12px"><h3>destroyCancellationToken</h3><p>MonoBehaviour가 제공하는 토큰이다. 이 컴포넌트가 파괴되는 순간 “그만하라” 신호를 보낸다.</p></div></div></div><div class="callout warning"><p><code>Forget</code> 없이 호출만 해도 작업은 시작된다. 그러나 반환된 UniTask를 그냥 버리면 기다리지 않은 것이 실수인지 의도인지 알 수 없고, 작업 안에서 발생한 예외를 놓치기 쉽다. <code>Forget</code>은 “의도적으로 기다리지 않는다”는 표시이자, 예외를 로그로 남겨 주는 장치다.</p></div></div></section>
+
+<section class="slide" id="slide-14" data-slide="14 / 22" aria-labelledby="title-14"><div><p class="kicker">How await Works</p><h2 id="title-14">await에서 메서드는 빠져나가고 프레임은 계속 돈다</h2><div class="flow"><div class="node">MoveTo 실행<br>적 1이 이동</div><div class="arrow">→</div><div class="node">await Delay<br>메서드가 빠져나감</div><div class="arrow">→</div><div class="node">약 21프레임 동안<br>화면이 계속 그려짐</div><div class="arrow">→</div><div class="node">350ms 경과<br>다음 줄부터 재개</div></div><div class="two" style="margin-top:18px"><div class="panel teal"><h3>빠져나가 있는 동안</h3><p>메서드의 지역 변수와 “어디까지 실행했는가”는 UniTask가 보관한다. Unity는 그동안 다른 Update와 화면 그리기를 계속한다. 60fps라면 350ms는 약 21프레임이다.</p></div><div class="panel violet"><h3>새 스레드가 아니다</h3><p>재개된 코드도 Unity의 메인 스레드에서 실행된다. 그래서 <code>transform</code> 같은 Unity API를 그대로 쓸 수 있다. 다만 무거운 계산을 await 없이 실행하면 그 계산 동안은 여전히 화면이 멈춘다.</p></div></div></div></section>
+
+<section class="slide" id="slide-15" data-slide="15 / 22" aria-labelledby="title-15"><div><p class="kicker">Trace the Time</p><h2 id="title-15">추적: 적 세 명, 대기 350ms</h2><p>출발 상태: 플레이어의 마지막 유닛이 이동해서 <code>EndPlayerPhase</code>가 호출된다. 적은 3명이고 아무도 목표에 도착하지 않는다.</p><table class="compare"><thead><tr><th style="width:15%">시각</th><th style="width:43%">RunEnemyPhaseAsync의 위치</th><th>Phase와 화면</th></tr></thead><tbody><tr><td>0ms</td><td>적 1 MoveTo → Delay를 await</td><td>Enemy. EndPlayerPhase는 이미 돌아왔다.</td></tr><tr><td>350ms</td><td>적 1의 CheckBase → 적 2 MoveTo → await</td><td>Enemy. 적 1과 적 2가 차례로 보인다.</td></tr><tr><td>700ms</td><td>적 2의 CheckBase → 적 3 MoveTo → await</td><td>Enemy.</td></tr><tr><td>1050ms</td><td>적 3의 CheckBase → foreach 종료 → BeginPlayerPhase</td><td>Player. 입력을 다시 받는다.</td></tr></tbody></table><div class="callout"><p>마지막 적도 이동한 뒤 350ms를 기다린다. 그래서 플레이어의 차례는 “적의 수 × 대기 시간” 뒤에 시작된다. 대기 중의 클릭은 <code>Phase</code>가 Enemy이기 때문에 무시된다. 기다리는 동안에도 입력은 계속 들어오므로 이런 구분이 필요하다.</p></div></div></section>
+
+<section class="slide" id="slide-16" data-slide="16 / 22" aria-labelledby="title-16"><div><p class="kicker">Cancellation</p><h2 id="title-16">기다리는 도중에 씬이 사라지면 어떻게 되는가</h2><div class="two"><div class="panel redline"><h3>토큰이 없다면</h3><p>적 2가 기다리는 사이에 씬을 다시 불러온다. TurnManager와 보드는 파괴된다. 350ms 뒤 메서드가 재개되어 파괴된 <code>_board</code>를 사용한다. <code>MissingReferenceException</code>이 발생하거나, 사라진 게임의 규칙이 새 게임에 끼어든다.</p></div><div class="panel teal"><h3>토큰을 전달했으므로</h3><p>TurnManager가 파괴되는 순간 <code>destroyCancellationToken</code>이 취소된다. 기다리던 <code>UniTask.Delay</code>는 재개되지 않고 취소로 끝난다. 그 뒤의 줄은 실행되지 않는다.</p></div></div><div class="flow" style="margin-top:16px"><div class="node">TurnManager<br>파괴</div><div class="arrow">→</div><div class="node">토큰<br>취소 신호</div><div class="arrow">→</div><div class="node">Delay가<br>취소로 끝남</div><div class="arrow">→</div><div class="node">남은 줄을<br>실행하지 않음</div></div><div class="callout"><p>토큰은 받은 메서드가 다음 메서드로 계속 넘겨 주어야 효과가 있다. <code>EndPlayerPhase</code> → <code>RunEnemyPhaseAsync</code> → <code>TakeTurnAsync</code> → <code>UniTask.Delay</code>까지 같은 <code>token</code>이 전달되는 것을 코드에서 확인할 수 있다.</p></div></div></section>
+
+<section class="slide" id="slide-17" data-slide="17 / 22" aria-labelledby="title-17"><div><p class="kicker">Think · Remove await</p><h2 id="title-17">RunEnemyPhaseAsync에서 await만 지우면 어떻게 되는가?</h2><div class="two"><div><pre><code>foreach (Unit unit in _spawner.Units)
+{
+    if (unit.Team != Team.Enemy) continue;
+
+    _enemyAi.TakeTurnAsync(unit, goalCell, token);
+    if (CheckBase(unit)) return;
+}
+BeginPlayerPhase();</code></pre><p class="source">설계 비교용 가상 코드다. 실제 코드에서 await 한 단어만 지웠다.</p></div><div class="panel amber"><h3>답</h3><p>세 적의 <code>MoveTo</code>가 같은 프레임에 모두 실행된다. 각 적의 350ms 대기는 아무도 기다리지 않은 채 따로 흘러간다. 그리고 곧바로 <code>BeginPlayerPhase</code>가 실행되어 0ms에 플레이어의 차례가 된다.</p><p>컴파일러는 “이 호출을 await하지 않았다”는 경고(CS4014)를 표시한다. <code>async</code> 메서드를 호출하는 것만으로는 기다리지 않는다. 기다리는 것은 <code>await</code>다.</p></div></div></div></section>
+
+<section class="slide" id="slide-18" data-slide="18 / 22" aria-labelledby="title-18"><div><p class="kicker">Compare</p><h2 id="title-18">코루틴, Task, UniTask를 비교한다</h2><table class="compare"><thead><tr><th style="width:22%">기준</th><th>코루틴</th><th>C# Task</th><th>UniTask</th></tr></thead><tbody><tr><td>작성 방식</td><td><code>IEnumerator</code>와 <code>yield return</code></td><td><code>async</code>와 <code>await</code></td><td><code>async</code>와 <code>await</code></td></tr><tr><td>값 돌려받기</td><td>어렵다.</td><td><code>Task&lt;int&gt;</code></td><td><code>UniTask&lt;int&gt;</code></td></tr><tr><td>try/catch</td><td><code>yield</code>와 함께 쓰기 어렵다.</td><td>평소처럼 쓴다.</td><td>평소처럼 쓴다.</td></tr><tr><td>시작하는 곳</td><td>MonoBehaviour의 StartCoroutine</td><td>어디서나</td><td>어디서나</td></tr><tr><td>Unity와의 관계</td><td>Unity의 기능이다.</td><td>.NET의 범용 기능이다. 작업마다 객체를 할당한다.</td><td>Unity의 프레임 반복에 맞춰 만들었다. 할당이 적다.</td></tr><tr><td>프레임 단위 대기</td><td><code>yield return null</code></td><td>직접 제공하지 않는다.</td><td><code>UniTask.Yield()</code>, <code>UniTask.NextFrame()</code></td></tr></tbody></table><div class="callout"><p>Unity 6에는 비슷한 목적의 <code>Awaitable</code>도 포함되어 있다. 미니 택틱스는 기능이 풍부하고 널리 쓰이는 UniTask를 사용한다. 어느 쪽이든 <code>async</code>/<code>await</code>로 작성하는 방식은 같다.</p></div></div></section>
+
+<section class="slide" id="slide-19" data-slide="19 / 22" aria-labelledby="title-19"><div><p class="kicker">Cost</p><h2 id="title-19">UniTask를 쓸 때 조심해야 하는 것</h2><table class="compare"><thead><tr><th style="width:26%">주의할 점</th><th>구체적인 모습</th><th style="width:30%">대응</th></tr></thead><tbody><tr><td>토큰을 빠뜨린다.</td><td>대기 중에 오브젝트가 파괴되어도 메서드가 재개되어 파괴된 참조를 사용한다.</td><td>async 메서드는 <code>CancellationToken</code>을 받아서 아래로 계속 전달한다.</td></tr><tr><td>await도 Forget도 하지 않는다.</td><td>기다리지 않았다는 사실이 코드에 드러나지 않고, 예외를 놓치기 쉽다.</td><td>기다릴 때는 <code>await</code>, 기다리지 않을 때는 <code>.Forget()</code>을 적는다.</td></tr><tr><td><code>async void</code>를 쓴다.</td><td>호출한 쪽이 끝나기를 기다릴 수 없고, 예외를 다루기 어렵다.</td><td>반환 타입은 <code>UniTask</code>로 하고 시작하는 곳에서 <code>Forget</code>한다.</td></tr><tr><td>기다리는 동안 입력이 들어온다.</td><td>적의 차례에 클릭하면 플레이어 유닛이 움직일 수 있다.</td><td>상태 값(<code>Phase</code>)으로 입력을 막는다.</td></tr><tr><td>시간 배율에 영향을 받는다.</td><td>기본 <code>UniTask.Delay</code>는 <code>Time.timeScale</code>이 0이면 흐르지 않는다.</td><td>일시 정지 중에도 흘러야 하면 <code>ignoreTimeScale: true</code>를 준다.</td></tr></tbody></table></div></section>
+
+<section class="slide" id="slide-20" data-slide="20 / 22" aria-labelledby="title-20"><div><p class="kicker">Judgment</p><h2 id="title-20">적용 기준: 여러 프레임에 걸친 순서가 있는가?</h2><div class="two"><div class="panel teal"><h3>UniTask가 이득인 경우</h3><p>“한다 → 기다린다 → 한다”가 여러 프레임에 걸쳐 이어진다. 순서 중간에 조건 검사, 반복, 조기 종료가 섞인다. 기다린 결과 값을 받아서 다음 줄에 써야 한다.</p><p>예: 적의 차례 진행, 연출이 끝난 뒤 다음 행동, 씬 불러오기, 네트워크 요청.</p></div><div class="panel amber"><h3>필요하지 않은 경우</h3><p>한 프레임 안에서 끝나는 계산이다. 매 프레임 같은 일을 반복하는 것이 전부다.</p><p>예: 이동 범위 계산, 피해 계산은 일반 메서드로 충분하다. 매 프레임 따라가는 카메라는 Update가 더 단순하다.</p></div></div><div class="callout"><p>판단하는 질문은 하나다. “이 순서를 필드와 타이머로 흩어 놓지 않고, 위에서 아래로 읽히게 쓰고 싶은가?” 그렇다면 async 메서드로 작성한다.</p></div></div></section>
+
+<section class="slide" id="slide-21" data-slide="21 / 22" aria-labelledby="title-21"><div><p class="kicker">Check Yourself</p><h2 id="title-21">이해 확인: 답을 먼저 예측한 뒤에 확인한다</h2><div class="two"><div class="panel amber"><h3>질문 1</h3><p><strong>적이 4명이고 <code>_delayMilliseconds</code>가 500이다. 아무도 목표에 도착하지 않는다면, EndPlayerPhase가 호출된 뒤 몇 ms 뒤에 플레이어의 차례가 시작되는가?</strong></p><p>답: 2000ms다. 적 한 명의 행동은 “이동 + 500ms 대기”이고, 마지막 적의 대기도 포함된다. 4 × 500 = 2000이다.</p></div><div class="panel amber"><h3>질문 2</h3><p><strong>위 상황에서 두 번째 적이 이동하고 기다리는 동안 씬을 다시 불러왔다. 세 번째 적은 이동하는가? BeginPlayerPhase는 실행되는가?</strong></p><p>답: 둘 다 아니다. TurnManager가 파괴되며 토큰이 취소되고, 두 번째 적의 Delay가 취소로 끝난다. 그 뒤의 CheckBase, 세 번째 적, BeginPlayerPhase는 실행되지 않는다.</p></div></div><div class="callout"><p>질문 1은 <code>await</code>가 순서를 만든다는 것을, 질문 2는 토큰이 그 순서를 멈춘다는 것을 확인한다.</p></div></div></section>
+
+<section class="slide" id="slide-22" data-slide="22 / 22" aria-labelledby="title-22"><div><p class="kicker">Takeaway</p><h2 id="title-22">순서는 await로 쓰고, 멈춤은 토큰으로 전달한다</h2><ol><li>한 프레임은 빨리 끝나야 한다. <code>Thread.Sleep</code>은 게임 전체를 멈춘다.</li><li><code>async</code> 메서드는 <code>await</code>에서 빠져나갔다가 기다리던 일이 끝나면 다음 줄부터 재개된다. 그동안 프레임은 계속 돈다.</li><li>기다리는 것은 <code>await</code>다. 일반 메서드에서 시작만 할 때는 <code>.Forget()</code>을 적는다.</li><li><code>CancellationToken</code>을 끝까지 전달하면 오브젝트가 파괴될 때 남은 작업이 실행되지 않는다.</li><li>기다리는 동안에도 입력과 다른 Update는 계속 실행된다. 상태 값으로 막아야 할 것을 막는다.</li></ol><div class="question"><p class="big">코드를 위에서 아래로 읽었을 때<br>게임에서 일어나는 일의 순서가 그대로 보이는가?<br>답이 <span class="amber">“그렇다”</span>라면 UniTask가 제 역할을 하고 있다.</p></div></div></section>
+      </div>
+    </main>
+
+    <nav class="controls" aria-label="슬라이드 탐색">
+      <button class="control-btn" id="prevBtn" type="button" aria-label="이전 슬라이드">←</button>
+      <button class="control-btn" id="tocBtn" type="button">목차</button>
+      <span id="slideCounter" aria-live="polite">1 / 22</span>
+      <button class="control-btn" id="nextBtn" type="button" aria-label="다음 슬라이드">→</button>
+    </nav>
+  </div>
+
+  <dialog id="tocDialog" aria-labelledby="tocTitle">
+    <div class="toc-head"><h2 id="tocTitle">전체 목차</h2><button class="control-btn" id="tocCloseBtn" type="button">닫기</button></div>
+    <div class="toc-grid">
+<a class="toc-link" href="#slide-1"><span>01</span>UniTask</a><a class="toc-link" href="#slide-2"><span>02</span>게임의 한 프레임은 빨리 끝나야 한다</a><a class="toc-link" href="#slide-3"><span>03</span>적은 한 명씩, 간격을 두고 움직여야 한다</a><a class="toc-link" href="#slide-4"><span>04</span>첫 시도: 기다리는 동안 스레드를 재운다</a><a class="toc-link" href="#slide-5"><span>05</span>두 번째 시도: Update에서 시간을 직접 잰다</a><a class="toc-link" href="#slide-6"><span>06</span>요구가 늘면 “순서”가 필드와 조건문으로 흩어진다</a><a class="toc-link" href="#slide-7"><span>07</span>Unity의 코루틴은 순서를 되살리지만 제약이 있다</a><a class="toc-link" href="#slide-8"><span>08</span>필요한 기능을 네 가지로 정리한다</a><a class="toc-link" href="#slide-9"><span>09</span>네 가지 역할에 이름을 붙인다</a><a class="toc-link" href="#slide-10"><span>10</span>패키지를 추가하고 네임스페이스를 가져온다</a><a class="toc-link" href="#slide-11"><span>11</span>적 한 명의 행동: 이동하고 기다린다</a><a class="toc-link" href="#slide-12"><span>12</span>적의 차례 전체: 한 명씩 await한다</a><a class="toc-link" href="#slide-13"><span>13</span>일반 메서드에서 async 메서드를 시작한다</a><a class="toc-link" href="#slide-14"><span>14</span>await에서 메서드는 빠져나가고 프레임은 계속 돈다</a><a class="toc-link" href="#slide-15"><span>15</span>추적: 적 세 명, 대기 350ms</a><a class="toc-link" href="#slide-16"><span>16</span>기다리는 도중에 씬이 사라지면 어떻게 되는가</a><a class="toc-link" href="#slide-17"><span>17</span>RunEnemyPhaseAsync에서 await만 지우면 어떻게 되는가?</a><a class="toc-link" href="#slide-18"><span>18</span>코루틴, Task, UniTask를 비교한다</a><a class="toc-link" href="#slide-19"><span>19</span>UniTask를 쓸 때 조심해야 하는 것</a><a class="toc-link" href="#slide-20"><span>20</span>적용 기준: 여러 프레임에 걸친 순서가 있는가?</a><a class="toc-link" href="#slide-21"><span>21</span>이해 확인: 답을 먼저 예측한 뒤에 확인한다</a><a class="toc-link" href="#slide-22"><span>22</span>순서는 await로 쓰고, 멈춤은 토큰으로 전달한다</a>
+</div>
+  </dialog>
+
+  <script>
+    const slides = [...document.querySelectorAll('.slide')];
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const tocBtn = document.getElementById('tocBtn');
+    const tocDialog = document.getElementById('tocDialog');
+    const tocCloseBtn = document.getElementById('tocCloseBtn');
+    const slideCounter = document.getElementById('slideCounter');
+    let current = 0;
+
+    function showSlide(index, updateHash = true) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      slides.forEach((slide, slideIndex) => slide.classList.toggle('is-active', slideIndex === current));
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current === slides.length - 1;
+      slideCounter.textContent = `${current + 1} / ${slides.length}`;
+      if (updateHash) history.replaceState(null, '', `#slide-${current + 1}`);
+    }
+
+    function indexFromHash() {
+      const match = location.hash.match(/^#slide-(\d+)$/);
+      const index = match ? Number(match[1]) - 1 : -1;
+      if (index >= 0 && index < slides.length) return index;
+      history.replaceState(null, '', '#slide-1');
+      return 0;
+    }
+
+    function openToc() { if (!tocDialog.open) tocDialog.showModal(); }
+    function closeToc() { if (tocDialog.open) tocDialog.close(); }
+
+    prevBtn.addEventListener('click', () => showSlide(current - 1));
+    nextBtn.addEventListener('click', () => showSlide(current + 1));
+    tocBtn.addEventListener('click', openToc);
+    tocCloseBtn.addEventListener('click', closeToc);
+    tocDialog.addEventListener('click', (event) => { if (event.target === tocDialog) closeToc(); });
+    tocDialog.querySelectorAll('.toc-link').forEach((link) => link.addEventListener('click', (event) => {
+      event.preventDefault();
+      const index = Number(link.hash.replace('#slide-', '')) - 1;
+      closeToc();
+      showSlide(index);
+    }));
+    window.addEventListener('hashchange', () => showSlide(indexFromHash(), false));
+    window.addEventListener('keydown', (event) => {
+      if (tocDialog.open) return;
+      const tag = document.activeElement?.tagName;
+      if (['ArrowRight','ArrowLeft','PageDown','PageUp','Home','End'].includes(event.key)) event.preventDefault();
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (event.key === 'ArrowRight' || event.key === 'PageDown') showSlide(current + 1);
+      else if (event.key === 'ArrowLeft' || event.key === 'PageUp') showSlide(current - 1);
+      else if (event.key === 'Home') showSlide(0);
+      else if (event.key === 'End') showSlide(slides.length - 1);
+    });
+
+    const initialIndex = indexFromHash();
+    showSlide(initialIndex);
+  </script>
+<noscript><style>
+    html,body{height:auto;overflow:visible}.app,.stage,.deck{display:block;width:100%;height:auto;max-height:none;aspect-ratio:auto;overflow:visible;container-type:normal}
+    .slide,.slide.is-active{position:relative;display:block;overflow:visible;animation:none;margin-bottom:20px}.controls,dialog{display:none}
+    </style></noscript></body>
+</html>
