@@ -142,6 +142,7 @@ namespace MiniTactics.Lesson07
 
         internal void CompleteAction(Unit unit)
         {
+            unit.HasMoved = true;
             if (_turnManager.CheckBase(unit) || !GameManager.Instance.IsPlaying)
             {
                 return;

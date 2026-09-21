@@ -38,7 +38,11 @@ namespace MiniTactics.Lesson07
 
         public override void HandleUndo()
         {
-            _controller.UndoLast();
+            if (_attacker.HasMoved)
+            {
+                _controller.UndoLast();
+            }
+
             _machine.ChangeState(new IdleState(_machine, _controller));
         }
     }

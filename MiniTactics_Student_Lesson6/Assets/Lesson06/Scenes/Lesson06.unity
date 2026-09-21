@@ -449,7 +449,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 32, y: 24}
-  m_SizeDelta: {x: 1100, y: 65}
+  m_SizeDelta: {x: 1100, y: 100}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &458554369
 MonoBehaviour:
@@ -484,11 +484,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Blue: Player | Red: Enemy | Reach the red base. Protect the blue base.
-
-    Move,
-    then click a red target to attack (click elsewhere to skip). Enter: end turn.
-    Undo before attacking. R: Restart'
+  m_Text: "Blue: Player | Red: Enemy | Reach the red base and protect the blue base.\nMove and attack, or re-click the selected unit to attack without moving.\nClick elsewhere: skip attack | Undo before attack | Enter: end turn | R: restart"
 --- !u!222 &458554370
 CanvasRenderer:
   m_ObjectHideFlags: 0

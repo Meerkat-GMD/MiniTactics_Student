@@ -20,6 +20,16 @@ namespace MiniTactics.Lesson07
 
         public override void HandleBoardClick(Unit clickedUnit, Vector2Int cell)
         {
+            if (clickedUnit == _unit)
+            {
+                if (_controller.HasAttackTargets(_unit))
+                {
+                    _machine.ChangeState(new AttackState(_machine, _controller, _unit));
+                }
+
+                return;
+            }
+
             if (clickedUnit != null && _controller.CanAct(clickedUnit))
             {
                 _machine.ChangeState(new UnitSelectedState(_machine, _controller, clickedUnit));
