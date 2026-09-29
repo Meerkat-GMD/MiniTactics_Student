@@ -1201,6 +1201,8 @@ MonoBehaviour:
     _cell: {x: 5, y: 4}
   - _unitClass: {fileID: 11400000, guid: 95d332c74d7209143a8df12b70999d16, type: 2}
     _cell: {x: 2, y: 2}
+  - _unitClass: {fileID: 11400000, guid: 27e6cd4da82748b5b63f2623f9727386, type: 2}
+    _cell: {x: 1, y: 5}
   _enemyUnits:
   - _unitClass: {fileID: 11400000, guid: 218a28a55e2dd724b82ee139501201f7, type: 2}
     _cell: {x: 9, y: 8}
@@ -1208,6 +1210,8 @@ MonoBehaviour:
     _cell: {x: 9, y: 3}
   - _unitClass: {fileID: 11400000, guid: 95d332c74d7209143a8df12b70999d16, type: 2}
     _cell: {x: 8, y: 8}
+  - _unitClass: {fileID: 11400000, guid: 27e6cd4da82748b5b63f2623f9727386, type: 2}
+    _cell: {x: 11, y: 7}
 --- !u!4 &1003012812
 Transform:
   m_ObjectHideFlags: 0

@@ -69,6 +69,7 @@ namespace MiniTactics.Lesson07
 
         public void Attack(Unit attacker, Unit defender)
         {
+            attacker.GetComponent<UnitAnimator>().PlayAttack(defender);
             Vector2Int cell = _board.WorldToCell(defender.transform.position);
             int terrainDefense = _board.GetDefenseBonus(cell);
             int damage = CombatCalculator.CalculateDamage(attacker.AttackPower, defender.Defense, terrainDefense);

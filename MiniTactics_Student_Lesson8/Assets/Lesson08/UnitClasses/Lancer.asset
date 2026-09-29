@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9f381610f70f44f496ecbb63c38f61de, type: 3}
-  m_Name: Knight
+  m_Name: Lancer
   m_EditorClassIdentifier: MiniTactics.Lesson08.Runtime::MiniTactics.Lesson08.UnitClass
-  _displayName: Knight
-  _maxHp: 14
-  _attackPower: 6
-  _defense: 3
-  _moveBudget: 3
+  _displayName: Lancer
+  _maxHp: 16
+  _attackPower: 5
+  _defense: 4
+  _moveBudget: 2
   _attackRange: 1
-  _sprite: {fileID: -8579015275946074356, guid: d3fde777a1ce8144889f509b0ad63be3, type: 3}
+  _sprite: {fileID: -99070510872581141, guid: d3fde777a1ce8144889f509b0ad63be3, type: 3}

@@ -99,3 +99,15 @@ While approving lessons 7-8 the user said: "패턴과 무관한 입력은 완성
 The complete rules and the progress log are in the Teacher repository:
 `docs/teaching-code-rules.md` and `docs/simplify-progress.md`. The production
 rules for all three workspaces are in `D:\UnityProjects\AGENTS.md`.
+
+## Unit classes, animations and art (user decision, 2026-09-29)
+
+- From lesson 7 the classes are Swordsman, Archer, Healer and Lancer (검사, 궁수, 힐러, 창병).
+  Lessons 7-8 were changed on the branch `claude/pensive-fermat-a4skdb` of both repositories.
+- Unit animations (move, attack, hit, skill) are pattern-unrelated provided code from lesson 7:
+  `UnitAnimator.cs` plus the `Visual` child of the Unit prefab. For a course run from lesson 1
+  they go into lessons 1-6; the user will revise lessons 1-6 together later, so do not change
+  lessons 1-6 for this now.
+- The art will switch to Pixel Frog's Tiny Swords. Its license forbids redistributing the files
+  and this repository is public, so do not commit Tiny Swords files here until the user decides
+  how students receive them. Details: Teacher `docs/simplify-progress.md`.
