@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1595fe4336148c593a88432eb4330d1, type: 3}
+  m_Name: Red_Archer
+  m_EditorClassIdentifier: MiniTactics.Lesson07.Runtime::MiniTactics.Lesson07.UnitLook
+  _idle:
+  - {fileID: 143278819096281668, guid: 963d93d5de530e70f34e4f94adeb6f13, type: 3}
+  - {fileID: 308275580933043956, guid: 963d93d5de530e70f34e4f94adeb6f13, type: 3}
+  - {fileID: 272725081856361045, guid: 963d93d5de530e70f34e4f94adeb6f13, type: 3}
+  - {fileID: 1007719318688242230, guid: 963d93d5de530e70f34e4f94adeb6f13, type: 3}
+  - {fileID: 26830861845860381, guid: 963d93d5de530e70f34e4f94adeb6f13, type: 3}
+  - {fileID: 40385835131264131, guid: 963d93d5de530e70f34e4f94adeb6f13, type: 3}
+  _run:
+  - {fileID: 966994021170548086, guid: c5b8a209122ab2bd990eb620c6132c84, type: 3}
+  - {fileID: 23082715797350252, guid: c5b8a209122ab2bd990eb620c6132c84, type: 3}
+  - {fileID: 281770421813210508, guid: c5b8a209122ab2bd990eb620c6132c84, type: 3}
+  - {fileID: 594701068843426288, guid: c5b8a209122ab2bd990eb620c6132c84, type: 3}
+  _attack:
+  - {fileID: 208322183378026897, guid: 49128681bb448c5be4d542d8b83177bf, type: 3}
+  - {fileID: 634905185318415707, guid: 49128681bb448c5be4d542d8b83177bf, type: 3}
+  - {fileID: 490297736577230076, guid: 49128681bb448c5be4d542d8b83177bf, type: 3}
+  - {fileID: 880658860150466625, guid: 49128681bb448c5be4d542d8b83177bf, type: 3}
+  - {fileID: 263304894569248325, guid: 49128681bb448c5be4d542d8b83177bf, type: 3}
+  - {fileID: 1055847926884003070, guid: 49128681bb448c5be4d542d8b83177bf, type: 3}
+  - {fileID: 971558567124248134, guid: 49128681bb448c5be4d542d8b83177bf, type: 3}
+  - {fileID: 741855034867005824, guid: 49128681bb448c5be4d542d8b83177bf, type: 3}
+  _skill:
+  - {fileID: 208322183378026897, guid: 49128681bb448c5be4d542d8b83177bf, type: 3}
+  - {fileID: 634905185318415707, guid: 49128681bb448c5be4d542d8b83177bf, type: 3}
+  - {fileID: 490297736577230076, guid: 49128681bb448c5be4d542d8b83177bf, type: 3}
+  - {fileID: 880658860150466625, guid: 49128681bb448c5be4d542d8b83177bf, type: 3}
+  - {fileID: 263304894569248325, guid: 49128681bb448c5be4d542d8b83177bf, type: 3}
+  - {fileID: 1055847926884003070, guid: 49128681bb448c5be4d542d8b83177bf, type: 3}
+  - {fileID: 971558567124248134, guid: 49128681bb448c5be4d542d8b83177bf, type: 3}
+  - {fileID: 741855034867005824, guid: 49128681bb448c5be4d542d8b83177bf, type: 3}

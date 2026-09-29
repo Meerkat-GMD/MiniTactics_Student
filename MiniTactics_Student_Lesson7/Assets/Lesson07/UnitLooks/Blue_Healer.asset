@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1595fe4336148c593a88432eb4330d1, type: 3}
+  m_Name: Blue_Healer
+  m_EditorClassIdentifier: MiniTactics.Lesson07.Runtime::MiniTactics.Lesson07.UnitLook
+  _idle:
+  - {fileID: 942408675000131895, guid: 7d1eb652f02677324194b119bb7057a2, type: 3}
+  - {fileID: 21165938326602257, guid: 7d1eb652f02677324194b119bb7057a2, type: 3}
+  - {fileID: 142875800705608277, guid: 7d1eb652f02677324194b119bb7057a2, type: 3}
+  - {fileID: 281558846807264882, guid: 7d1eb652f02677324194b119bb7057a2, type: 3}
+  - {fileID: 271591447175558826, guid: 7d1eb652f02677324194b119bb7057a2, type: 3}
+  - {fileID: 46791472153748002, guid: 7d1eb652f02677324194b119bb7057a2, type: 3}
+  _run:
+  - {fileID: 552994389267630418, guid: 93613955886ca97faae7441102e182b5, type: 3}
+  - {fileID: 539330910580633668, guid: 93613955886ca97faae7441102e182b5, type: 3}
+  - {fileID: 736952913571979398, guid: 93613955886ca97faae7441102e182b5, type: 3}
+  - {fileID: 531918552144052054, guid: 93613955886ca97faae7441102e182b5, type: 3}
+  _attack:
+  - {fileID: 554077969335993796, guid: 556001740e2c0a81d49b443ae7599ceb, type: 3}
+  - {fileID: 907611964009177282, guid: 556001740e2c0a81d49b443ae7599ceb, type: 3}
+  - {fileID: 608219252181237736, guid: 556001740e2c0a81d49b443ae7599ceb, type: 3}
+  - {fileID: 48159623821123007, guid: 556001740e2c0a81d49b443ae7599ceb, type: 3}
+  - {fileID: 604277074786414231, guid: 556001740e2c0a81d49b443ae7599ceb, type: 3}
+  - {fileID: 899472040800074367, guid: 556001740e2c0a81d49b443ae7599ceb, type: 3}
+  - {fileID: 639612789975164660, guid: 556001740e2c0a81d49b443ae7599ceb, type: 3}
+  - {fileID: 1055968624501431709, guid: 556001740e2c0a81d49b443ae7599ceb, type: 3}
+  - {fileID: 934451400183193857, guid: 556001740e2c0a81d49b443ae7599ceb, type: 3}
+  - {fileID: 769393880098747797, guid: 556001740e2c0a81d49b443ae7599ceb, type: 3}
+  - {fileID: 596837573613368102, guid: 556001740e2c0a81d49b443ae7599ceb, type: 3}
+  _skill:
+  - {fileID: 554077969335993796, guid: 556001740e2c0a81d49b443ae7599ceb, type: 3}
+  - {fileID: 907611964009177282, guid: 556001740e2c0a81d49b443ae7599ceb, type: 3}
+  - {fileID: 608219252181237736, guid: 556001740e2c0a81d49b443ae7599ceb, type: 3}
+  - {fileID: 48159623821123007, guid: 556001740e2c0a81d49b443ae7599ceb, type: 3}
+  - {fileID: 604277074786414231, guid: 556001740e2c0a81d49b443ae7599ceb, type: 3}
+  - {fileID: 899472040800074367, guid: 556001740e2c0a81d49b443ae7599ceb, type: 3}
+  - {fileID: 639612789975164660, guid: 556001740e2c0a81d49b443ae7599ceb, type: 3}
+  - {fileID: 1055968624501431709, guid: 556001740e2c0a81d49b443ae7599ceb, type: 3}
+  - {fileID: 934451400183193857, guid: 556001740e2c0a81d49b443ae7599ceb, type: 3}
+  - {fileID: 769393880098747797, guid: 556001740e2c0a81d49b443ae7599ceb, type: 3}
+  - {fileID: 596837573613368102, guid: 556001740e2c0a81d49b443ae7599ceb, type: 3}

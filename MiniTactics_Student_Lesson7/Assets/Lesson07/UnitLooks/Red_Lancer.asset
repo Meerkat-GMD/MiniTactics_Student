@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1595fe4336148c593a88432eb4330d1, type: 3}
+  m_Name: Red_Lancer
+  m_EditorClassIdentifier: MiniTactics.Lesson07.Runtime::MiniTactics.Lesson07.UnitLook
+  _idle:
+  - {fileID: 648939544002767742, guid: 024d82e54db66dc6f786a8e34da707a9, type: 3}
+  - {fileID: 909957031710062688, guid: 024d82e54db66dc6f786a8e34da707a9, type: 3}
+  - {fileID: 731676946396516343, guid: 024d82e54db66dc6f786a8e34da707a9, type: 3}
+  - {fileID: 733685001652273497, guid: 024d82e54db66dc6f786a8e34da707a9, type: 3}
+  - {fileID: 949535189180599296, guid: 024d82e54db66dc6f786a8e34da707a9, type: 3}
+  - {fileID: 639781070787119070, guid: 024d82e54db66dc6f786a8e34da707a9, type: 3}
+  - {fileID: 1146381777997575423, guid: 024d82e54db66dc6f786a8e34da707a9, type: 3}
+  - {fileID: 101542366018068919, guid: 024d82e54db66dc6f786a8e34da707a9, type: 3}
+  - {fileID: 732727246192005502, guid: 024d82e54db66dc6f786a8e34da707a9, type: 3}
+  - {fileID: 523492300394186660, guid: 024d82e54db66dc6f786a8e34da707a9, type: 3}
+  - {fileID: 849600534714411658, guid: 024d82e54db66dc6f786a8e34da707a9, type: 3}
+  - {fileID: 981047862854096494, guid: 024d82e54db66dc6f786a8e34da707a9, type: 3}
+  _run:
+  - {fileID: 1015416759182843930, guid: f6700cf568161f578110a47b495f4a59, type: 3}
+  - {fileID: 476016127696449540, guid: f6700cf568161f578110a47b495f4a59, type: 3}
+  - {fileID: 475304984661200726, guid: f6700cf568161f578110a47b495f4a59, type: 3}
+  - {fileID: 1066307554601571953, guid: f6700cf568161f578110a47b495f4a59, type: 3}
+  - {fileID: 865525459634633142, guid: f6700cf568161f578110a47b495f4a59, type: 3}
+  - {fileID: 618401756232565437, guid: f6700cf568161f578110a47b495f4a59, type: 3}
+  _attack:
+  - {fileID: 346506680386296724, guid: 5346afa767e6e82815d0ddd9ac66c173, type: 3}
+  - {fileID: 478031354974977859, guid: 5346afa767e6e82815d0ddd9ac66c173, type: 3}
+  - {fileID: 777702811122271635, guid: 5346afa767e6e82815d0ddd9ac66c173, type: 3}
+  _skill:
+  - {fileID: 346506680386296724, guid: 5346afa767e6e82815d0ddd9ac66c173, type: 3}
+  - {fileID: 478031354974977859, guid: 5346afa767e6e82815d0ddd9ac66c173, type: 3}
+  - {fileID: 777702811122271635, guid: 5346afa767e6e82815d0ddd9ac66c173, type: 3}

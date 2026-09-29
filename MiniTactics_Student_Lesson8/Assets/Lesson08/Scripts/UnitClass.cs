@@ -11,7 +11,8 @@ namespace MiniTactics.Lesson08
         [SerializeField, Min(0)] private int _defense;
         [SerializeField, Min(0)] private int _moveBudget;
         [SerializeField, Min(1)] private int _attackRange = 1;
-        [SerializeField] private Sprite _sprite;
+        [SerializeField] private UnitLook _playerLook;
+        [SerializeField] private UnitLook _enemyLook;
 
         public string DisplayName => _displayName;
         public int MaxHp => _maxHp;
@@ -19,6 +20,7 @@ namespace MiniTactics.Lesson08
         public int Defense => _defense;
         public int MoveBudget => _moveBudget;
         public int AttackRange => _attackRange;
-        public Sprite Sprite => _sprite;
+        public UnitLook PlayerLook => _playerLook;
+        public UnitLook EnemyLook => _enemyLook;
     }
 }

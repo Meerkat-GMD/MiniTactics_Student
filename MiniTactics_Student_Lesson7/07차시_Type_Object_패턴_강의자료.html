@@ -102,7 +102,8 @@ public sealed class UnitClass : ScriptableObject
     [SerializeField, Min(0)] private int _defense;
     [SerializeField, Min(0)] private int _moveBudget;
     [SerializeField, Min(1)] private int _attackRange = 1;
-    [SerializeField] private Sprite _sprite;
+    [SerializeField] private UnitLook _playerLook;
+    [SerializeField] private UnitLook _enemyLook;
 
     public string DisplayName =&gt; _displayName;
     public int MaxHp =&gt; _maxHp;
@@ -110,9 +111,10 @@ public sealed class UnitClass : ScriptableObject
     public int Defense =&gt; _defense;
     public int MoveBudget =&gt; _moveBudget;
     public int AttackRange =&gt; _attackRange;
-    public Sprite Sprite =&gt; _sprite;
+    public UnitLook PlayerLook =&gt; _playerLook;
+    public UnitLook EnemyLook =&gt; _enemyLook;
 }</code></pre>
-<p>이 class는 세 부분으로 읽는다. 첫째, 필드 일곱 개는 Inspector에서 입력하는 값이다. 1.2절의 표에 있던 숫자 다섯 개와 이름, 그림이 여기에 들어간다. <code>Sprite</code>는 Unity에서 2D 그림 한 장을 나타내는 형식이다. 둘째, 속성 일곱 개는 <code>=&gt;</code>로 필드의 값을 읽어 주기만 한다. 셋째, 메서드가 없다. 이 class는 동작을 하지 않고 값을 보관한다.</p>
+<p>이 class는 세 부분으로 읽는다. 첫째, 필드 여덟 개는 Inspector에서 입력하는 값이다. 1.2절의 표에 있던 숫자 다섯 개와 이름, 그리고 아군일 때와 적군일 때의 모습이 여기에 들어간다. <code>UnitLook</code>은 한 진영의 대기, 이동, 공격, 스킬 애니메이션 그림을 묶어 둔 에셋 형식이며 미리 제공된다. 둘째, 속성 여덟 개는 <code>=&gt;</code>로 필드의 값을 읽어 주기만 한다. 셋째, 메서드가 없다. 이 class는 동작을 하지 않고 값을 보관한다.</p>
 <p class="annotation"><code>sealed</code>는 이 class를 상속할 수 없게 막는 키워드다. 병종을 상속으로 늘리지 않고 객체로 늘린다는 설계와 맞는다. <code>_attackRange = 1</code>의 1은 새 객체를 만들었을 때 처음 들어 있는 기본값이다.</p>
 <h3>3.2 ScriptableObject 에셋 하나가 타입 객체 하나다</h3>
 <p><span class="term">ScriptableObject</span>는 씬의 게임 오브젝트에 붙이지 않고 프로젝트에 파일로 저장하는 데이터 객체다. 프로젝트에 저장되는 파일을 Unity에서는 <span class="term">에셋</span>이라고 부른다. 3차시의 TileData가 같은 방식이었다.</p>
@@ -150,13 +152,12 @@ public int MaxHp =&gt; UnitClass.MaxHp;   // 7차시: 타입 객체의 값을 �
     Team = team;
     UnitClass = unitClass;
     CurrentHp = unitClass.MaxHp;
-    SpriteRenderer renderer = GetComponent&lt;SpriteRenderer&gt;();
-    renderer.sprite = unitClass.Sprite;
-    renderer.color = team == Team.Player ? PlayerColor : EnemyColor;
+    UnitLook look = team == Team.Player ? unitClass.PlayerLook : unitClass.EnemyLook;
+    GetComponent&lt;UnitAnimator&gt;().SetLook(look);
 }</code></pre>
 <p>Initialize는 타입 객체와 관련하여 세 가지 일을 한다.</p>
-<ol><li><code>UnitClass = unitClass;</code>로 전달받은 타입 객체를 기억한다. 이 줄이 2장의 표에서 “연결”에 해당한다.</li><li><code>CurrentHp = unitClass.MaxHp;</code>로 현재 HP를 그 병종의 최대 HP로 채운다. 검사는 14, 궁수는 9, 힐러는 7에서 시작한다.</li><li><code>renderer.sprite = unitClass.Sprite;</code>로 그림을 그 병종의 그림으로 바꾼다. <code>SpriteRenderer</code>는 게임 오브젝트에 그림을 표시하는 컴포넌트다.</li></ol>
-<p class="annotation">첫 줄의 <code>Team = team;</code>과 마지막 줄의 색 지정은 6차시부터 있던 코드다. 진영은 병종과 관계없이 개체마다 정해지는 값이다.</p>
+<ol><li><code>UnitClass = unitClass;</code>로 전달받은 타입 객체를 기억한다. 이 줄이 2장의 표에서 “연결”에 해당한다.</li><li><code>CurrentHp = unitClass.MaxHp;</code>로 현재 HP를 그 병종의 최대 HP로 채운다. 검사는 14, 궁수는 9, 힐러는 7에서 시작한다.</li><li>마지막 두 줄로 진영에 맞는 그 병종의 모습을 골라 <code>UnitAnimator</code>에 넘긴다. <code>UnitAnimator</code>는 미리 제공된 컴포넌트로, 넘겨받은 모습의 그림을 차례로 바꿔 가며 대기, 이동, 공격 동작을 보여 준다.</li></ol>
+<p class="annotation">첫 줄의 <code>Team = team;</code>은 6차시부터 있던 코드다. 진영은 병종과 관계없이 개체마다 정해지는 값이다. 6차시에는 진영에 따라 그림의 색을 바꿨지만 이제는 진영마다 그림이 따로 있으므로, 색을 지정하던 줄과 <code>PlayerColor</code>, <code>EnemyColor</code> 상수를 지웠다.</p>
 <h3>4.3 현재 HP를 채우는 위치가 Initialize로 옮겨진 이유</h3>
 <p class="code-caption">이전 차시의 구현 · 6차시 Unit.cs의 Awake와 Initialize · 두 메서드 사이에 있는 TakeDamage는 생략했다</p><pre><code>private void Awake()
 {
@@ -179,7 +180,7 @@ public void Initialize(Team team)
 <p class="kicker">CHAPTER 05 · 값의 자리</p><h2>공유하는 값과 개체의 상태</h2>
 <div class="objectives">학습 목표: 어떤 값을 UnitClass에 두고 어떤 값을 Unit에 두는지 하나의 질문으로 판단한다. 개체의 상태를 타입 객체에 두었을 때 일어나는 일을 수치로 확인한다.</div>
 <h3>5.1 공유하는 값은 타입 객체에, 개체마다 다른 값은 Unit에 둔다</h3>
-<table><caption>값과 그 값을 두는 곳</caption><thead><tr><th>값</th><th>두는 곳</th><th>이유</th></tr></thead><tbody><tr><td>MaxHp, AttackPower, Defense, MoveBudget, AttackRange, Sprite</td><td>UnitClass</td><td>같은 병종이면 모두 같다. 한곳에 두면 한 번만 고쳐도 그 병종 전체에 반영된다.</td></tr><tr><td>CurrentHp</td><td>Unit</td><td>같은 검사라도 받은 피해가 다르다.</td></tr><tr><td>Team, HasMoved</td><td>Unit</td><td>같은 검사라도 아군일 수도 있고 적일 수도 있다. 이번 턴에 행동했는지도 유닛마다 다르다.</td></tr><tr><td>위치</td><td>Unit의 Transform</td><td>유닛마다 서 있는 칸이 다르다.</td></tr></tbody></table>
+<table><caption>값과 그 값을 두는 곳</caption><thead><tr><th>값</th><th>두는 곳</th><th>이유</th></tr></thead><tbody><tr><td>MaxHp, AttackPower, Defense, MoveBudget, AttackRange, PlayerLook, EnemyLook</td><td>UnitClass</td><td>같은 병종이면 모두 같다. 한곳에 두면 한 번만 고쳐도 그 병종 전체에 반영된다.</td></tr><tr><td>CurrentHp</td><td>Unit</td><td>같은 검사라도 받은 피해가 다르다.</td></tr><tr><td>Team, HasMoved</td><td>Unit</td><td>같은 검사라도 아군일 수도 있고 적일 수도 있다. 이번 턴에 행동했는지도 유닛마다 다르다.</td></tr><tr><td>위치</td><td>Unit의 Transform</td><td>유닛마다 서 있는 칸이 다르다.</td></tr></tbody></table>
 <p class="code-caption">실제 코드 · Unit.cs에서 개체가 직접 가지는 상태</p><pre><code>public int CurrentHp { get; private set; }
 public bool IsAlive =&gt; CurrentHp &gt; 0;
 public Team Team { get; private set; }
@@ -302,7 +303,7 @@ public sealed class UnitPlacement
 <ol><li>7차시의 스크립트에서 “Swordsman”, “Archer”, “Healer”, “Lancer”를 검색하면 몇 번 나오는가? 그것은 무엇을 뜻하는가?</li><li>새 병종 “창병”을 추가한다면 새로 작성해야 할 class와 프리팹은 각각 몇 개인가?</li><li>CurrentHp를 UnitClass에 두면 어떤 일이 일어나는가? 값을 둘 곳은 어떤 질문으로 판단하는가?</li><li>공격하는 유닛이 (2, 3)에 있고 적이 (4, 3)에 있다. 공격하는 유닛이 검사일 때와 궁수일 때 이 적은 각각 공격 대상인가? 두 경우에 실행되는 코드는 같은가?</li><li>“힐러는 아군의 HP를 회복시킨다”는 왜 에셋의 숫자만으로 표현할 수 없는가? Type Object는 언제 쓰고 언제 쓰지 않는가?</li></ol>
 <details><summary>답 확인</summary><p>1. 0번이다. 코드가 병종의 이름을 알지 못하고 값만 읽는다는 뜻이다. 병종의 이름은 에셋에만 있다. 2. 둘 다 0개다. UnitClass 에셋 하나를 만들고 배치 목록에 추가하면 된다. 3. 같은 에셋을 참조하는 모든 유닛이 현재 HP를 공유한다. 검사 A가 피해 5를 받아 14 − 5 = 9가 되면 피해를 받지 않은 검사 B의 HP도 9가 된다. 값을 둘 곳은 “같은 병종의 다른 유닛과 이 값이 달라질 수 있는가”로 판단한다. 4. 거리는 |4 − 2| + |3 − 3| = 2다. 검사는 사거리가 1이고 2 ≤ 1 이 아니므로 대상이 아니다. 궁수는 사거리가 2이고 2 ≤ 2 이므로 대상이다. 실행되는 코드는 같고 유닛이 참조하는 에셋만 다르다. 5. 회복시키는 것은 값이 아니고 동작이며 데이터에는 if문을 적을 수 없기 때문이다. Type Object는 종류가 많거나 늘어나고 종류 사이의 차이가 대부분 값일 때 쓴다. 종류가 두세 개로 고정되어 있고 종류마다 실행되는 코드가 다르면 class로 나눈다.</p></details>
 <h3>9.2 용어 사전</h3>
-<table><thead><tr><th>용어</th><th>이번 차시에서의 뜻</th></tr></thead><tbody><tr><td>Type Object 패턴</td><td>종류를 나타내는 객체를 따로 만들고, 각 개체가 자신의 종류 객체를 참조하는 구조.</td></tr><tr><td>타입 객체(Type Object)</td><td>종류 하나를 나타내며 그 종류의 모든 개체가 공유하는 값을 가진 객체. 이번 차시에서는 UnitClass 에셋.</td></tr><tr><td>개체(Typed Object)</td><td>타입 객체를 참조하며 자신만의 상태를 가진 객체. 이번 차시에서는 Unit.</td></tr><tr><td>병종</td><td>검사, 궁수, 힐러, 창병과 같은 유닛의 종류.</td></tr><tr><td>UnitClass</td><td>병종 하나의 이름, 능력치 다섯 개, 그림을 보관하는 ScriptableObject class. 이름의 Class는 병종을 뜻한다.</td></tr><tr><td>ScriptableObject</td><td>게임 오브젝트에 붙이지 않고 프로젝트에 에셋으로 저장하는 데이터 객체.</td></tr><tr><td>에셋</td><td>프로젝트에 저장되는 파일. Swordsman, Archer, Healer, Lancer 에셋이 각각 타입 객체 하나다.</td></tr><tr><td>CreateAssetMenu</td><td>Create 메뉴에 항목을 추가하여 코드 없이 ScriptableObject 에셋을 만들 수 있게 하는 표시.</td></tr><tr><td>공유 값 / 개체의 상태</td><td>같은 병종이면 모두 같은 값 / 같은 병종이어도 유닛마다 달라질 수 있는 값. 앞의 것은 UnitClass에, 뒤의 것은 Unit에 둔다.</td></tr><tr><td>UnitPlacement</td><td>어느 칸에 어떤 타입 객체로 유닛을 만들지를 한 쌍으로 묶은 데이터.</td></tr><tr><td>Prototype 패턴</td><td>미리 만들어 둔 원본을 복제하여 새 객체를 만드는 구조. Unity에서는 프리팹과 Instantiate.</td></tr></tbody></table>
+<table><thead><tr><th>용어</th><th>이번 차시에서의 뜻</th></tr></thead><tbody><tr><td>Type Object 패턴</td><td>종류를 나타내는 객체를 따로 만들고, 각 개체가 자신의 종류 객체를 참조하는 구조.</td></tr><tr><td>타입 객체(Type Object)</td><td>종류 하나를 나타내며 그 종류의 모든 개체가 공유하는 값을 가진 객체. 이번 차시에서는 UnitClass 에셋.</td></tr><tr><td>개체(Typed Object)</td><td>타입 객체를 참조하며 자신만의 상태를 가진 객체. 이번 차시에서는 Unit.</td></tr><tr><td>병종</td><td>검사, 궁수, 힐러, 창병과 같은 유닛의 종류.</td></tr><tr><td>UnitClass</td><td>병종 하나의 이름, 능력치 다섯 개, 진영별 모습을 보관하는 ScriptableObject class. 이름의 Class는 병종을 뜻한다.</td></tr><tr><td>ScriptableObject</td><td>게임 오브젝트에 붙이지 않고 프로젝트에 에셋으로 저장하는 데이터 객체.</td></tr><tr><td>에셋</td><td>프로젝트에 저장되는 파일. Swordsman, Archer, Healer, Lancer 에셋이 각각 타입 객체 하나다.</td></tr><tr><td>CreateAssetMenu</td><td>Create 메뉴에 항목을 추가하여 코드 없이 ScriptableObject 에셋을 만들 수 있게 하는 표시.</td></tr><tr><td>공유 값 / 개체의 상태</td><td>같은 병종이면 모두 같은 값 / 같은 병종이어도 유닛마다 달라질 수 있는 값. 앞의 것은 UnitClass에, 뒤의 것은 Unit에 둔다.</td></tr><tr><td>UnitPlacement</td><td>어느 칸에 어떤 타입 객체로 유닛을 만들지를 한 쌍으로 묶은 데이터.</td></tr><tr><td>Prototype 패턴</td><td>미리 만들어 둔 원본을 복제하여 새 객체를 만드는 구조. Unity에서는 프리팹과 Instantiate.</td></tr></tbody></table>
 <h3>9.3 요약</h3>
 <div class="concept"><span class="label">이번 차시의 기준</span>종류가 값으로만 구분된다면 종류를 객체로 만든다. 병종마다 다른 값은 UnitClass에, 개체마다 다른 상태는 Unit에 둔다. Unit은 자신의 타입 객체를 참조하고 능력치를 읽으면 타입 객체의 값을 돌려준다. 사용하는 쪽은 병종을 확인하지 않고 <code>attacker.AttackRange</code>처럼 값을 읽는다. 새 종류를 추가하거나 값을 조정할 때에는 코드를 고치지 않고 에셋을 만들거나 고친다. 대가는 데이터로 표현할 수 없는 동작, 컴파일러가 검사하지 않는 연결, 한 단계 멀어진 값이다. 새 종류를 추가할 때 새 class를 작성하지 않아도 된다면 Type Object가 제 역할을 하고 있는 것이다.</div><a class="back" href="#top">↑ 처음과 목차로</a>
 </section>

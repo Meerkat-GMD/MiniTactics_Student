@@ -5,9 +5,6 @@ namespace MiniTactics.Lesson08
 {
     public sealed class Unit : MonoBehaviour
     {
-        private static readonly Color PlayerColor = new Color(0.35f, 0.75f, 1f);
-        private static readonly Color EnemyColor = new Color(1f, 0.4f, 0.4f);
-
         [SerializeField] private bool _canMove = true;
 
         public event Action<Unit> HpChanged;
@@ -42,9 +39,8 @@ namespace MiniTactics.Lesson08
             Team = team;
             UnitClass = unitClass;
             CurrentHp = unitClass.MaxHp;
-            SpriteRenderer renderer = GetComponent<SpriteRenderer>();
-            renderer.sprite = unitClass.Sprite;
-            renderer.color = team == Team.Player ? PlayerColor : EnemyColor;
+            UnitLook look = team == Team.Player ? unitClass.PlayerLook : unitClass.EnemyLook;
+            GetComponent<UnitAnimator>().SetLook(look);
         }
 
         public void MoveTo(BoardView board, Vector2Int targetCell)

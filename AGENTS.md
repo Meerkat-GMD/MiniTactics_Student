@@ -105,10 +105,12 @@ rules for all three workspaces are in `D:\UnityProjects\AGENTS.md`.
 - From lesson 7 the classes are Swordsman, Archer, Healer and Lancer (검사, 궁수, 힐러, 창병).
   Lessons 7-8 were changed on the branch `claude/pensive-fermat-a4skdb` of both repositories.
 - Unit animations (move, attack, hit, skill) are pattern-unrelated provided code from lesson 7:
-  `UnitAnimator.cs` plus the `Visual` child of the Unit prefab. For a course run from lesson 1
+  `UnitAnimator.cs`, `UnitLook.cs`, `FrameEffect.cs` plus the `Visual` child of the Unit prefab.
+  Teams are told apart by team sprites (Blue/Red `UnitLook`), never by tinting. For a course run from lesson 1
   they go into lessons 1-6; the user will revise lessons 1-6 together later, so do not change
   lessons 1-6 for this now.
-- The art will switch to Pixel Frog's Tiny Swords (Free Pack). Its license forbids redistributing
+- Lessons 7-8 use Pixel Frog's Tiny Swords (Free Pack), imported with
+  `MiniTactics_Teacher/tools/lesson-tools/tiny_swords_import.py`. Its license forbids redistributing
   the files. The user was told this and decided to keep this repository public and commit the
   files anyway: "public 유지해서 올리자. 문제 생기면 그때 private으로 바꾸던가 할게". Commit only the
   files the game uses (no Aseprite sources). Details: Teacher `docs/simplify-progress.md`.

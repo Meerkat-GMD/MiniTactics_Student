@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1595fe4336148c593a88432eb4330d1, type: 3}
+  m_Name: Blue_Lancer
+  m_EditorClassIdentifier: MiniTactics.Lesson07.Runtime::MiniTactics.Lesson07.UnitLook
+  _idle:
+  - {fileID: 618544912430324816, guid: 6d43cc4b9433b6099633b6e6e9acf459, type: 3}
+  - {fileID: 874107058726138431, guid: 6d43cc4b9433b6099633b6e6e9acf459, type: 3}
+  - {fileID: 841786671753302332, guid: 6d43cc4b9433b6099633b6e6e9acf459, type: 3}
+  - {fileID: 969696994561179796, guid: 6d43cc4b9433b6099633b6e6e9acf459, type: 3}
+  - {fileID: 607852374166822787, guid: 6d43cc4b9433b6099633b6e6e9acf459, type: 3}
+  - {fileID: 669382410461590818, guid: 6d43cc4b9433b6099633b6e6e9acf459, type: 3}
+  - {fileID: 584087815652231637, guid: 6d43cc4b9433b6099633b6e6e9acf459, type: 3}
+  - {fileID: 387490590952190775, guid: 6d43cc4b9433b6099633b6e6e9acf459, type: 3}
+  - {fileID: 19417142548297215, guid: 6d43cc4b9433b6099633b6e6e9acf459, type: 3}
+  - {fileID: 767868365682343322, guid: 6d43cc4b9433b6099633b6e6e9acf459, type: 3}
+  - {fileID: 369695741377133967, guid: 6d43cc4b9433b6099633b6e6e9acf459, type: 3}
+  - {fileID: 722978881245721960, guid: 6d43cc4b9433b6099633b6e6e9acf459, type: 3}
+  _run:
+  - {fileID: 512215415828752605, guid: a9feec8cfed8d93ad804f8168401414e, type: 3}
+  - {fileID: 240167322873684982, guid: a9feec8cfed8d93ad804f8168401414e, type: 3}
+  - {fileID: 1059740123443173875, guid: a9feec8cfed8d93ad804f8168401414e, type: 3}
+  - {fileID: 760237788521717669, guid: a9feec8cfed8d93ad804f8168401414e, type: 3}
+  - {fileID: 192226945660174905, guid: a9feec8cfed8d93ad804f8168401414e, type: 3}
+  - {fileID: 292378424688306177, guid: a9feec8cfed8d93ad804f8168401414e, type: 3}
+  _attack:
+  - {fileID: 51810638830668300, guid: f8766e2f491cb392cacbd77eee6d89b9, type: 3}
+  - {fileID: 717746084513141980, guid: f8766e2f491cb392cacbd77eee6d89b9, type: 3}
+  - {fileID: 101350112699037858, guid: f8766e2f491cb392cacbd77eee6d89b9, type: 3}
+  _skill:
+  - {fileID: 51810638830668300, guid: f8766e2f491cb392cacbd77eee6d89b9, type: 3}
+  - {fileID: 717746084513141980, guid: f8766e2f491cb392cacbd77eee6d89b9, type: 3}
+  - {fileID: 101350112699037858, guid: f8766e2f491cb392cacbd77eee6d89b9, type: 3}

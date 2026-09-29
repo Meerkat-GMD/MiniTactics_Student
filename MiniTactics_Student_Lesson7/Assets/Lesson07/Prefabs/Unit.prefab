@@ -505,8 +505,8 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 10
   m_MaskInteraction: 0
-  m_Sprite: {fileID: -8423698636218027218, guid: d3fde777a1ce8144889f509b0ad63be3, type: 3}
-  m_Color: {r: 0.35, g: 0.7, b: 1, a: 1}
+  m_Sprite: {fileID: 556930118943196323, guid: 8d7b700e06607c217d107d40b7adc4e4, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -529,6 +529,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MiniTactics.Lesson07.Runtime::MiniTactics.Lesson07.UnitAnimator
   _unit: {fileID: 3552322677124587681}
-  _source: {fileID: 8817641506837810269}
   _visual: {fileID: 122720873682959913}
   _body: {fileID: 555568958831717165}
+  _playerLook: {fileID: 11400000, guid: cc1dd1e53b9058b9d968bbcba611687a, type: 2}
+  _enemyLook: {fileID: 11400000, guid: 23f1365d22f07870fd04b75f1c6ed826, type: 2}
+  _deathFrames:
+  - {fileID: 620664660112777768, guid: 98d42c3dd02921f067f3b09ab8bf6d28, type: 3}
+  - {fileID: 411640177135011936, guid: 98d42c3dd02921f067f3b09ab8bf6d28, type: 3}
+  - {fileID: 699814951511686651, guid: 98d42c3dd02921f067f3b09ab8bf6d28, type: 3}
+  - {fileID: 560041342385261373, guid: 98d42c3dd02921f067f3b09ab8bf6d28, type: 3}
+  - {fileID: 1022670196807157653, guid: 98d42c3dd02921f067f3b09ab8bf6d28, type: 3}
+  - {fileID: 572755011071563142, guid: 98d42c3dd02921f067f3b09ab8bf6d28, type: 3}
+  - {fileID: 458743993715717540, guid: 98d42c3dd02921f067f3b09ab8bf6d28, type: 3}
+  - {fileID: 149732602668569983, guid: 98d42c3dd02921f067f3b09ab8bf6d28, type: 3}

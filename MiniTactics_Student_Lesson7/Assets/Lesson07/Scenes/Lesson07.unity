@@ -397,18 +397,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: FixedUnit
       objectReference: {fileID: 0}
-    - target: {fileID: 8817641506837810269, guid: fbebcd93d0d8cf5419dac18c8c3abec1, type: 3}
-      propertyPath: m_Color.b
-      value: 0.55
-      objectReference: {fileID: 0}
-    - target: {fileID: 8817641506837810269, guid: fbebcd93d0d8cf5419dac18c8c3abec1, type: 3}
-      propertyPath: m_Color.g
-      value: 0.55
-      objectReference: {fileID: 0}
-    - target: {fileID: 8817641506837810269, guid: fbebcd93d0d8cf5419dac18c8c3abec1, type: 3}
-      propertyPath: m_Color.r
-      value: 0.55
-      objectReference: {fileID: 0}
+    - target: {fileID: 54794823126048515, guid: fbebcd93d0d8cf5419dac18c8c3abec1, type: 3}
+      propertyPath: _playerLook
+      value: 
+      objectReference: {fileID: 11400000, guid: efb4667dcf55de355be1e1f370d7cd8e, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -897,7 +889,7 @@ TilemapRenderer:
   m_ChunkCullingBounds: {x: 0, y: 0, z: 0}
   m_MaxChunkCount: 16
   m_MaxFrameAge: 16
-  m_SortOrder: 0
+  m_SortOrder: 3
   m_Mode: 0
   m_DetectChunkCullingBounds: 0
 --- !u!1839735485 &1100000013
@@ -2126,16 +2118,16 @@ Tilemap:
   m_TileSpriteArray:
   - serializedVersion: 2
     m_RefCount: 92
-    m_Data: {fileID: -6869417872210505878, guid: d3fde777a1ce8144889f509b0ad63be3, type: 3}
+    m_Data: {fileID: 21300000, guid: b67233c63b6cc00dbab41d7a2a8343f8, type: 3}
   - serializedVersion: 2
     m_RefCount: 8
-    m_Data: {fileID: 4715811154161467774, guid: d3fde777a1ce8144889f509b0ad63be3, type: 3}
+    m_Data: {fileID: 21300000, guid: 11ce55e1f546498ee06380db26a159d6, type: 3}
   - serializedVersion: 2
     m_RefCount: 15
-    m_Data: {fileID: 4757614463264183566, guid: d3fde777a1ce8144889f509b0ad63be3, type: 3}
+    m_Data: {fileID: 21300000, guid: 5903df102e783c28c84a3d06cd32475f, type: 3}
   - serializedVersion: 2
     m_RefCount: 5
-    m_Data: {fileID: 4138603417118373318, guid: d3fde777a1ce8144889f509b0ad63be3, type: 3}
+    m_Data: {fileID: 21300000, guid: bfe87ec5d32930009f9768f1c40702ad, type: 3}
   m_TileMatrixArray:
   - serializedVersion: 2
     m_RefCount: 120
@@ -2201,7 +2193,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1100000021
 Transform:
   m_ObjectHideFlags: 0
@@ -3062,8 +3054,8 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 1
   m_MaskInteraction: 0
-  m_Sprite: {fileID: -6869417872210505878, guid: d3fde777a1ce8144889f509b0ad63be3, type: 3}
-  m_Color: {r: 0.2, g: 0.6, b: 1, a: 1}
+  m_Sprite: {fileID: 21300000, guid: b380258cf60667bf5446abde596ba943, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -3154,8 +3146,8 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 1
   m_MaskInteraction: 0
-  m_Sprite: {fileID: -6869417872210505878, guid: d3fde777a1ce8144889f509b0ad63be3, type: 3}
-  m_Color: {r: 1, g: 0.25, b: 0.25, a: 1}
+  m_Sprite: {fileID: 21300000, guid: 7e3a1c8e8f8fbc20038e74500bca50c3, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

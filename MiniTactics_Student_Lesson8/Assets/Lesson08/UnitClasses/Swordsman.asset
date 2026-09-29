@@ -18,4 +18,5 @@ MonoBehaviour:
   _defense: 3
   _moveBudget: 3
   _attackRange: 1
-  _sprite: {fileID: -8579015275946074356, guid: d3fde777a1ce8144889f509b0ad63be3, type: 3}
+  _playerLook: {fileID: 11400000, guid: cc1dd1e53b9058b9d968bbcba611687a, type: 2}
+  _enemyLook: {fileID: 11400000, guid: 23f1365d22f07870fd04b75f1c6ed826, type: 2}

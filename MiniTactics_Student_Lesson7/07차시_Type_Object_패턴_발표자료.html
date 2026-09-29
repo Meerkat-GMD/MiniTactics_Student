@@ -166,13 +166,15 @@ public sealed class UnitClass : ScriptableObject
     [SerializeField] private string _displayName;
     [SerializeField, Min(1)] private int _maxHp;
     [SerializeField, Min(1)] private int _attackRange = 1;
-    [SerializeField] private Sprite _sprite;
+    [SerializeField] private UnitLook _playerLook;
+    [SerializeField] private UnitLook _enemyLook;
 
     public string DisplayName =&gt; _displayName;
     public int MaxHp =&gt; _maxHp;
     public int AttackRange =&gt; _attackRange;
-    public Sprite Sprite =&gt; _sprite;
-}</code></pre><div class="panel teal"><h3>읽는 방법</h3><ol><li>필드는 Inspector에서 입력하는 값이다.</li><li>속성은 <code>=&gt;</code>로 값을 읽어 주기만 한다. 바깥에서 값을 바꿀 수 없다.</li><li>메서드가 없다. 이 class는 동작을 하지 않고 값을 보관한다.</li></ol></div></div><p class="source">축약한 발췌다. 실제 파일에는 같은 모양의 <code>_attackPower</code>, <code>_defense</code>, <code>_moveBudget</code> 필드와 속성이 더 있다.</p></div></section>
+    public UnitLook PlayerLook =&gt; _playerLook;
+    public UnitLook EnemyLook =&gt; _enemyLook;
+}</code></pre><div class="panel teal"><h3>읽는 방법</h3><ol><li>필드는 Inspector에서 입력하는 값이다.</li><li>속성은 <code>=&gt;</code>로 값을 읽어 주기만 한다. 바깥에서 값을 바꿀 수 없다.</li><li>메서드가 없다. 이 class는 동작을 하지 않고 값을 보관한다.</li></ol></div></div><p class="source">축약한 발췌다. 실제 파일에는 같은 모양의 <code>_attackPower</code>, <code>_defense</code>, <code>_moveBudget</code> 필드와 속성이 더 있다. <code>UnitLook</code>은 한 진영의 애니메이션 그림을 묶은 에셋으로, 미리 제공된다.</p></div></section>
 
 <section class="slide" id="slide-9" data-slide="09 / 24" aria-labelledby="title-9"><div><p class="kicker">ScriptableObject</p><h2 id="title-9">ScriptableObject 에셋 하나가 타입 객체 하나다</h2><div class="two"><div class="panel teal"><h3>ScriptableObject</h3><p>씬의 게임 오브젝트에 붙이지 않고 프로젝트에 파일(에셋)로 저장하는 데이터 객체다. 3차시의 TileData가 같은 방식이었다.</p></div><div class="panel violet"><h3>CreateAssetMenu</h3><p>Project 창의 Create 메뉴에 “Mini Tactics/Unit Class” 항목을 추가한다. 이 메뉴를 선택할 때마다 UnitClass 객체가 하나씩 에셋으로 만들어진다.</p></div></div><table class="compare" style="margin-top:14px"><thead><tr><th>구분</th><th>개수</th><th>만드는 방법</th></tr></thead><tbody><tr><td>UnitClass class</td><td>1개</td><td>프로그래머가 코드로 한 번 작성한다.</td></tr><tr><td>UnitClass 에셋</td><td>병종의 수만큼(현재 3개)</td><td>누구나 메뉴에서 만들고 Inspector에서 값을 입력한다.</td></tr></tbody></table><div class="callout"><p>첫 시도에서는 병종의 수만큼 class가 필요했다. 이제는 병종의 수만큼 에셋이 필요하다. 에셋을 만드는 데에는 컴파일이 필요하지 않다.</p></div></div></section>
 
@@ -184,17 +186,16 @@ public int Defense =&gt; UnitClass.Defense;
 public int AttackRange =&gt; UnitClass.AttackRange;
 public int CurrentHp { get; private set; }</code></pre><div class="panel teal"><h3>바뀐 점</h3><p>능력치 필드 네 개가 사라지고 <code>UnitClass</code> 참조 하나가 생겼다.</p><p><code>unit.MaxHp</code>를 읽으면 Unit은 자신의 값을 돌려주지 않고 타입 객체의 값을 돌려준다.</p></div></div><div class="callout"><p>속성의 이름은 6차시와 같다. 그래서 <code>unit.MaxHp</code>, <code>unit.AttackPower</code>를 읽던 체력바와 피해 계산 코드는 한 줄도 바뀌지 않는다.</p></div><p class="source">Unit.cs의 속성 부분이다. 중간의 <code>CanMove</code> 한 줄을 생략했다.</p></div></section>
 
-<section class="slide" id="slide-11" data-slide="11 / 24" aria-labelledby="title-11"><div><p class="kicker">Actual Code · Unit.cs</p><h2 id="title-11">연결: Initialize가 유닛에게 타입 객체를 알려 준다</h2><div class="wide"><pre><code>public void Initialize(Team team, <span class="code-focus">UnitClass unitClass</span>)
+<section class="slide" id="slide-11" data-slide="11 / 24" aria-labelledby="title-11"><div><p class="kicker">Actual Code · Unit.cs</p><h2 id="title-11">연결: Initialize가 유닛에게 타입 객체를 알려 준다</h2><pre><code>public void Initialize(Team team, <span class="code-focus">UnitClass unitClass</span>)
 {
     Team = team;
     <span class="code-focus">UnitClass = unitClass;</span>
     CurrentHp = unitClass.MaxHp;
-    SpriteRenderer renderer = GetComponent&lt;SpriteRenderer&gt;();
-    renderer.sprite = unitClass.Sprite;
-    renderer.color = team == Team.Player ? PlayerColor : EnemyColor;
-}</code></pre><div class="panel teal"><h3>실행 순서</h3><ol><li>전달받은 타입 객체를 기억한다.</li><li>현재 HP를 그 병종의 최대 HP로 채운다.</li><li>그림을 그 병종의 그림으로 바꾼다.</li></ol></div></div><div class="callout"><p>유닛은 만들어진 직후에는 종류가 없다. Initialize에 어떤 에셋을 넘기는가에 따라 검사가 되기도 하고 궁수가 되기도 한다. 종류가 실행 중에 정해진다.</p></div><p class="source">Unit.cs의 Initialize 전체다.</p></div></section>
+    UnitLook look = team == Team.Player ? unitClass.PlayerLook : unitClass.EnemyLook;
+    GetComponent&lt;UnitAnimator&gt;().SetLook(look);
+}</code></pre><div class="panel teal" style="margin-top:14px"><h3>실행 순서</h3><ol><li>전달받은 타입 객체를 기억한다.</li><li>현재 HP를 그 병종의 최대 HP로 채운다.</li><li>진영에 맞는 그 병종의 모습을 골라 UnitAnimator에 넘긴다.</li></ol></div><div class="callout"><p>유닛은 만들어진 직후에는 종류가 없다. Initialize에 어떤 에셋을 넘기는가에 따라 검사가 되기도 하고 궁수가 되기도 한다. 종류가 실행 중에 정해진다.</p></div><p class="source">Unit.cs의 Initialize 전체다.</p></div></section>
 
-<section class="slide" id="slide-12" data-slide="12 / 24" aria-labelledby="title-12"><div><p class="kicker">Shared vs Own</p><h2 id="title-12">공유하는 값은 타입 객체에, 개체마다 다른 값은 Unit에 둔다</h2><table class="compare"><thead><tr><th style="width:24%">값</th><th style="width:22%">두는 곳</th><th>이유</th></tr></thead><tbody><tr><td>MaxHp, AttackPower, Defense, MoveBudget, AttackRange, Sprite</td><td>UnitClass</td><td>같은 병종이면 모두 같다. 한곳에 두면 한 번만 고쳐도 그 병종 전체에 반영된다.</td></tr><tr><td>CurrentHp</td><td>Unit</td><td>같은 검사라도 받은 피해가 다르다.</td></tr><tr><td>Team, HasMoved</td><td>Unit</td><td>같은 검사라도 아군일 수도 적일 수도 있고, 이번 턴에 행동했는지도 다르다.</td></tr><tr><td>위치</td><td>Unit의 Transform</td><td>유닛마다 서 있는 칸이 다르다.</td></tr></tbody></table><div class="callout"><p>판단하는 질문은 하나다. “같은 병종의 다른 유닛과 이 값이 달라질 수 있는가?” 달라질 수 있으면 Unit에 두고, 달라질 수 없으면 UnitClass에 둔다.</p></div></div></section>
+<section class="slide" id="slide-12" data-slide="12 / 24" aria-labelledby="title-12"><div><p class="kicker">Shared vs Own</p><h2 id="title-12">공유하는 값은 타입 객체에, 개체마다 다른 값은 Unit에 둔다</h2><table class="compare"><thead><tr><th style="width:24%">값</th><th style="width:22%">두는 곳</th><th>이유</th></tr></thead><tbody><tr><td>MaxHp, AttackPower, Defense, MoveBudget, AttackRange, PlayerLook, EnemyLook</td><td>UnitClass</td><td>같은 병종이면 모두 같다. 한곳에 두면 한 번만 고쳐도 그 병종 전체에 반영된다.</td></tr><tr><td>CurrentHp</td><td>Unit</td><td>같은 검사라도 받은 피해가 다르다.</td></tr><tr><td>Team, HasMoved</td><td>Unit</td><td>같은 검사라도 아군일 수도 적일 수도 있고, 이번 턴에 행동했는지도 다르다.</td></tr><tr><td>위치</td><td>Unit의 Transform</td><td>유닛마다 서 있는 칸이 다르다.</td></tr></tbody></table><div class="callout"><p>판단하는 질문은 하나다. “같은 병종의 다른 유닛과 이 값이 달라질 수 있는가?” 달라질 수 있으면 Unit에 두고, 달라질 수 없으면 UnitClass에 둔다.</p></div></div></section>
 
 <section class="slide" id="slide-13" data-slide="13 / 24" aria-labelledby="title-13"><div><p class="kicker">Think · Shared State</p><h2 id="title-13">CurrentHp를 UnitClass에 두면 어떤 일이 일어나는가?</h2><div class="two"><div class="question"><p class="big">아군 검사 A와<br>적 검사 B가 있다.<br>A가 피해 5를 받으면<br><span class="amber">B의 HP</span>는 얼마인가?</p></div><div class="panel teal"><h3>답을 순서대로 확인한다</h3><ol><li>A와 B는 같은 Swordsman 에셋을 참조한다. 에셋은 하나다.</li><li>CurrentHp가 에셋에 있다면 A가 받은 피해는 에셋의 값을 14에서 9로 바꾼다.</li><li>B도 같은 에셋의 값을 읽으므로 B의 HP도 9가 된다. 맞지 않은 유닛의 HP가 줄었다.</li></ol></div></div><div class="callout"><p>현재 코드에서는 CurrentHp가 Unit에 있다. A는 14 − 5 = 9가 되고 B는 14 그대로다. 타입 객체에는 실행 중에 바뀌지 않는 값만 둔다.</p></div><p class="source">질문은 CurrentHp를 잘못된 곳에 두었다고 가정한 것이다.</p></div></section>
 

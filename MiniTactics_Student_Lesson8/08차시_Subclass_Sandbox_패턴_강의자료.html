@@ -244,7 +244,7 @@ public sealed class HealSkill : Skill
 <p class="kicker">CHAPTER 06 · 흐름</p><h2>호출 흐름과 수치 추적</h2>
 <div class="objectives">학습 목표: 스킬을 사용하는 호출 한 줄이 입구, 빈칸, 도구를 차례로 지나가는 과정을 설명한다. 호출하는 쪽이 스킬의 종류를 알지 못한다는 점을 설명한다. 강타의 피해와 치유의 회복을 실제 값으로 직접 계산한다.</div>
 <h3>6.1 호출하는 쪽의 코드는 한 줄이다</h3>
-<p class="code-caption">실제 코드 · BattleController.UseSkill의 둘째 줄 · 첫 줄은 스킬 애니메이션을 요청한다</p><pre><code>user.UnitClass.Skill.Use(user, target, _turnManager);</code></pre>
+<p class="code-caption">실제 코드 · BattleController.UseSkill의 첫 줄 · 다음 줄은 스킬 애니메이션을 요청한다</p><pre><code>user.UnitClass.Skill.Use(user, target, _turnManager);</code></pre>
 <p>왼쪽에서부터 읽는다. <code>user.UnitClass</code>는 7차시에서 배운 대로 그 유닛의 타입 객체, 즉 병종 에셋이다. <code>.Skill</code>은 그 병종 에셋에 연결된 스킬 에셋이다. 이 연결은 8장에서 다룬다. <code>.Use(...)</code>는 3.4절의 입구다. 사용하는 유닛, 대상, TurnManager를 넘긴다.</p>
 <h3>6.2 호출 한 번이 입구, 빈칸, 도구를 차례로 지나간다</h3>
 <p>검사가 강타를 사용한 경우를 따라간다.</p>

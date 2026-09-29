@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1595fe4336148c593a88432eb4330d1, type: 3}
+  m_Name: Red_Swordsman
+  m_EditorClassIdentifier: MiniTactics.Lesson08.Runtime::MiniTactics.Lesson08.UnitLook
+  _idle:
+  - {fileID: 245636930786451137, guid: bde8eef4a564124c228f3bbd09bce66e, type: 3}
+  - {fileID: 381851890863815201, guid: bde8eef4a564124c228f3bbd09bce66e, type: 3}
+  - {fileID: 212853508842789680, guid: bde8eef4a564124c228f3bbd09bce66e, type: 3}
+  - {fileID: 801498703200531002, guid: bde8eef4a564124c228f3bbd09bce66e, type: 3}
+  - {fileID: 970538418297242474, guid: bde8eef4a564124c228f3bbd09bce66e, type: 3}
+  - {fileID: 1024477869169236928, guid: bde8eef4a564124c228f3bbd09bce66e, type: 3}
+  - {fileID: 13363504298682194, guid: bde8eef4a564124c228f3bbd09bce66e, type: 3}
+  - {fileID: 977887777289309179, guid: bde8eef4a564124c228f3bbd09bce66e, type: 3}
+  _run:
+  - {fileID: 1037305316896533020, guid: 5812a72450ec2a9d8e04e9411310c209, type: 3}
+  - {fileID: 717203216812975020, guid: 5812a72450ec2a9d8e04e9411310c209, type: 3}
+  - {fileID: 1017552790854041871, guid: 5812a72450ec2a9d8e04e9411310c209, type: 3}
+  - {fileID: 566941004844240704, guid: 5812a72450ec2a9d8e04e9411310c209, type: 3}
+  - {fileID: 890542505233637515, guid: 5812a72450ec2a9d8e04e9411310c209, type: 3}
+  - {fileID: 380254656199869918, guid: 5812a72450ec2a9d8e04e9411310c209, type: 3}
+  _attack:
+  - {fileID: 371554210555439556, guid: f50bd8d0f3ce28b315c6d723876fb00f, type: 3}
+  - {fileID: 495367160872987454, guid: f50bd8d0f3ce28b315c6d723876fb00f, type: 3}
+  - {fileID: 960346373890691447, guid: f50bd8d0f3ce28b315c6d723876fb00f, type: 3}
+  - {fileID: 441157018991603718, guid: f50bd8d0f3ce28b315c6d723876fb00f, type: 3}
+  _skill:
+  - {fileID: 202067439986635385, guid: 891e2ff95563855f189252d67a6428a5, type: 3}
+  - {fileID: 640226112272424551, guid: 891e2ff95563855f189252d67a6428a5, type: 3}
+  - {fileID: 608103667513463751, guid: 891e2ff95563855f189252d67a6428a5, type: 3}
+  - {fileID: 690997959794629920, guid: 891e2ff95563855f189252d67a6428a5, type: 3}
