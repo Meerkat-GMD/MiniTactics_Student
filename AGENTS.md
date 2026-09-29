@@ -108,6 +108,7 @@ rules for all three workspaces are in `D:\UnityProjects\AGENTS.md`.
   `UnitAnimator.cs` plus the `Visual` child of the Unit prefab. For a course run from lesson 1
   they go into lessons 1-6; the user will revise lessons 1-6 together later, so do not change
   lessons 1-6 for this now.
-- The art will switch to Pixel Frog's Tiny Swords. Its license forbids redistributing the files
-  and this repository is public, so do not commit Tiny Swords files here until the user decides
-  how students receive them. Details: Teacher `docs/simplify-progress.md`.
+- The art will switch to Pixel Frog's Tiny Swords (Free Pack). Its license forbids redistributing
+  the files. The user was told this and decided to keep this repository public and commit the
+  files anyway: "public 유지해서 올리자. 문제 생기면 그때 private으로 바꾸던가 할게". Commit only the
+  files the game uses (no Aseprite sources). Details: Teacher `docs/simplify-progress.md`.
