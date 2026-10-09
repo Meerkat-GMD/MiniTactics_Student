@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f381610f70f44f496ecbb63c38f61de, type: 3}
+  m_Name: Healer
+  m_EditorClassIdentifier: MiniTactics.Lesson11.Runtime::MiniTactics.Lesson11.UnitClass
+  _displayName: Healer
+  _maxHp: 7
+  _attackPower: 3
+  _defense: 0
+  _moveBudget: 3
+  _attackRange: 1
+  _playerLook: {fileID: 11400000, guid: 64573aaf92e54ca3570d6aab4be27376, type: 2}
+  _enemyLook: {fileID: 11400000, guid: c22415f43106c43cf184c4fe540ec617, type: 2}
+  _skill: {fileID: 11400000, guid: dcec21c086d67c64daa900e93f086d4b, type: 2}
