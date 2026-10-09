@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d066e796a0c83e1489b605e215e775d4, type: 3}
+  m_Name: Stage02
+  m_EditorClassIdentifier: MiniTactics.Lesson09.Runtime::MiniTactics.Lesson09.StageDefinition
+  _displayName: "\uC232\uC18D \uAE38\uBAA9"
+  _map: {fileID: 11400000, guid: ca0ba3ac6e7589143be778402c4607d9, type: 2}
+  _playerUnits:
+  - _unitClass: {fileID: 11400000, guid: 218a28a55e2dd724b82ee139501201f7, type: 2}
+    _cell: {x: 1, y: 3}
+  - _unitClass: {fileID: 11400000, guid: d8aea11756a9ecd418dcba3607c1655c, type: 2}
+    _cell: {x: 0, y: 4}
+  - _unitClass: {fileID: 11400000, guid: 95d332c74d7209143a8df12b70999d16, type: 2}
+    _cell: {x: 0, y: 3}
+  - _unitClass: {fileID: 11400000, guid: 27e6cd4da82748b5b63f2623f9727386, type: 2}
+    _cell: {x: 1, y: 4}
+  _enemyUnits:
+  - _unitClass: {fileID: 11400000, guid: 218a28a55e2dd724b82ee139501201f7, type: 2}
+    _cell: {x: 8, y: 2}
+  - _unitClass: {fileID: 11400000, guid: d8aea11756a9ecd418dcba3607c1655c, type: 2}
+    _cell: {x: 9, y: 3}
+  - _unitClass: {fileID: 11400000, guid: 218a28a55e2dd724b82ee139501201f7, type: 2}
+    _cell: {x: 8, y: 7}
+  - _unitClass: {fileID: 11400000, guid: d8aea11756a9ecd418dcba3607c1655c, type: 2}
+    _cell: {x: 10, y: 7}
+  - _unitClass: {fileID: 11400000, guid: 27e6cd4da82748b5b63f2623f9727386, type: 2}
+    _cell: {x: 9, y: 5}

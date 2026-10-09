@@ -1,0 +1,10 @@
+{
+  "name": "MiniTactics.Lesson09.Runtime",
+  "rootNamespace": "MiniTactics.Lesson09",
+  "references": [
+    "Unity.InputSystem",
+    "UnityEngine.UI",
+    "UniTask"
+  ],
+  "autoReferenced": true
+}
