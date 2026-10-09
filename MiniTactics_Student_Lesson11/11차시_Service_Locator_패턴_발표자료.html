@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>11차시 · Service Locator 패턴 | 미니 택틱스</title>
+  <style>
+    :root {
+      --bg:#040a13; --slide:#091526; --panel:#10233a; --panel2:#142b45;
+      --text:#eef5ff; --muted:#afbed1; --teal:#55e4cf; --violet:#b8a4ff;
+      --amber:#ffd16f; --red:#ff8c99; --line:#2a405b; --green:#83e58f;
+    }
+    * { box-sizing:border-box; }
+    html, body { width:100%; height:100%; margin:0; overflow:hidden; }
+    body { background:var(--bg); color:var(--text); font-family:"Pretendard","Noto Sans KR",system-ui,sans-serif; word-break:keep-all; overflow-wrap:break-word; }
+    button, a { font:inherit; }
+    button { color:inherit; }
+    .app { min-height:100%; display:grid; grid-template-rows:1fr auto; }
+    .stage { min-height:0; display:grid; place-items:center; padding:14px 18px 6px; }
+    .deck { position:relative; width:min(100%,calc((100vh - 80px) * 16 / 9)); max-height:calc(100vh - 80px); aspect-ratio:16/9; overflow:hidden; border:1px solid #263b56; border-radius:18px; background:var(--slide); box-shadow:0 28px 88px #000a; container-type:inline-size; }
+    .slide { position:absolute; inset:0; display:none; overflow:auto; padding:clamp(28px,3.6cqw,56px) clamp(36px,5cqw,78px); background:radial-gradient(circle at 94% 7%,#253969 0,transparent 27%),linear-gradient(145deg,#0c1a2d 0%,#07121f 74%); }
+    .slide.is-active { display:grid; align-content:center; animation:reveal .24s ease-out; }
+    .slide::after { content:attr(data-slide); position:absolute; right:26px; top:20px; color:#7189a6; font-size:.76rem; font-weight:850; letter-spacing:.13em; }
+    @keyframes reveal { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:none; } }
+    h1,h2,h3,p { margin-top:0; }
+    h1 { max-width:78cqw; margin-bottom:20px; font-size:clamp(2.3rem,5.1cqw,4.9rem); line-height:1.08; letter-spacing:-.05em; }
+    h2 { max-width:82cqw; margin-bottom:clamp(16px,2.2cqw,30px); font-size:clamp(1.75rem,3.35cqw,3.15rem); line-height:1.17; letter-spacing:-.035em; }
+    h3 { margin-bottom:8px; color:var(--teal); font-size:clamp(.98rem,1.38cqw,1.3rem); }
+    p,li { font-size:clamp(.83rem,1.23cqw,1.13rem); line-height:1.53; }
+    p { margin-bottom:.72em; }
+    ul,ol { margin:.1em 0 0; padding-left:1.25em; }
+    li { margin:.38em 0; }
+    li::marker { color:var(--teal); font-weight:800; }
+    strong { color:#fff; }
+    .kicker { margin:0 0 7px; color:var(--teal); font-size:clamp(.68rem,1cqw,.9rem); font-weight:900; letter-spacing:.13em; text-transform:uppercase; }
+    .subtitle { max-width:72cqw; color:var(--muted); font-size:clamp(1rem,1.68cqw,1.5rem); line-height:1.5; }
+    .accent { color:var(--teal); } .violet { color:var(--violet); } .amber { color:var(--amber); } .red { color:var(--red); } .green { color:var(--green); }
+    .big { max-width:78cqw; font-size:clamp(1.28rem,2.3cqw,2.12rem); line-height:1.45; letter-spacing:-.02em; }
+    .quote { max-width:76cqw; margin:12px 0; padding-left:22px; border-left:5px solid var(--violet); font-size:clamp(1.2rem,2.25cqw,2rem); line-height:1.43; font-weight:760; }
+    .two { display:grid; grid-template-columns:1fr 1fr; gap:clamp(15px,2.2cqw,30px); align-items:stretch; }
+    .wide { display:grid; grid-template-columns:1.3fr .85fr; gap:clamp(18px,2.6cqw,36px); align-items:center; }
+    .panel { padding:clamp(14px,1.8cqw,23px); border:1px solid var(--line); border-radius:14px; background:#0f2138d9; }
+    .panel.teal { border-top:4px solid var(--teal); } .panel.violet { border-top:4px solid var(--violet); } .panel.amber { border-top:4px solid var(--amber); } .panel.redline { border-top:4px solid var(--red); }
+    .callout { margin-top:15px; padding:13px 18px; border-left:4px solid var(--teal); border-radius:8px; background:#10243c; }
+    .callout.warning { border-left-color:var(--amber); } .callout.danger { border-left-color:var(--red); }
+    .callout p:last-child,.panel p:last-child { margin-bottom:0; }
+    pre { margin:10px 0 0; padding:clamp(13px,1.65cqw,21px); overflow:auto; border:1px solid var(--line); border-radius:12px; background:#030a13; color:#dceafa; white-space:pre; font:clamp(.68rem,1.04cqw,.96rem)/1.58 Consolas,"D2Coding",monospace; }
+    p code,li code { padding:.08em .32em; border:1px solid #344d69; border-radius:5px; background:#081522; color:var(--amber); font-family:Consolas,"D2Coding",monospace; font-size:.92em; }
+    .code-focus { color:var(--amber); font-weight:800; }
+    .source { margin-top:10px; color:#7f94ad; font-size:clamp(.62rem,.82cqw,.76rem); }
+    .flow { display:grid; grid-template-columns:repeat(7,auto); align-items:center; justify-content:center; gap:9px; margin-top:22px; }
+    .node { min-width:9cqw; min-height:66px; display:grid; place-items:center; padding:10px 12px; border:1px solid #3b5575; border-radius:12px; background:var(--panel); text-align:center; font-size:clamp(.7rem,.95cqw,.9rem); font-weight:800; }
+    .arrow { color:var(--teal); font-size:1.35rem; font-weight:900; }
+    .state-board { display:grid; grid-template-columns:1fr auto 1fr; gap:18px; align-items:center; margin-top:14px; }
+    .coord { min-height:140px; display:grid; place-items:center; padding:22px; border:1px solid var(--line); border-radius:14px; background:#07111e; text-align:center; font:800 clamp(1rem,1.7cqw,1.55rem)/1.6 Consolas,monospace; }
+    .missing { color:var(--red); text-decoration:line-through; text-decoration-thickness:3px; }
+    .compare { width:100%; border-collapse:collapse; font-size:clamp(.72rem,1cqw,.94rem); line-height:1.42; }
+    .compare th,.compare td { padding:10px 13px; border:1px solid var(--line); vertical-align:top; text-align:left; }
+    .compare th { color:var(--teal); background:#071321; }
+    .stack { width:min(440px,70cqw); margin:14px auto 0; display:grid; gap:8px; }
+    .stack-item { padding:11px 16px; border:1px solid #405c7d; border-radius:9px; background:var(--panel); text-align:center; font-weight:800; }
+    .stack-item.top { border-color:var(--amber); color:var(--amber); }
+    .question { padding:clamp(20px,2.7cqw,38px); border:1px solid #5b4e25; border-radius:15px; background:linear-gradient(135deg,#221d10,#101c2d); }
+    .question .big { margin-bottom:0; }
+    .role-map { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:18px; }
+    .role { min-height:125px; padding:15px; border-top:4px solid var(--teal); border-radius:12px; background:var(--panel); }
+    .role:nth-child(2) { border-color:var(--violet); } .role:nth-child(3) { border-color:var(--amber); } .role:nth-child(4) { border-color:var(--red); }
+    .role b { display:block; margin-bottom:7px; font-size:clamp(.82rem,1.12cqw,1rem); }
+    .role span { color:var(--muted); font-size:clamp(.7rem,.92cqw,.86rem); line-height:1.45; }
+    .controls { min-height:60px; display:flex; align-items:center; justify-content:center; gap:9px; padding:7px 14px 10px; }
+    .control-btn { min-width:44px; min-height:40px; padding:7px 15px; border:1px solid #354c68; border-radius:10px; background:#0d1d30; cursor:pointer; }
+    .control-btn:hover:not(:disabled) { border-color:var(--teal); color:var(--teal); }
+    .control-btn:focus-visible,.toc-link:focus-visible { outline:3px solid var(--amber); outline-offset:2px; }
+    .control-btn:disabled { opacity:.35; cursor:not-allowed; }
+    #slideCounter { min-width:76px; color:var(--muted); text-align:center; font-weight:850; font-variant-numeric:tabular-nums; }
+    dialog { width:min(780px,calc(100% - 32px)); max-height:min(80vh,740px); padding:0; border:1px solid #405b7a; border-radius:18px; background:#091526; color:var(--text); box-shadow:0 30px 100px #000d; }
+    dialog::backdrop { background:#020710df; backdrop-filter:blur(4px); }
+    .toc-head { position:sticky; top:0; z-index:2; display:flex; align-items:center; justify-content:space-between; padding:18px 21px; border-bottom:1px solid var(--line); background:#091526; }
+    .toc-head h2 { margin:0; font-size:1.4rem; }
+    .toc-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; padding:16px; }
+    .toc-link { display:grid; grid-template-columns:34px 1fr; gap:8px; padding:9px 11px; border:1px solid transparent; border-radius:8px; color:var(--muted); text-decoration:none; font-size:.88rem; }
+    .toc-link:hover { color:var(--text); background:var(--panel); border-color:var(--line); }
+    .toc-link span { color:var(--teal); font-weight:900; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @media (max-height:650px) and (min-width:721px) {
+      .slide { padding:24px 40px; }
+      h1 { font-size:3rem; } h2 { font-size:1.72rem; margin-bottom:12px; } h3 { font-size:.91rem; }
+      p,li { font-size:.76rem; line-height:1.38; } li { margin:.25em 0; }
+      .panel { padding:10px 13px; } .callout { margin-top:8px; padding:8px 13px; }
+      pre { margin-top:6px; padding:9px 12px; font-size:.64rem; line-height:1.4; }
+      .node { min-height:48px; padding:6px 9px; font-size:.65rem; }
+      .role { min-height:90px; padding:10px; } .coord { min-height:105px; padding:14px; }
+    }
+    @media (max-width:720px) {
+      .stage { padding:0; }
+      .deck { width:100%; height:calc(100vh - 60px); max-height:none; aspect-ratio:auto; border:0; border-radius:0; }
+      .slide { padding:48px 21px 28px; }
+      .slide.is-active { align-content:start; }
+      .two,.wide,.state-board,.role-map { grid-template-columns:1fr; }
+      .flow { grid-template-columns:1fr; }
+      .flow .arrow { transform:rotate(90deg); }
+      .toc-grid { grid-template-columns:1fr; }
+      h1 { font-size:clamp(2.05rem,10.5cqw,3.25rem); }
+      h2 { font-size:clamp(1.6rem,7.2cqw,2.25rem); }
+      p,li { font-size:1rem; }
+      pre { font-size:.75rem; white-space:pre-wrap; overflow-wrap:anywhere; }
+    }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; } }
+    @media print {
+      html,body { height:auto; overflow:visible; background:#fff; color:#111; }
+      .app,.stage,.deck { display:block; width:auto; height:auto; max-height:none; padding:0; overflow:visible; border:0; box-shadow:none; }
+      .slide,.slide.is-active { position:relative; display:grid; width:100%; min-height:175mm; padding:15mm; break-after:page; overflow:hidden; background:#fff; color:#111; animation:none; }
+      .slide:last-child { break-after:auto; }
+      .controls,dialog { display:none !important; }
+      h1,h2,h3,p,li,strong,.subtitle,.kicker,.accent,.violet,.amber,.red,.green,.source { color:#111; }
+      .panel,.callout,pre,.node,.coord,.role,.stack-item,.question,.compare th,.compare td { background:#fff; color:#111; border-color:#777; }
+    }
+  </style>
+<style id="layout-safety">
+    .slide > div,.two > div,.wide > div,.role,.node { min-width:0; }
+    .compare { table-layout:fixed; overflow-wrap:anywhere; }
+    .role b,.role span { overflow-wrap:anywhere; }
+    @media (max-width:720px) { .state-board > .arrow { transform:rotate(90deg); justify-self:center; } .flow > .arrow { justify-self:center; } }
+    @media print { .deck { container-type:normal; aspect-ratio:auto; } .slide,.slide.is-active { height:auto; overflow:visible; break-inside:avoid; } }
+    </style>
+</head>
+<body>
+  <div class="app">
+    <main class="stage">
+      <div class="deck" id="deck">
+<section class="slide is-active" id="slide-1" data-slide="01 / 24" aria-labelledby="title-1"><div><p class="kicker">Mini Tactics · Lesson 11</p><h1 id="title-1">미니 택틱스로 이해하는<br><span class="accent">Service Locator 패턴</span></h1><p class="subtitle">서비스를 사용하는 코드와<br>그 서비스를 제공할 객체를 고르는 코드를 나눈다.</p></div></section>
+
+<section class="slide" id="slide-2" data-slide="02 / 24" aria-labelledby="title-2"><div><p class="kicker">Starting point</p><h2 id="title-2">직접 참조는 필요한 대상을 드러낸다</h2><pre data-example-kind="design-comparison"><code>class Notice
+{
+    private ConcreteAudio audio;
+
+    public void Report()
+    {
+        audio.Play();
+    }
+}</code></pre><p class="source code-caption">설계 비교용 가상 코드 · 구체적인 소리 제공자를 직접 참조하는 첫 설계다.</p><div class="callout "><p>필드의 형식을 보면 어떤 객체가 필요한지 알 수 있다. 제공자가 고정되고 참조를 전달하기 쉽다면 충분히 단순하다.</p></div></div></section>
+
+<section class="slide" id="slide-3" data-slide="03 / 24" aria-labelledby="title-3"><div><p class="kicker">New requirement</p><h2 id="title-3">같은 요청을 다른 제공자에게 보내고 싶다</h2><div class="question"><p class="big">호출하는 코드는 그대로 두고,<br>실제로 처리하는 객체만 바꿀 수 있을까?</p></div><div class="callout "><p>예를 들어 실제 소리를 내는 제공자와 아무 소리도 내지 않는 제공자가 같은 요청을 받을 수 있다.</p></div></div></section>
+
+<section class="slide" id="slide-4" data-slide="04 / 24" aria-labelledby="title-4"><div><p class="kicker">First attempt</p><h2 id="title-4">호출하는 곳마다 제공자를 선택한다</h2><pre data-example-kind="design-comparison"><code>if (silent)
+    silentAudio.Play();
+else
+    realAudio.Play();</code></pre><p class="source code-caption">설계 비교용 가상 코드 · 같은 선택 분기가 여러 소비자에 들어간다고 가정한다.</p><div class="two"><div class="panel teal"><h3>작은 범위의 장점</h3><p>선택 조건과 실행 결과를 한곳에서 읽을 수 있다.</p></div><div class="panel amber"><h3>요청하는 곳이 늘어나면</h3><p>모든 소비자가 제공자의 종류와 선택 조건을 알아야 한다.</p></div></div></div></section>
+
+<section class="slide" id="slide-5" data-slide="05 / 24" aria-labelledby="title-5"><div><p class="kicker">Observe the limit</p><h2 id="title-5">선택 규칙이 여러 곳에서 반복된다</h2><table class="compare"><thead><tr><th>바뀌는 요구</th><th>각 호출부가 선택하는 구조</th></tr></thead><tbody><tr><td>제공자를 하나 추가</td><td>여러 분기를 찾아 바꾼다.</td></tr><tr><td>선택 조건을 수정</td><td>모든 소비자가 같은 기준을 사용하게 맞춘다.</td></tr><tr><td>한 호출부를 빠뜨림</td><td>같은 요청이 서로 다른 정책으로 처리될 수 있다.</td></tr></tbody></table><div class="callout "><p>사용자는 무엇을 요청할지 알면 된다. 어떤 구현을 쓸지 고르는 책임까지 각 사용자에게 둘 필요가 있는지 살펴본다.</p></div></div></section>
+
+<section class="slide" id="slide-6" data-slide="06 / 24" aria-labelledby="title-6"><div><p class="kicker">Find the boundary</p><h2 id="title-6">사용하는 책임과 선택하는 책임을 나눈다</h2><div class="two"><div class="panel teal"><h3>소비자</h3><p>서비스에 어떤 일을 요청할지 안다.</p><p>요청을 수행할 구체적인 class는 선택하지 않는다.</p></div><div class="panel violet"><h3>초기화 코드</h3><p>현재 사용할 제공자를 고른다.</p><p>소비자가 요청하기 전에 접근 지점에 등록한다.</p></div></div><p class="quote">계약은 요청의 모양을 정하고,<br>제공자는 그 요청을 수행한다.</p></div></section>
+
+<section class="slide" id="slide-7" data-slide="07 / 24" aria-labelledby="title-7"><div><p class="kicker">Service Locator</p><h2 id="title-7">현재 제공자를 찾는 접근 지점을 둔다</h2><div class="role-map"><div class="role"><b>계약 · IAudioService</b><span>요청할 수 있는 메서드를 선언한다.</span></div><div class="role"><b>제공자</b><span>ClipAudioService와 NullAudioService가 계약을 구현한다.</span></div><div class="role"><b>Locator · Services</b><span>현재 등록된 계약 형식의 참조를 보관한다.</span></div><div class="role"><b>소비자</b><span>Services.Audio에서 얻은 서비스에 요청한다.</span></div></div><div class="callout "><p>Locator는 의존을 없애지 않는다. 소비자는 서비스 계약과 접근 지점을 알아야 한다.</p></div></div></section>
+
+<section class="slide" id="slide-8" data-slide="08 / 24" aria-labelledby="title-8"><div><p class="kicker">Actual code · Contract</p><h2 id="title-8">인터페이스가 요청의 모양을 정한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/IAudioService.cs" data-source-start="3" data-source-end="6" data-source-sha256="9a63d755ae5a4131de7962d72a5c270ccb3df1e04b66665cee83c3aea3d55df4"><code>public interface IAudioService
+{
+    void Play(SoundCue cue);
+}</code></pre><p class="source code-caption">실제 코드 · IAudioService.cs 3–6행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>IAudioService는 Play 요청을 받을 수 있다는 계약이다. 어떤 장치를 사용하고 어떤 소리를 낼지는 이 선언에 들어 있지 않다.</p></div></div></section>
+
+<section class="slide" id="slide-9" data-slide="09 / 24" aria-labelledby="title-9"><div><p class="kicker">Actual code · Provider</p><h2 id="title-9">실제 제공자가 계약을 구현한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/ClipAudioService.cs" data-source-start="5" data-source-end="8" data-source-sha256="5cc6ca74478400f4ee1b4fd6499ac21d48eb5f7f1b42f7b47906c3c56fa5c5f3"><code>public sealed class ClipAudioService : IAudioService
+{
+    private readonly AudioSource _source;
+    private readonly AudioClip[] _clips;</code></pre><p class="source code-caption">실제 코드 · ClipAudioService.cs 5–8행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><pre data-source-file="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/ClipAudioService.cs" data-source-start="16" data-source-end="16" data-source-sha256="2e36087f5d049dd29df51b963ccc084950209aaf2dbfa1ae3b1a36b61b6a396f"><code>public void Play(SoundCue cue) =&gt; _source.PlayOneShot(_clips[(int)cue]);</code></pre><p class="source code-caption">실제 코드 · ClipAudioService.cs 16–16행 · 해당 메서드 전체다.</p><div class="callout "><p>콜론 뒤 IAudioService는 계약을 구현한다는 뜻이다. 소비자는 이 내부 자료형과 처리 방법까지 알 필요가 없다.</p></div></div></section>
+
+<section class="slide" id="slide-10" data-slide="10 / 24" aria-labelledby="title-10"><div><p class="kicker">Actual code · Locator</p><h2 id="title-10">Services는 현재 제공자의 참조를 보관한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/Services.cs" data-source-start="7" data-source-end="8" data-source-sha256="3e5194b755dcb0cc9cb85f378119bd733385b50984dbbb1deb5c500c82cf7557"><code>public static IAudioService Audio { get; set; } = new NullAudioService();
+public static ISaveService Save { get; set; } = new NullSaveService();</code></pre><p class="source code-caption">실제 코드 · Services.cs 7–8행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>속성의 형식은 구체적인 제공자가 아니라 계약이다. 다른 구현도 같은 계약을 지키면 등록할 수 있다. 기본값은 아무 작업도 하지 않는 제공자다.</p></div></div></section>
+
+<section class="slide" id="slide-11" data-slide="11 / 24" aria-labelledby="title-11"><div><p class="kicker">Actual code · Registration</p><h2 id="title-11">초기화 코드가 제공자를 만들고 등록한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/CampaignController.cs" data-source-start="31" data-source-end="34" data-source-sha256="de0d080ce622650222b6c33c10324739826c38fd9f4676b02092222fb31c148a"><code>Services.Save = new PlayerPrefsSaveService();
+_state = Services.Save.Load();
+_sound = new ClipAudioService(_source, _clips);
+Services.Audio = _state.Muted ? new NullAudioService() : _sound;</code></pre><p class="source code-caption">실제 코드 · CampaignController.cs 31–34행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>저장 계약으로 상태를 읽고 실제 소리 제공자를 준비한다. 선택 조건은 이 등록 코드에 모인다. 소비자는 Play를 요청할 때 같은 조건을 반복하지 않는다.</p></div></div></section>
+
+<section class="slide" id="slide-12" data-slide="12 / 24" aria-labelledby="title-12"><div><p class="kicker">Actual code · Consumer</p><h2 id="title-12">소비자는 조회한 계약에 요청한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/CampaignController.cs" data-source-start="69" data-source-end="69" data-source-sha256="b44ed2274886107d9f3df503049e11ed927eecc7723fdbe4a71f8bcf9587f0a6"><code>Services.Audio.Play(SoundCue.Result);</code></pre><p class="source code-caption">실제 코드 · CampaignController.cs 69–69행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="flow"><div class="node">소비자</div><div class="arrow">→</div><div class="node">Services.Audio 조회</div><div class="arrow">→</div><div class="node">IAudioService 참조</div><div class="arrow">→</div><div class="node">등록된 구현의 Play</div></div><div class="callout "><p>현재 등록된 객체의 메서드가 실행된다. 전역 접근이 편해져도 소비자의 서비스 의존성은 남아 있다.</p></div></div></section>
+
+<section class="slide" id="slide-13" data-slide="13 / 24" aria-labelledby="title-13"><div><p class="kicker">Actual code · Null Object</p><h2 id="title-13">아무 일도 하지 않는 제공자도 계약을 지킨다</h2><pre data-source-file="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/NullAudioService.cs" data-source-start="3" data-source-end="6" data-source-sha256="6d372ff5802ec07dc47450cd3a7e5b2d162fd97de7c4bc28a7c8320a5f774815"><code>public sealed class NullAudioService : IAudioService
+{
+    public void Play(SoundCue cue) { }
+}</code></pre><p class="source code-caption">실제 코드 · NullAudioService.cs 3–6행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>null 참조와 다르다. 호출할 수 있는 객체가 존재하고, 그 객체가 의도적으로 빈 작업을 수행한다. 소비자는 매번 켜짐 여부를 분기하지 않아도 된다.</p></div></div></section>
+
+<section class="slide" id="slide-14" data-slide="14 / 24" aria-labelledby="title-14"><div><p class="kicker">Trace · Replace</p><h2 id="title-14">교체 뒤의 조회는 새 제공자를 얻는다</h2><table class="compare"><thead><tr><th>순서</th><th>현재 등록된 제공자</th><th>같은 Play 요청의 결과</th></tr></thead><tbody><tr><td>1. 실제 제공자 등록</td><td>ClipAudioService</td><td>아직 요청하지 않음</td></tr><tr><td>2. Play 두 번</td><td>ClipAudioService</td><td>실제 제공자에게 두 번 전달</td></tr><tr><td>3. Null 제공자로 교체</td><td>NullAudioService</td><td>이후 조회부터 새 제공자를 얻음</td></tr><tr><td>4. Play 한 번</td><td>NullAudioService</td><td>의도적으로 아무 작업도 하지 않음</td></tr></tbody></table><div class="callout "><p>이 추적은 각 요청 때 Services.Audio를 다시 읽는 소비자를 전제로 한다. 이미 다른 변수에 보관한 이전 제공자 참조까지 자동으로 바뀌지는 않는다.</p></div></div></section>
+
+<section class="slide" id="slide-15" data-slide="15 / 24" aria-labelledby="title-15"><div><p class="kicker">Actual code · Select</p><h2 id="title-15">호출부를 고치지 않고 제공자를 바꾼다</h2><pre data-source-file="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/CampaignController.cs" data-source-start="119" data-source-end="119" data-source-sha256="cd9d7c7e07b7bb773d3ae729552f6157f5689469fdc5246b1551b2898ebe2ed4"><code>Services.Audio = muted ? new NullAudioService() : _sound;</code></pre><p class="source code-caption">실제 코드 · CampaignController.cs 119–119행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="two"><div class="panel teal"><h3>muted가 true</h3><p>NullAudioService가 다음 요청을 받는다. Play의 본문이 비어 있다.</p></div><div class="panel violet"><h3>muted가 false</h3><p>준비한 _sound가 다음 요청을 받는다. 실제 제공자의 Play가 실행된다.</p></div></div></div></section>
+
+<section class="slide" id="slide-16" data-slide="16 / 24" aria-labelledby="title-16"><div><p class="kicker">Initialization</p><h2 id="title-16">등록과 첫 호출 사이의 순서가 필요하다</h2><div class="flow"><div class="node">기본 Null 제공자</div><div class="arrow">→</div><div class="node">실제 제공자 준비</div><div class="arrow">→</div><div class="node">Services에 등록</div><div class="arrow">→</div><div class="node">소비자 요청</div></div><div class="callout warning"><p>기본 Null 제공자는 초기 참조를 안전하게 만들지만 등록을 올바르게 끝냈다는 증거가 아니다. 필수 기능이 조용히 빠지지 않았는지 초기화 경계를 확인해야 한다.</p></div></div></section>
+
+<section class="slide" id="slide-17" data-slide="17 / 24" aria-labelledby="title-17"><div><p class="kicker">Actual code · Reset</p><h2 id="title-17">전역 참조의 수명도 정해야 한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/Services.cs" data-source-start="11" data-source-end="15" data-source-sha256="ed273a4e3386b93ccab4ec19c7aea19c4387e531bf72c5aac0b682061790b531"><code>private static void Reset()
+{
+    Audio = new NullAudioService();
+    Save = new NullSaveService();
+}</code></pre><p class="source code-caption">실제 코드 · Services.cs 11–15행 · 해당 메서드 전체다.</p><div class="callout "><p>이 구현은 실행 초기화 시 제공자 참조를 기본값으로 돌린다. 이전 실행에서 등록한 객체가 다음 실행에도 남는 문제를 피하려는 경계다. 이후 초기화 코드가 사용할 제공자를 다시 등록한다.</p></div></div></section>
+
+<section class="slide" id="slide-18" data-slide="18 / 24" aria-labelledby="title-18"><div><p class="kicker">Another contract</p><h2 id="title-18">서비스마다 필요한 계약을 작게 둔다</h2><pre data-source-file="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/ISaveService.cs" data-source-start="3" data-source-end="7" data-source-sha256="3327fe4e45c6d86b133ec2d7546da4086d5af9b24d2daadfa3e3ed86431cdbce"><code>public interface ISaveService
+{
+    CampaignSave Load();
+    void Save(CampaignSave state);
+}</code></pre><p class="source code-caption">실제 코드 · ISaveService.cs 3–7행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>저장은 Load와 Save라는 별도 계약을 가진다. 한 거대한 서비스 인터페이스에 모든 기능을 모으기보다 소비자가 요구하는 기능을 구분한다.</p></div></div></section>
+
+<section class="slide" id="slide-19" data-slide="19 / 24" aria-labelledby="title-19"><div><p class="kicker">Singleton and locator</p><h2 id="title-19">전역 접근이 같아도 맡은 책임은 다르다</h2><table class="compare"><thead><tr><th>비교</th><th>Singleton</th><th>Service Locator</th></tr></thead><tbody><tr><td>핵심 책임</td><td>특정 종류의 인스턴스와 접근 관리</td><td>서비스 계약과 현재 제공자 연결</td></tr><tr><td>주요 질문</td><td>그 인스턴스를 어디서 얻는가?</td><td>이 계약을 지금 누가 제공하는가?</td></tr><tr><td>제공자 교체</td><td>이름만으로 보장되지 않음</td><td>계약을 지키는 구현을 등록</td></tr><tr><td>공통 비용</td><td>전역 상태와 수명</td><td>전역 상태와 숨은 의존</td></tr></tbody></table><div class="callout "><p>static class를 썼다는 사실만으로 Service Locator가 되는 것은 아니다. 계약과 제공자를 연결하는 책임을 본다.</p></div></div></section>
+
+<section class="slide" id="slide-20" data-slide="20 / 24" aria-labelledby="title-20"><div><p class="kicker">Alternative · Direct injection</p><h2 id="title-20">직접 전달하면 의존이 선언에 드러난다</h2><pre data-example-kind="design-comparison"><code>class Notice
+{
+    private IAudioService audio;
+
+    public Notice(IAudioService audio)
+    {
+        this.audio = audio;
+    }
+}</code></pre><p class="source code-caption">설계 비교용 가상 코드 · 같은 계약을 생성자로 직접 받는 대안이다.</p><div class="callout "><p>객체를 만드는 코드가 필요한 참조를 전달한다. 사용 범위가 좁고 전달하기 쉽다면 이 방식이 의존을 찾기 더 쉽다.</p></div></div></section>
+
+<section class="slide" id="slide-21" data-slide="21 / 24" aria-labelledby="title-21"><div><p class="kicker">Costs</p><h2 id="title-21">숨은 의존과 등록 순서가 비용이다</h2><table class="compare"><thead><tr><th>비용</th><th>읽고 확인할 곳</th></tr></thead><tbody><tr><td>겉에서 보이지 않는 의존</td><td>소비자의 본문에서 Services 조회를 찾는다.</td></tr><tr><td>전역 상태</td><td>누가 등록·교체·정리하는지 확인한다.</td></tr><tr><td>초기화 순서</td><td>첫 호출보다 등록이 먼저인지 확인한다.</td></tr><tr><td>조용한 누락</td><td>Null 제공자가 필수 기능 실수를 감추지 않는지 확인한다.</td></tr></tbody></table><div class="callout warning"><p>매개변수가 줄었다는 이유만으로 구조가 단순해졌다고 판단하지 않는다.</p></div></div></section>
+
+<section class="slide" id="slide-22" data-slide="22 / 24" aria-labelledby="title-22"><div><p class="kicker">Judgment</p><h2 id="title-22">참조 전달과 제공자 선택의 범위를 비교한다</h2><div class="two"><div class="panel teal"><h3>적용할 이득이 있는 경우</h3><p>여러 소비자가 작은 공통 계약을 사용하고, 사용할 제공자를 중앙에서 선택할 이유가 있다.</p></div><div class="panel violet"><h3>직접 전달이 단순한 경우</h3><p>소비자가 적고 의존 관계를 선언에 드러내기 쉽다. 제공자를 고르는 위치도 이미 명확하다.</p></div></div><div class="callout "><p>중앙에서 제공자를 선택하는 이득과, 소비자의 의존을 찾는 비용을 함께 비교한다.</p></div></div></section>
+
+<section class="slide" id="slide-23" data-slide="23 / 24" aria-labelledby="title-23"><div><p class="kicker">Check</p><h2 id="title-23">교체되는 것과 남는 의존을 구분한다</h2><div class="two"><div class="panel amber"><h3>질문</h3><p>Services.Audio가 NullAudioService로 바뀌었다. 다음 Play에서 소비자의 조건문을 바꿔야 하는가?</p><p><strong>답:</strong> 아니다. 같은 계약의 Play를 호출하면 새 제공자가 받는다.</p></div><div class="panel teal"><h3>한 가지 더</h3><p>그러면 소비자는 아무것에도 의존하지 않는가?</p><p><strong>답:</strong> 아니다. IAudioService, 요청 데이터, Services 접근 지점에 의존한다.</p></div></div></div></section>
+
+<section class="slide" id="slide-24" data-slide="24 / 24" aria-labelledby="title-24"><div><p class="kicker">Takeaway</p><h2 id="title-24">제공자 선택을 모으고 의존의 비용을 관리한다</h2><ol><li>소비자가 요구하는 작은 계약을 정한다.</li><li>제공자는 같은 계약을 각자의 방식으로 구현한다.</li><li>등록 코드는 제공자를 고르고 소비자는 조회해 요청한다.</li><li>등록 순서·전역 수명·숨은 의존을 함께 살핀다.</li></ol><p class="quote">어디에서 요청하는가와<br>누가 그 요청을 수행하는가를 나눈다.</p><p class="source">더 읽기: <a href="https://gameprogrammingpatterns.com/service-locator.html">Game Programming Patterns · Service Locator</a></p></div></section>
+</div>
+    </main>
+
+    <nav class="controls" aria-label="슬라이드 탐색">
+      <button class="control-btn" id="prevBtn" type="button" aria-label="이전 슬라이드">←</button>
+      <button class="control-btn" id="tocBtn" type="button">목차</button>
+      <span id="slideCounter" aria-live="polite">1 / 24</span>
+      <button class="control-btn" id="nextBtn" type="button" aria-label="다음 슬라이드">→</button>
+    </nav>
+  </div>
+
+  <dialog id="tocDialog" aria-labelledby="tocTitle">
+    <div class="toc-head"><h2 id="tocTitle">전체 목차</h2><button class="control-btn" id="tocCloseBtn" type="button">닫기</button></div>
+    <div class="toc-grid">
+<a class="toc-link" href="#slide-1"><span>01</span>미니 택틱스로 이해하는 Service Locator 패턴</a>
+<a class="toc-link" href="#slide-2"><span>02</span>직접 참조는 필요한 대상을 드러낸다</a>
+<a class="toc-link" href="#slide-3"><span>03</span>같은 요청을 다른 제공자에게 보내고 싶다</a>
+<a class="toc-link" href="#slide-4"><span>04</span>호출하는 곳마다 제공자를 선택한다</a>
+<a class="toc-link" href="#slide-5"><span>05</span>선택 규칙이 여러 곳에서 반복된다</a>
+<a class="toc-link" href="#slide-6"><span>06</span>사용하는 책임과 선택하는 책임을 나눈다</a>
+<a class="toc-link" href="#slide-7"><span>07</span>현재 제공자를 찾는 접근 지점을 둔다</a>
+<a class="toc-link" href="#slide-8"><span>08</span>인터페이스가 요청의 모양을 정한다</a>
+<a class="toc-link" href="#slide-9"><span>09</span>실제 제공자가 계약을 구현한다</a>
+<a class="toc-link" href="#slide-10"><span>10</span>Services는 현재 제공자의 참조를 보관한다</a>
+<a class="toc-link" href="#slide-11"><span>11</span>초기화 코드가 제공자를 만들고 등록한다</a>
+<a class="toc-link" href="#slide-12"><span>12</span>소비자는 조회한 계약에 요청한다</a>
+<a class="toc-link" href="#slide-13"><span>13</span>아무 일도 하지 않는 제공자도 계약을 지킨다</a>
+<a class="toc-link" href="#slide-14"><span>14</span>교체 뒤의 조회는 새 제공자를 얻는다</a>
+<a class="toc-link" href="#slide-15"><span>15</span>호출부를 고치지 않고 제공자를 바꾼다</a>
+<a class="toc-link" href="#slide-16"><span>16</span>등록과 첫 호출 사이의 순서가 필요하다</a>
+<a class="toc-link" href="#slide-17"><span>17</span>전역 참조의 수명도 정해야 한다</a>
+<a class="toc-link" href="#slide-18"><span>18</span>서비스마다 필요한 계약을 작게 둔다</a>
+<a class="toc-link" href="#slide-19"><span>19</span>전역 접근이 같아도 맡은 책임은 다르다</a>
+<a class="toc-link" href="#slide-20"><span>20</span>직접 전달하면 의존이 선언에 드러난다</a>
+<a class="toc-link" href="#slide-21"><span>21</span>숨은 의존과 등록 순서가 비용이다</a>
+<a class="toc-link" href="#slide-22"><span>22</span>참조 전달과 제공자 선택의 범위를 비교한다</a>
+<a class="toc-link" href="#slide-23"><span>23</span>교체되는 것과 남는 의존을 구분한다</a>
+<a class="toc-link" href="#slide-24"><span>24</span>제공자 선택을 모으고 의존의 비용을 관리한다</a>
+</div>
+  </dialog>
+
+  <script>
+    const slides = [...document.querySelectorAll('.slide')];
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const tocBtn = document.getElementById('tocBtn');
+    const tocDialog = document.getElementById('tocDialog');
+    const tocCloseBtn = document.getElementById('tocCloseBtn');
+    const slideCounter = document.getElementById('slideCounter');
+    let current = 0;
+
+    function showSlide(index, updateHash = true) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      slides.forEach((slide, slideIndex) => slide.classList.toggle('is-active', slideIndex === current));
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current === slides.length - 1;
+      slideCounter.textContent = `${current + 1} / ${slides.length}`;
+      if (updateHash) history.replaceState(null, '', `#slide-${current + 1}`);
+    }
+
+    function indexFromHash() {
+      const match = location.hash.match(/^#slide-(\d+)$/);
+      const index = match ? Number(match[1]) - 1 : -1;
+      if (index >= 0 && index < slides.length) return index;
+      history.replaceState(null, '', '#slide-1');
+      return 0;
+    }
+
+    function openToc() { if (!tocDialog.open) tocDialog.showModal(); }
+    function closeToc() { if (tocDialog.open) tocDialog.close(); }
+
+    prevBtn.addEventListener('click', () => showSlide(current - 1));
+    nextBtn.addEventListener('click', () => showSlide(current + 1));
+    tocBtn.addEventListener('click', openToc);
+    tocCloseBtn.addEventListener('click', closeToc);
+    tocDialog.addEventListener('click', (event) => { if (event.target === tocDialog) closeToc(); });
+    tocDialog.querySelectorAll('.toc-link').forEach((link) => link.addEventListener('click', (event) => {
+      event.preventDefault();
+      const index = Number(link.hash.replace('#slide-', '')) - 1;
+      closeToc();
+      showSlide(index);
+    }));
+    window.addEventListener('hashchange', () => showSlide(indexFromHash(), false));
+    window.addEventListener('keydown', (event) => {
+      if (tocDialog.open) return;
+      const tag = document.activeElement?.tagName;
+      if (['ArrowRight','ArrowLeft','PageDown','PageUp','Home','End'].includes(event.key)) event.preventDefault();
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (event.key === 'ArrowRight' || event.key === 'PageDown') showSlide(current + 1);
+      else if (event.key === 'ArrowLeft' || event.key === 'PageUp') showSlide(current - 1);
+      else if (event.key === 'Home') showSlide(0);
+      else if (event.key === 'End') showSlide(slides.length - 1);
+    });
+
+    const initialIndex = indexFromHash();
+    showSlide(initialIndex);
+  </script>
+<noscript><style>
+    html,body{height:auto;overflow:visible}.app,.stage,.deck{display:block;width:100%;height:auto;max-height:none;aspect-ratio:auto;overflow:visible;container-type:normal}
+    .slide,.slide.is-active{position:relative;display:block;overflow:visible;animation:none;margin-bottom:20px}.controls,dialog{display:none}
+    </style></noscript></body>
+</html>
