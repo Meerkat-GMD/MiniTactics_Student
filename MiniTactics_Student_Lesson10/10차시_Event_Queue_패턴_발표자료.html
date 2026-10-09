@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>10차시 · Event Queue 패턴 | 미니 택틱스</title>
+  <style>
+    :root {
+      --bg:#040a13; --slide:#091526; --panel:#10233a; --panel2:#142b45;
+      --text:#eef5ff; --muted:#afbed1; --teal:#55e4cf; --violet:#b8a4ff;
+      --amber:#ffd16f; --red:#ff8c99; --line:#2a405b; --green:#83e58f;
+    }
+    * { box-sizing:border-box; }
+    html, body { width:100%; height:100%; margin:0; overflow:hidden; }
+    body { background:var(--bg); color:var(--text); font-family:"Pretendard","Noto Sans KR",system-ui,sans-serif; word-break:keep-all; overflow-wrap:break-word; }
+    button, a { font:inherit; }
+    button { color:inherit; }
+    .app { min-height:100%; display:grid; grid-template-rows:1fr auto; }
+    .stage { min-height:0; display:grid; place-items:center; padding:14px 18px 6px; }
+    .deck { position:relative; width:min(100%,calc((100vh - 80px) * 16 / 9)); max-height:calc(100vh - 80px); aspect-ratio:16/9; overflow:hidden; border:1px solid #263b56; border-radius:18px; background:var(--slide); box-shadow:0 28px 88px #000a; container-type:inline-size; }
+    .slide { position:absolute; inset:0; display:none; overflow:auto; padding:clamp(28px,3.6cqw,56px) clamp(36px,5cqw,78px); background:radial-gradient(circle at 94% 7%,#253969 0,transparent 27%),linear-gradient(145deg,#0c1a2d 0%,#07121f 74%); }
+    .slide.is-active { display:grid; align-content:center; animation:reveal .24s ease-out; }
+    .slide::after { content:attr(data-slide); position:absolute; right:26px; top:20px; color:#7189a6; font-size:.76rem; font-weight:850; letter-spacing:.13em; }
+    @keyframes reveal { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:none; } }
+    h1,h2,h3,p { margin-top:0; }
+    h1 { max-width:78cqw; margin-bottom:20px; font-size:clamp(2.3rem,5.1cqw,4.9rem); line-height:1.08; letter-spacing:-.05em; }
+    h2 { max-width:82cqw; margin-bottom:clamp(16px,2.2cqw,30px); font-size:clamp(1.75rem,3.35cqw,3.15rem); line-height:1.17; letter-spacing:-.035em; }
+    h3 { margin-bottom:8px; color:var(--teal); font-size:clamp(.98rem,1.38cqw,1.3rem); }
+    p,li { font-size:clamp(.83rem,1.23cqw,1.13rem); line-height:1.53; }
+    p { margin-bottom:.72em; }
+    ul,ol { margin:.1em 0 0; padding-left:1.25em; }
+    li { margin:.38em 0; }
+    li::marker { color:var(--teal); font-weight:800; }
+    strong { color:#fff; }
+    .kicker { margin:0 0 7px; color:var(--teal); font-size:clamp(.68rem,1cqw,.9rem); font-weight:900; letter-spacing:.13em; text-transform:uppercase; }
+    .subtitle { max-width:72cqw; color:var(--muted); font-size:clamp(1rem,1.68cqw,1.5rem); line-height:1.5; }
+    .accent { color:var(--teal); } .violet { color:var(--violet); } .amber { color:var(--amber); } .red { color:var(--red); } .green { color:var(--green); }
+    .big { max-width:78cqw; font-size:clamp(1.28rem,2.3cqw,2.12rem); line-height:1.45; letter-spacing:-.02em; }
+    .quote { max-width:76cqw; margin:12px 0; padding-left:22px; border-left:5px solid var(--violet); font-size:clamp(1.2rem,2.25cqw,2rem); line-height:1.43; font-weight:760; }
+    .two { display:grid; grid-template-columns:1fr 1fr; gap:clamp(15px,2.2cqw,30px); align-items:stretch; }
+    .wide { display:grid; grid-template-columns:1.3fr .85fr; gap:clamp(18px,2.6cqw,36px); align-items:center; }
+    .panel { padding:clamp(14px,1.8cqw,23px); border:1px solid var(--line); border-radius:14px; background:#0f2138d9; }
+    .panel.teal { border-top:4px solid var(--teal); } .panel.violet { border-top:4px solid var(--violet); } .panel.amber { border-top:4px solid var(--amber); } .panel.redline { border-top:4px solid var(--red); }
+    .callout { margin-top:15px; padding:13px 18px; border-left:4px solid var(--teal); border-radius:8px; background:#10243c; }
+    .callout.warning { border-left-color:var(--amber); } .callout.danger { border-left-color:var(--red); }
+    .callout p:last-child,.panel p:last-child { margin-bottom:0; }
+    pre { margin:10px 0 0; padding:clamp(13px,1.65cqw,21px); overflow:auto; border:1px solid var(--line); border-radius:12px; background:#030a13; color:#dceafa; white-space:pre; font:clamp(.68rem,1.04cqw,.96rem)/1.58 Consolas,"D2Coding",monospace; }
+    p code,li code { padding:.08em .32em; border:1px solid #344d69; border-radius:5px; background:#081522; color:var(--amber); font-family:Consolas,"D2Coding",monospace; font-size:.92em; }
+    .code-focus { color:var(--amber); font-weight:800; }
+    .source { margin-top:10px; color:#7f94ad; font-size:clamp(.62rem,.82cqw,.76rem); }
+    .flow { display:grid; grid-template-columns:repeat(7,auto); align-items:center; justify-content:center; gap:9px; margin-top:22px; }
+    .node { min-width:9cqw; min-height:66px; display:grid; place-items:center; padding:10px 12px; border:1px solid #3b5575; border-radius:12px; background:var(--panel); text-align:center; font-size:clamp(.7rem,.95cqw,.9rem); font-weight:800; }
+    .arrow { color:var(--teal); font-size:1.35rem; font-weight:900; }
+    .state-board { display:grid; grid-template-columns:1fr auto 1fr; gap:18px; align-items:center; margin-top:14px; }
+    .coord { min-height:140px; display:grid; place-items:center; padding:22px; border:1px solid var(--line); border-radius:14px; background:#07111e; text-align:center; font:800 clamp(1rem,1.7cqw,1.55rem)/1.6 Consolas,monospace; }
+    .missing { color:var(--red); text-decoration:line-through; text-decoration-thickness:3px; }
+    .compare { width:100%; border-collapse:collapse; font-size:clamp(.72rem,1cqw,.94rem); line-height:1.42; }
+    .compare th,.compare td { padding:10px 13px; border:1px solid var(--line); vertical-align:top; text-align:left; }
+    .compare th { color:var(--teal); background:#071321; }
+    .stack { width:min(440px,70cqw); margin:14px auto 0; display:grid; gap:8px; }
+    .stack-item { padding:11px 16px; border:1px solid #405c7d; border-radius:9px; background:var(--panel); text-align:center; font-weight:800; }
+    .stack-item.top { border-color:var(--amber); color:var(--amber); }
+    .question { padding:clamp(20px,2.7cqw,38px); border:1px solid #5b4e25; border-radius:15px; background:linear-gradient(135deg,#221d10,#101c2d); }
+    .question .big { margin-bottom:0; }
+    .role-map { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:18px; }
+    .role { min-height:125px; padding:15px; border-top:4px solid var(--teal); border-radius:12px; background:var(--panel); }
+    .role:nth-child(2) { border-color:var(--violet); } .role:nth-child(3) { border-color:var(--amber); } .role:nth-child(4) { border-color:var(--red); }
+    .role b { display:block; margin-bottom:7px; font-size:clamp(.82rem,1.12cqw,1rem); }
+    .role span { color:var(--muted); font-size:clamp(.7rem,.92cqw,.86rem); line-height:1.45; }
+    .controls { min-height:60px; display:flex; align-items:center; justify-content:center; gap:9px; padding:7px 14px 10px; }
+    .control-btn { min-width:44px; min-height:40px; padding:7px 15px; border:1px solid #354c68; border-radius:10px; background:#0d1d30; cursor:pointer; }
+    .control-btn:hover:not(:disabled) { border-color:var(--teal); color:var(--teal); }
+    .control-btn:focus-visible,.toc-link:focus-visible { outline:3px solid var(--amber); outline-offset:2px; }
+    .control-btn:disabled { opacity:.35; cursor:not-allowed; }
+    #slideCounter { min-width:76px; color:var(--muted); text-align:center; font-weight:850; font-variant-numeric:tabular-nums; }
+    dialog { width:min(780px,calc(100% - 32px)); max-height:min(80vh,740px); padding:0; border:1px solid #405b7a; border-radius:18px; background:#091526; color:var(--text); box-shadow:0 30px 100px #000d; }
+    dialog::backdrop { background:#020710df; backdrop-filter:blur(4px); }
+    .toc-head { position:sticky; top:0; z-index:2; display:flex; align-items:center; justify-content:space-between; padding:18px 21px; border-bottom:1px solid var(--line); background:#091526; }
+    .toc-head h2 { margin:0; font-size:1.4rem; }
+    .toc-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; padding:16px; }
+    .toc-link { display:grid; grid-template-columns:34px 1fr; gap:8px; padding:9px 11px; border:1px solid transparent; border-radius:8px; color:var(--muted); text-decoration:none; font-size:.88rem; }
+    .toc-link:hover { color:var(--text); background:var(--panel); border-color:var(--line); }
+    .toc-link span { color:var(--teal); font-weight:900; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @media (max-height:650px) and (min-width:721px) {
+      .slide { padding:24px 40px; }
+      h1 { font-size:3rem; } h2 { font-size:1.72rem; margin-bottom:12px; } h3 { font-size:.91rem; }
+      p,li { font-size:.76rem; line-height:1.38; } li { margin:.25em 0; }
+      .panel { padding:10px 13px; } .callout { margin-top:8px; padding:8px 13px; }
+      pre { margin-top:6px; padding:9px 12px; font-size:.64rem; line-height:1.4; }
+      .node { min-height:48px; padding:6px 9px; font-size:.65rem; }
+      .role { min-height:90px; padding:10px; } .coord { min-height:105px; padding:14px; }
+    }
+    @media (max-width:720px) {
+      .stage { padding:0; }
+      .deck { width:100%; height:calc(100vh - 60px); max-height:none; aspect-ratio:auto; border:0; border-radius:0; }
+      .slide { padding:48px 21px 28px; }
+      .slide.is-active { align-content:start; }
+      .two,.wide,.state-board,.role-map { grid-template-columns:1fr; }
+      .flow { grid-template-columns:1fr; }
+      .flow .arrow { transform:rotate(90deg); }
+      .toc-grid { grid-template-columns:1fr; }
+      h1 { font-size:clamp(2.05rem,10.5cqw,3.25rem); }
+      h2 { font-size:clamp(1.6rem,7.2cqw,2.25rem); }
+      p,li { font-size:1rem; }
+      pre { font-size:.75rem; white-space:pre-wrap; overflow-wrap:anywhere; }
+    }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; } }
+    @media print {
+      html,body { height:auto; overflow:visible; background:#fff; color:#111; }
+      .app,.stage,.deck { display:block; width:auto; height:auto; max-height:none; padding:0; overflow:visible; border:0; box-shadow:none; }
+      .slide,.slide.is-active { position:relative; display:grid; width:100%; min-height:175mm; padding:15mm; break-after:page; overflow:hidden; background:#fff; color:#111; animation:none; }
+      .slide:last-child { break-after:auto; }
+      .controls,dialog { display:none !important; }
+      h1,h2,h3,p,li,strong,.subtitle,.kicker,.accent,.violet,.amber,.red,.green,.source { color:#111; }
+      .panel,.callout,pre,.node,.coord,.role,.stack-item,.question,.compare th,.compare td { background:#fff; color:#111; border-color:#777; }
+    }
+  </style>
+<style id="layout-safety">
+    .slide > div,.two > div,.wide > div,.role,.node { min-width:0; }
+    .compare { table-layout:fixed; overflow-wrap:anywhere; }
+    .role b,.role span { overflow-wrap:anywhere; }
+    @media (max-width:720px) { .state-board > .arrow { transform:rotate(90deg); justify-self:center; } .flow > .arrow { justify-self:center; } }
+    @media print { .deck { container-type:normal; aspect-ratio:auto; } .slide,.slide.is-active { height:auto; overflow:visible; break-inside:avoid; } }
+    </style>
+</head>
+<body>
+  <div class="app">
+    <main class="stage">
+      <div class="deck" id="deck">
+<section class="slide is-active" id="slide-1" data-slide="01 / 24" aria-labelledby="title-1"><div><p class="kicker">Mini Tactics · Lesson 10</p><h1 id="title-1">미니 택틱스로 이해하는<br><span class="accent">Event Queue 패턴</span></h1><p class="subtitle">발생한 일을 기록해 두고,<br>소비자가 정한 시점에 순서대로 처리한다.</p></div></section>
+
+<section class="slide" id="slide-2" data-slide="02 / 24" aria-labelledby="title-2"><div><p class="kicker">Starting point</p><h2 id="title-2">직접 호출은 지금 처리할 때 단순하다</h2><pre data-example-kind="design-comparison"><code>void Report(string message)
+{
+    display.Show(message);
+    history.Add(message);
+}</code></pre><p class="source code-caption">설계 비교용 가상 코드 · 호출한 순간 두 작업을 직접 처리한다고 가정한 첫 시도다.</p><div class="callout "><p>호출 흐름 안에서 표시와 기록을 끝낸다. 결과가 지금 필요하고 작업이 짧다면 읽기 쉬운 방식이다.</p></div></div></section>
+
+<section class="slide" id="slide-3" data-slide="03 / 24" aria-labelledby="title-3"><div><p class="kicker">New requirement</p><h2 id="title-3">발생 속도와 처리 속도를 나누고 싶다</h2><div class="question"><p class="big">짧은 순간에 여러 일이 발생했다.<br>각 사실을 잃지 않고,<br>처리하는 쪽이 순서와 시간을 관리할 수 있을까?</p></div><div class="callout "><p>무엇이 발생했는지 기록하는 일과, 그것을 지금 처리하는 일을 분리해야 한다.</p></div></div></section>
+
+<section class="slide" id="slide-4" data-slide="04 / 24" aria-labelledby="title-4"><div><p class="kicker">First attempt</p><h2 id="title-4">첫 시도는 발생한 곳에서 작업을 끝낸다</h2><pre data-example-kind="design-comparison"><code>void Changed(int before, int after)
+{
+    display.Show(after);
+    display.ShowDifference(after - before);
+}</code></pre><p class="source code-caption">설계 비교용 가상 코드 · 변경을 알린 호출 흐름에서 즉시 표시한다고 가정한 코드다.</p><div class="two"><div class="panel teal"><h3>장점</h3><p>어디서 어떤 처리가 일어나는지 따라가기 쉽다.</p></div><div class="panel amber"><h3>새 요구와 만나는 지점</h3><p>여러 변경을 시간을 두고 처리하려면 호출자도 표시 작업의 진행을 알아야 한다.</p></div></div></div></section>
+
+<section class="slide" id="slide-5" data-slide="05 / 24" aria-labelledby="title-5"><div><p class="kicker">Observe the limit</p><h2 id="title-5">즉시 통지도 처리 시점을 함께 묶을 수 있다</h2><div class="flow"><div class="node">상태 변경</div><div class="arrow">→</div><div class="node">알림 발생</div><div class="arrow">→</div><div class="node">수신자 처리</div><div class="arrow">→</div><div class="node">호출자 계속 진행</div></div><div class="two"><div class="panel teal"><h3>누가 받는가</h3><p>Observer는 구독자를 등록해 수신자를 나눌 수 있다.</p></div><div class="panel violet"><h3>언제 받는가</h3><p>일반적인 즉시 이벤트는 같은 호출 흐름에서 구독자의 코드를 실행한다.</p></div></div><div class="callout "><p>수신자를 몰라도 처리 시점은 묶여 있을 수 있다. 시간 분리에는 별도의 보관 지점이 필요하다.</p></div></div></section>
+
+<section class="slide" id="slide-6" data-slide="06 / 24" aria-labelledby="title-6"><div><p class="kicker">Find the boundary</p><h2 id="title-6">발생 기록과 처리 시점을 나눈다</h2><div class="two"><div class="panel teal"><h3>생산자의 책임</h3><p>무슨 일이 생겼는지 필요한 값을 기록해서 보낸다.</p><p>받는 쪽의 작업이 끝날 때까지 기다릴 필요가 줄어든다.</p></div><div class="panel violet"><h3>소비자의 책임</h3><p>기록을 꺼낼 시점과 처리 방법을 정한다.</p><p>처리 중에도 새 기록은 큐의 뒤에 쌓일 수 있다.</p></div></div><p class="quote">전송을 마쳤다는 사실과 처리를 마쳤다는 사실은 다르다.</p></div></section>
+
+<section class="slide" id="slide-7" data-slide="07 / 24" aria-labelledby="title-7"><div><p class="kicker">Event Queue</p><h2 id="title-7">큐가 아직 처리하지 않은 기록을 보관한다</h2><div class="role-map"><div class="role"><b>생산자 · Unit 등</b><span>발생 시점의 값을 기록하고 큐에 넣는다.</span></div><div class="role"><b>데이터 · PresentationEvent</b><span>종류·대상·위치·변경 전후 값을 보관한다.</span></div><div class="role"><b>큐 · Queue</b><span>아직 처리하지 않은 항목을 순서대로 보관한다.</span></div><div class="role"><b>소비자 · PresentationQueue</b><span>앞에서 하나씩 꺼내 처리를 끝낸다.</span></div></div><div class="callout "><p>역할은 네 개여도 class가 반드시 네 개여야 하는 것은 아니다. 이 구현에서는 큐의 보관과 소비를 한 컴포넌트가 맡는다.</p></div></div></section>
+
+<section class="slide" id="slide-8" data-slide="08 / 24" aria-labelledby="title-8"><div><p class="kicker">FIFO</p><h2 id="title-8">먼저 넣은 항목을 먼저 꺼낸다</h2><div class="stack"><div class="stack-item top">앞 · A가 먼저 들어왔다</div><div class="stack-item">B</div><div class="stack-item">뒤 · C가 나중에 들어왔다</div></div><pre data-source-file="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationQueue.cs" data-source-start="15" data-source-end="15" data-source-sha256="6d0d7871255dc262a42ae1946dcaab015300f6c2970b0d2404f0ecf1672a8144"><code>private readonly Queue&lt;PresentationEvent&gt; _events = new Queue&lt;PresentationEvent&gt;();</code></pre><p class="source code-caption">실제 코드 · PresentationQueue.cs 15–15행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>A, B, C 순서로 넣었다면 꺼내는 순서도 A, B, C다. 이것이 FIFO다. 최근 항목부터 꺼내는 Stack과 구분한다.</p></div></div></section>
+
+<section class="slide" id="slide-9" data-slide="09 / 24" aria-labelledby="title-9"><div><p class="kicker">Actual code · Event data</p><h2 id="title-9">나중에 사용할 값을 기록한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationEvent.cs" data-source-start="12" data-source-end="17" data-source-sha256="60427ce0b7ba331755e999ea8239dbfa585c3b9c09075812d3b376cc5967d1df"><code>public Vector3 From { get; }
+public Vector3 To { get; }
+public Vector3 TargetPosition { get; }
+public int BeforeHp { get; }
+public int AfterHp { get; }
+public int MaxHp { get; }</code></pre><p class="source code-caption">실제 코드 · PresentationEvent.cs 12–17행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>위치와 HP는 처리 시점에 이미 달라졌을 수 있다. 발생 당시의 값을 기록한 스냅샷을 사용한다. 스냅샷은 어떤 시점의 상태를 복사해 둔 데이터다.</p></div></div></section>
+
+<section class="slide" id="slide-10" data-slide="10 / 24" aria-labelledby="title-10"><div><p class="kicker">Actual code · Snapshot</p><h2 id="title-10">생성할 때 현재 값을 이벤트 데이터에 복사한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationEvent.cs" data-source-start="46" data-source-end="51" data-source-sha256="0faef9928cbbe1a221cf3bab2bd890d2eb7d322a6e5a9e044698fdd3ea794f81"><code>public static PresentationEvent HealthChanged(Unit unit, int before, int after)
+{
+    return new PresentationEvent(EventKind.Health, unit,
+        unit.transform.position, unit.transform.position,
+        beforeHp: before, afterHp: after, maxHp: unit.MaxHp);
+}</code></pre><p class="source code-caption">실제 코드 · PresentationEvent.cs 46–51행 · 해당 메서드 전체다.</p><div class="callout "><p>before와 after는 이번 변경의 전후 값이다. 위치와 최대 HP도 여기서 읽는다. 소비자가 나중에 현재 HP를 읽어서 과거 변화량을 다시 계산하지 않는다.</p></div></div></section>
+
+<section class="slide" id="slide-11" data-slide="11 / 24" aria-labelledby="title-11"><div><p class="kicker">Actual code · Producer</p><h2 id="title-11">규칙 값은 지금 바뀌고 기록은 큐로 간다</h2><pre data-source-file="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/Unit.cs" data-source-start="28" data-source-end="31" data-source-sha256="a37352784192d85bbe59e52d9bf8314cf8e8cf8a711aa7680f94d687c05ae49e"><code>int before = CurrentHp;
+CurrentHp = Mathf.Max(0, CurrentHp - damage);
+bool queued = before != CurrentHp &amp;&amp; TryPresent(PresentationEvent.HealthChanged(this, before, CurrentHp));
+HpChanged?.Invoke(this);</code></pre><p class="source code-caption">실제 코드 · Unit.cs 28–31행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>CurrentHp는 즉시 바뀐다. BeforeHp와 AfterHp를 가진 기록을 보낸 뒤 알림을 발행한다. 규칙 상태와 표시의 진행 상태를 별도로 다룬다.</p></div></div></section>
+
+<section class="slide" id="slide-12" data-slide="12 / 24" aria-labelledby="title-12"><div><p class="kicker">Actual code · Enqueue</p><h2 id="title-12">첫 전송이 소비자를 한 번 시작한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationQueue.cs" data-source-start="23" data-source-end="29" data-source-sha256="82dad3aee80b1ef8da7458ca564a063d4a20917df55e4f3a9cf5c1f5bfe5be1c"><code>_events.Enqueue(item);
+if (!IsBusy)
+{
+    IsBusy = true;
+    _cancellation = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
+    ConsumeAsync(_cancellation.Token).Forget();
+}</code></pre><p class="source code-caption">실제 코드 · PresentationQueue.cs 23–29행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>처리 중이면 뒤에 넣기만 한다. 아직 처리 중이 아니면 IsBusy를 먼저 true로 바꾸고 소비를 시작한다. 같은 큐를 동시에 여러 소비자가 처리하지 않게 하는 경계다.</p></div></div></section>
+
+<section class="slide" id="slide-13" data-slide="13 / 24" aria-labelledby="title-13"><div><p class="kicker">Actual code · Dequeue</p><h2 id="title-13">현재 항목이 끝난 뒤 다음 항목을 꺼낸다</h2><pre data-source-file="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationQueue.cs" data-source-start="37" data-source-end="43" data-source-sha256="1a1f0d2ec29063fb19b8efabb51d6f810880dbb8309af6a828228b1bde08421c"><code>await UniTask.Yield(token);
+while (_events.Count &gt; 0)
+    await PlayAsync(_events.Dequeue(), token);
+ResetUnits();
+IsBusy = false;
+_cancellation.Dispose();
+_cancellation = null;</code></pre><p class="source code-caption">실제 코드 · PresentationQueue.cs 37–43행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>while은 대기 중인 항목이 있는 동안 반복한다. PlayAsync가 끝날 때까지 다음 항목을 꺼내지 않는다. 큐가 처리 스레드를 자동으로 만드는 것은 아니다.</p></div></div></section>
+
+<section class="slide" id="slide-14" data-slide="14 / 24" aria-labelledby="title-14"><div><p class="kicker">Pending and running</p><h2 id="title-14">대기열이 비어도 처리는 끝나지 않았을 수 있다</h2><table class="compare"><thead><tr><th>상태</th><th>큐 안의 항목</th><th>IsBusy</th></tr></thead><tbody><tr><td>처음</td><td>A</td><td>true</td></tr><tr><td>A를 꺼내 처리 중</td><td>없음</td><td>true</td></tr><tr><td>A의 처리까지 완료</td><td>없음</td><td>false</td></tr></tbody></table><div class="callout "><p>Dequeue는 항목을 목록에서 꺼낸다. 그 항목을 처리하는 시간은 그 뒤에 남아 있다. Count가 0이라는 사실만으로 전체 완료를 판단하면 이 시간을 놓친다.</p></div></div></section>
+
+<section class="slide" id="slide-15" data-slide="15 / 24" aria-labelledby="title-15"><div><p class="kicker">Trace · FIFO</p><h2 id="title-15">전송과 처리를 번갈아 따라간다</h2><table class="compare"><thead><tr><th>순서</th><th>작업</th><th>큐의 앞에서 뒤</th><th>처리한 항목</th></tr></thead><tbody><tr><td>0</td><td>빈 큐로 시작</td><td>없음</td><td>없음</td></tr><tr><td>1</td><td>A 전송</td><td>A</td><td>없음</td></tr><tr><td>2</td><td>B 전송</td><td>A, B</td><td>없음</td></tr><tr><td>3</td><td>한 항목 처리</td><td>B</td><td>A</td></tr><tr><td>4</td><td>C 전송</td><td>B, C</td><td>A</td></tr><tr><td>5</td><td>한 항목 처리</td><td>C</td><td>A, B</td></tr></tbody></table><div class="callout "><p>이 표는 한 항목을 처리할 때마다 멈춰 본 상태다. 현재 구현은 앞 항목의 처리가 끝나면 남은 항목을 계속 소비한다.</p></div></div></section>
+
+<section class="slide" id="slide-16" data-slide="16 / 24" aria-labelledby="title-16"><div><p class="kicker">Trace · Values</p><h2 id="title-16">현재 값 하나로는 중간 변화가 사라진다</h2><p>출발 HP는 12다. 같은 호출 흐름에서 5 감소, 3 감소, 5 증가가 차례로 발생했다고 가정한다.</p><table class="compare"><thead><tr><th>발생한 변경</th><th>기록한 Before / After</th><th>나중에 표시할 값</th></tr></thead><tbody><tr><td>12에서 5 감소</td><td>12 / 7</td><td>HP 7, 변화 −5</td></tr><tr><td>7에서 3 감소</td><td>7 / 4</td><td>HP 4, 변화 −3</td></tr><tr><td>4에서 5 증가</td><td>4 / 9</td><td>HP 9, 변화 +5</td></tr></tbody></table><div class="callout "><p>규칙 HP는 이미 9여도 첫 기록은 7을 표시해야 한다. 모든 기록에서 현재 HP 9를 읽으면 중간 값 7과 4를 잃는다.</p></div></div></section>
+
+<section class="slide" id="slide-17" data-slide="17 / 24" aria-labelledby="title-17"><div><p class="kicker">Actual code · Consumer</p><h2 id="title-17">소비자는 기록된 전후 값으로 계산한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationQueue.cs" data-source-start="75" data-source-end="76" data-source-sha256="d3d0c0f97e6994782121736dbf1d093fb49b183110902093f37b97189ec3de59"><code>item.Actor.GetComponentInChildren&lt;UnitHealthBar&gt;(true).Show(item.AfterHp, item.MaxHp);
+int change = item.AfterHp - item.BeforeHp;</code></pre><p class="source code-caption">실제 코드 · PresentationQueue.cs 75–76행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>item.AfterHp가 표시할 값이고 AfterHp − BeforeHp가 실제 변화량이다. 최대 HP에서 회복이 잘렸다면 잘린 뒤의 실제 차이를 표시한다.</p></div></div></section>
+
+<section class="slide" id="slide-18" data-slide="18 / 24" aria-labelledby="title-18"><div><p class="kicker">Values and references</p><h2 id="title-18">복사한 값과 보관한 참조를 구분한다</h2><div class="two"><div class="panel teal"><h3>값을 복사한 기록</h3><p>BeforeHp, AfterHp, From, To는 그 시점의 값이다. 원래 객체가 나중에 달라져도 기록의 값은 변하지 않는다.</p></div><div class="panel violet"><h3>객체를 찾는 참조</h3><p>Actor는 표시할 객체를 찾는 참조다. readonly 기록 안에 있어도 대상 객체 자체가 불변이 되는 것은 아니다.</p></div></div><div class="callout "><p>참조 대상이 먼저 사라지면 늦은 처리가 실패할 수 있다. 기록의 내용과 대상 객체의 수명을 함께 설계한다.</p></div></div></section>
+
+<section class="slide" id="slide-19" data-slide="19 / 24" aria-labelledby="title-19"><div><p class="kicker">Actual code · Cancellation</p><h2 id="title-19">취소는 남은 처리를 버리는 결정이다</h2><pre data-source-file="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationQueue.cs" data-source-start="89" data-source-end="93" data-source-sha256="4ca1abadf676aea3a668c659d67610bb4d7a883655152bea31be9eae440ecd23"><code>_cancellation?.Cancel();
+_cancellation?.Dispose();
+_cancellation = null;
+_events.Clear();
+ResetUnits();</code></pre><p class="source code-caption">실제 코드 · PresentationQueue.cs 89–93행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>진행 중인 처리를 취소하고 대기 항목을 비운다. ResetUnits는 표시를 현재 규칙 상태와 맞춘다. 이전 HP나 위치로 되돌리는 Undo가 아니다.</p></div></div></section>
+
+<section class="slide" id="slide-20" data-slide="20 / 24" aria-labelledby="title-20"><div><p class="kicker">Observer and queue</p><h2 id="title-20">수신자 분리와 시간 분리를 비교한다</h2><table class="compare"><thead><tr><th>방식</th><th>누가 처리하는가</th><th>언제 처리하는가</th></tr></thead><tbody><tr><td>직접 호출</td><td>호출자가 참조한 대상</td><td>호출 흐름 안</td></tr><tr><td>즉시 Observer</td><td>등록한 구독자</td><td>일반적으로 알림을 발행한 흐름 안</td></tr><tr><td>Event Queue</td><td>큐의 소비자</td><td>소비자가 꺼내는 시점</td></tr></tbody></table><div class="callout "><p>세 방식은 함께 사용할 수 있다. 현재 규칙의 즉시 알림과 나중에 처리할 기록은 맡은 시간이 다르다.</p></div></div></section>
+
+<section class="slide" id="slide-21" data-slide="21 / 24" aria-labelledby="title-21"><div><p class="kicker">Event and command</p><h2 id="title-21">같은 큐에도 데이터의 의미는 다를 수 있다</h2><div class="two"><div class="panel teal"><h3>이벤트 기록</h3><p>이미 생긴 변경이나 처리할 알림을 전달한다. 여기서는 규칙이 바뀐 결과를 화면에 표현한다.</p></div><div class="panel violet"><h3>명령 요청</h3><p>무언가를 실행하라고 요청한다. 실행을 거부하거나 실패했을 때의 의미를 따로 정해야 한다.</p></div></div><div class="callout "><p>둘 다 큐에 넣을 수 있지만 큐라는 자료구조만으로 기록의 의미가 정해지지는 않는다.</p></div></div></section>
+
+<section class="slide" id="slide-22" data-slide="22 / 24" aria-labelledby="title-22"><div><p class="kicker">Costs</p><h2 id="title-22">지연과 적체, 수명 관리가 비용이다</h2><table class="compare"><thead><tr><th>비용</th><th>생기는 이유</th></tr></thead><tbody><tr><td>처리 지연</td><td>전송 뒤에 기다리는 시간이 있다.</td></tr><tr><td>큐 적체</td><td>생산량이 처리량보다 많으면 항목이 쌓인다.</td></tr><tr><td>데이터 수명</td><td>참조 대상과 값이 처리할 때 달라질 수 있다.</td></tr><tr><td>추적의 어려움</td><td>발생 위치와 처리 위치·시간이 나뉜다.</td></tr></tbody></table><div class="callout warning"><p>순서를 지켰다고 충분하지 않다. 얼마나 늦어져도 괜찮은지, 언제 비울지까지 정해야 한다.</p></div></div></section>
+
+<section class="slide" id="slide-23" data-slide="23 / 24" aria-labelledby="title-23"><div><p class="kicker">Judgment · Check</p><h2 id="title-23">지금 결과가 필요한 호출인지 먼저 판단한다</h2><div class="two"><div class="panel amber"><h3>질문</h3><p>지금 행동 가능한지 bool을 받아 바로 분기해야 한다. 큐가 단순해질까?</p><p><strong>답:</strong> 보통 직접 반환이 더 단순하다. 큐를 쓰면 답을 기다리는 흐름까지 만들어야 한다.</p></div><div class="panel teal"><h3>반대로 이득인 경우</h3><p>발생한 여러 일을 순서대로, 소비자의 처리 시간에 맞춰 전달해야 한다. 생산자는 처리 완료를 즉시 알 필요가 없다.</p></div></div></div></section>
+
+<section class="slide" id="slide-24" data-slide="24 / 24" aria-labelledby="title-24"><div><p class="kicker">Takeaway</p><h2 id="title-24">기록할 사실과 처리할 시간을 함께 정한다</h2><ol><li>생산자는 필요한 발생 당시 값을 기록한다.</li><li>큐는 대기 항목을 FIFO로 보관한다.</li><li>소비자는 현재 처리를 끝낸 뒤 다음 항목을 꺼낸다.</li><li>지연·적체·참조 수명·취소의 의미를 정한다.</li></ol><p class="quote">시간을 나누었을 때에도 기록의 뜻이 유지되어야 한다.</p><p class="source">더 읽기: <a href="https://gameprogrammingpatterns.com/event-queue.html">Game Programming Patterns · Event Queue</a></p></div></section>
+</div>
+    </main>
+
+    <nav class="controls" aria-label="슬라이드 탐색">
+      <button class="control-btn" id="prevBtn" type="button" aria-label="이전 슬라이드">←</button>
+      <button class="control-btn" id="tocBtn" type="button">목차</button>
+      <span id="slideCounter" aria-live="polite">1 / 24</span>
+      <button class="control-btn" id="nextBtn" type="button" aria-label="다음 슬라이드">→</button>
+    </nav>
+  </div>
+
+  <dialog id="tocDialog" aria-labelledby="tocTitle">
+    <div class="toc-head"><h2 id="tocTitle">전체 목차</h2><button class="control-btn" id="tocCloseBtn" type="button">닫기</button></div>
+    <div class="toc-grid">
+<a class="toc-link" href="#slide-1"><span>01</span>미니 택틱스로 이해하는 Event Queue 패턴</a>
+<a class="toc-link" href="#slide-2"><span>02</span>직접 호출은 지금 처리할 때 단순하다</a>
+<a class="toc-link" href="#slide-3"><span>03</span>발생 속도와 처리 속도를 나누고 싶다</a>
+<a class="toc-link" href="#slide-4"><span>04</span>첫 시도는 발생한 곳에서 작업을 끝낸다</a>
+<a class="toc-link" href="#slide-5"><span>05</span>즉시 통지도 처리 시점을 함께 묶을 수 있다</a>
+<a class="toc-link" href="#slide-6"><span>06</span>발생 기록과 처리 시점을 나눈다</a>
+<a class="toc-link" href="#slide-7"><span>07</span>큐가 아직 처리하지 않은 기록을 보관한다</a>
+<a class="toc-link" href="#slide-8"><span>08</span>먼저 넣은 항목을 먼저 꺼낸다</a>
+<a class="toc-link" href="#slide-9"><span>09</span>나중에 사용할 값을 기록한다</a>
+<a class="toc-link" href="#slide-10"><span>10</span>생성할 때 현재 값을 이벤트 데이터에 복사한다</a>
+<a class="toc-link" href="#slide-11"><span>11</span>규칙 값은 지금 바뀌고 기록은 큐로 간다</a>
+<a class="toc-link" href="#slide-12"><span>12</span>첫 전송이 소비자를 한 번 시작한다</a>
+<a class="toc-link" href="#slide-13"><span>13</span>현재 항목이 끝난 뒤 다음 항목을 꺼낸다</a>
+<a class="toc-link" href="#slide-14"><span>14</span>대기열이 비어도 처리는 끝나지 않았을 수 있다</a>
+<a class="toc-link" href="#slide-15"><span>15</span>전송과 처리를 번갈아 따라간다</a>
+<a class="toc-link" href="#slide-16"><span>16</span>현재 값 하나로는 중간 변화가 사라진다</a>
+<a class="toc-link" href="#slide-17"><span>17</span>소비자는 기록된 전후 값으로 계산한다</a>
+<a class="toc-link" href="#slide-18"><span>18</span>복사한 값과 보관한 참조를 구분한다</a>
+<a class="toc-link" href="#slide-19"><span>19</span>취소는 남은 처리를 버리는 결정이다</a>
+<a class="toc-link" href="#slide-20"><span>20</span>수신자 분리와 시간 분리를 비교한다</a>
+<a class="toc-link" href="#slide-21"><span>21</span>같은 큐에도 데이터의 의미는 다를 수 있다</a>
+<a class="toc-link" href="#slide-22"><span>22</span>지연과 적체, 수명 관리가 비용이다</a>
+<a class="toc-link" href="#slide-23"><span>23</span>지금 결과가 필요한 호출인지 먼저 판단한다</a>
+<a class="toc-link" href="#slide-24"><span>24</span>기록할 사실과 처리할 시간을 함께 정한다</a>
+</div>
+  </dialog>
+
+  <script>
+    const slides = [...document.querySelectorAll('.slide')];
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const tocBtn = document.getElementById('tocBtn');
+    const tocDialog = document.getElementById('tocDialog');
+    const tocCloseBtn = document.getElementById('tocCloseBtn');
+    const slideCounter = document.getElementById('slideCounter');
+    let current = 0;
+
+    function showSlide(index, updateHash = true) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      slides.forEach((slide, slideIndex) => slide.classList.toggle('is-active', slideIndex === current));
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current === slides.length - 1;
+      slideCounter.textContent = `${current + 1} / ${slides.length}`;
+      if (updateHash) history.replaceState(null, '', `#slide-${current + 1}`);
+    }
+
+    function indexFromHash() {
+      const match = location.hash.match(/^#slide-(\d+)$/);
+      const index = match ? Number(match[1]) - 1 : -1;
+      if (index >= 0 && index < slides.length) return index;
+      history.replaceState(null, '', '#slide-1');
+      return 0;
+    }
+
+    function openToc() { if (!tocDialog.open) tocDialog.showModal(); }
+    function closeToc() { if (tocDialog.open) tocDialog.close(); }
+
+    prevBtn.addEventListener('click', () => showSlide(current - 1));
+    nextBtn.addEventListener('click', () => showSlide(current + 1));
+    tocBtn.addEventListener('click', openToc);
+    tocCloseBtn.addEventListener('click', closeToc);
+    tocDialog.addEventListener('click', (event) => { if (event.target === tocDialog) closeToc(); });
+    tocDialog.querySelectorAll('.toc-link').forEach((link) => link.addEventListener('click', (event) => {
+      event.preventDefault();
+      const index = Number(link.hash.replace('#slide-', '')) - 1;
+      closeToc();
+      showSlide(index);
+    }));
+    window.addEventListener('hashchange', () => showSlide(indexFromHash(), false));
+    window.addEventListener('keydown', (event) => {
+      if (tocDialog.open) return;
+      const tag = document.activeElement?.tagName;
+      if (['ArrowRight','ArrowLeft','PageDown','PageUp','Home','End'].includes(event.key)) event.preventDefault();
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (event.key === 'ArrowRight' || event.key === 'PageDown') showSlide(current + 1);
+      else if (event.key === 'ArrowLeft' || event.key === 'PageUp') showSlide(current - 1);
+      else if (event.key === 'Home') showSlide(0);
+      else if (event.key === 'End') showSlide(slides.length - 1);
+    });
+
+    const initialIndex = indexFromHash();
+    showSlide(initialIndex);
+  </script>
+<noscript><style>
+    html,body{height:auto;overflow:visible}.app,.stage,.deck{display:block;width:100%;height:auto;max-height:none;aspect-ratio:auto;overflow:visible;container-type:normal}
+    .slide,.slide.is-active{position:relative;display:block;overflow:visible;animation:none;margin-bottom:20px}.controls,dialog{display:none}
+    </style></noscript></body>
+</html>
