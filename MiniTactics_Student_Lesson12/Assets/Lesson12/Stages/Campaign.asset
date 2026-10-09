@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df95803a0abd046479295b19eaa48ea2, type: 3}
+  m_Name: Campaign
+  m_EditorClassIdentifier: MiniTactics.Lesson12.Runtime::MiniTactics.Lesson12.StageCatalog
+  _titleScene: Lesson12_Title
+  _endingScene: Lesson12_Ending
+  _battleScenes:
+  - Lesson12
+  - Lesson12_Stage02
+  - Lesson12_Stage03
+  _stages:
+  - {fileID: 11400000, guid: 8df5fa2fe7b912644b0016ad0000e78f, type: 2}
+  - {fileID: 11400000, guid: b02e34fc882f4c04dbe22e570e179273, type: 2}
+  - {fileID: 11400000, guid: 6f8bf4b42d069ce4db8b85229e0302cb, type: 2}
