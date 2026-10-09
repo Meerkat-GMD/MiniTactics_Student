@@ -13,9 +13,7 @@ namespace MiniTactics.Lesson10
         public Vector2Int ChooseDestination(Unit enemy, Vector2Int goalCell)
         {
             Vector2Int start = _board.WorldToCell(enemy.transform.position);
-            HashSet<Vector2Int> blocked = GetRouteBlockers(enemy);
-            blocked.Remove(goalCell);
-            MovementRangeResult routes = MovementRange.Calculate(_board.Board, start, int.MaxValue, blocked);
+            MovementRangeResult routes = GetRoutes(enemy, goalCell);
             MovementRangeResult reachable = _board.GetMovementRange(enemy);
             Vector2Int destination = start;
             foreach (Vector2Int cell in routes.GetPathTo(goalCell))
@@ -25,6 +23,14 @@ namespace MiniTactics.Lesson10
             }
 
             return destination;
+        }
+
+        private MovementRangeResult GetRoutes(Unit enemy, Vector2Int goalCell)
+        {
+            Vector2Int start = _board.WorldToCell(enemy.transform.position);
+            HashSet<Vector2Int> blocked = GetRouteBlockers(enemy);
+            blocked.Remove(goalCell);
+            return MovementRange.Calculate(_board.Board, start, int.MaxValue, blocked);
         }
 
         private HashSet<Vector2Int> GetRouteBlockers(Unit enemy)
@@ -50,7 +56,9 @@ namespace MiniTactics.Lesson10
             foreach (Unit unit in units)
             {
                 if (!unit.IsAlive || unit.Team == enemy.Team) continue;
-                int distance = Distance(origin, _board.WorldToCell(unit.transform.position));
+                Vector2Int cell = _board.WorldToCell(unit.transform.position);
+                int distance = Distance(origin, cell);
+                if (!GetRoutes(enemy, cell).TryGetCost(cell, out _)) continue;
                 if (distance < bestDistance)
                 {
                     nearest = unit;

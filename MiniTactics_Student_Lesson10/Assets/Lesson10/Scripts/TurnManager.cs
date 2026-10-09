@@ -122,7 +122,7 @@ namespace MiniTactics.Lesson10
                 if (GetAttackTargets(unit).Count == 0)
                 {
                     Unit target = _enemyAi.ChooseNearestAlly(unit, _spawner.Units);
-                    if (target == null) return;
+                    if (target == null) continue;
                     Vector2Int goalCell = _board.WorldToCell(target.transform.position);
                     await _enemyAi.TakeTurnAsync(unit, goalCell, token);
                 }
