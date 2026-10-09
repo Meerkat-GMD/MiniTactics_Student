@@ -12,16 +12,61 @@ namespace MiniTactics.Lesson09
 
         public Vector2Int ChooseDestination(Unit enemy, Vector2Int goalCell)
         {
-            Vector2Int best = _board.WorldToCell(enemy.transform.position);
-            foreach (Vector2Int cell in _board.GetMovementRange(enemy).Costs.Keys)
+            Vector2Int start = _board.WorldToCell(enemy.transform.position);
+            MovementRangeResult routes = GetRoutes(enemy, goalCell);
+            MovementRangeResult reachable = _board.GetMovementRange(enemy);
+            Vector2Int destination = start;
+            foreach (Vector2Int cell in routes.GetPathTo(goalCell))
             {
-                if (Distance(cell, goalCell) < Distance(best, goalCell))
+                if (!reachable.TryGetCost(cell, out _)) break;
+                destination = cell;
+            }
+
+            return destination;
+        }
+
+        private MovementRangeResult GetRoutes(Unit enemy, Vector2Int goalCell)
+        {
+            Vector2Int start = _board.WorldToCell(enemy.transform.position);
+            HashSet<Vector2Int> blocked = GetRouteBlockers(enemy);
+            blocked.Remove(goalCell);
+            return MovementRange.Calculate(_board.Board, start, int.MaxValue, blocked);
+        }
+
+        private HashSet<Vector2Int> GetRouteBlockers(Unit enemy)
+        {
+            var blocked = new HashSet<Vector2Int>();
+            foreach (Vector2Int cell in _board.Board.Cells.Keys)
+            {
+                if (_board.Board.GetTerrain(cell).MovementCost > enemy.MoveBudget
+                    || _board.IsOccupiedByOther(enemy, cell))
                 {
-                    best = cell;
+                    blocked.Add(cell);
                 }
             }
 
-            return best;
+            return blocked;
+        }
+
+        public Unit ChooseNearestAlly(Unit enemy, List<Unit> units)
+        {
+            Unit nearest = null;
+            int bestDistance = int.MaxValue;
+            Vector2Int origin = _board.WorldToCell(enemy.transform.position);
+            foreach (Unit unit in units)
+            {
+                if (!unit.IsAlive || unit.Team == enemy.Team) continue;
+                Vector2Int cell = _board.WorldToCell(unit.transform.position);
+                int distance = Distance(origin, cell);
+                if (!GetRoutes(enemy, cell).TryGetCost(cell, out _)) continue;
+                if (distance < bestDistance)
+                {
+                    nearest = unit;
+                    bestDistance = distance;
+                }
+            }
+
+            return nearest;
         }
 
         public Unit ChooseTarget(List<Unit> targets)
