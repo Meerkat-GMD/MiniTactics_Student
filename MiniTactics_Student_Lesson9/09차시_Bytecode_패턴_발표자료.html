@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>9차시 · Bytecode 패턴 | 미니 택틱스</title>
+  <style>
+    :root {
+      --bg:#040a13; --slide:#091526; --panel:#10233a; --panel2:#142b45;
+      --text:#eef5ff; --muted:#afbed1; --teal:#55e4cf; --violet:#b8a4ff;
+      --amber:#ffd16f; --red:#ff8c99; --line:#2a405b; --green:#83e58f;
+    }
+    * { box-sizing:border-box; }
+    html, body { width:100%; height:100%; margin:0; overflow:hidden; }
+    body { background:var(--bg); color:var(--text); font-family:"Pretendard","Noto Sans KR",system-ui,sans-serif; word-break:keep-all; overflow-wrap:break-word; }
+    button, a { font:inherit; }
+    button { color:inherit; }
+    .app { min-height:100%; display:grid; grid-template-rows:1fr auto; }
+    .stage { min-height:0; display:grid; place-items:center; padding:14px 18px 6px; }
+    .deck { position:relative; width:min(100%,calc((100vh - 80px) * 16 / 9)); max-height:calc(100vh - 80px); aspect-ratio:16/9; overflow:hidden; border:1px solid #263b56; border-radius:18px; background:var(--slide); box-shadow:0 28px 88px #000a; container-type:inline-size; }
+    .slide { position:absolute; inset:0; display:none; overflow:auto; padding:clamp(28px,3.6cqw,56px) clamp(36px,5cqw,78px); background:radial-gradient(circle at 94% 7%,#253969 0,transparent 27%),linear-gradient(145deg,#0c1a2d 0%,#07121f 74%); }
+    .slide.is-active { display:grid; align-content:center; animation:reveal .24s ease-out; }
+    .slide::after { content:attr(data-slide); position:absolute; right:26px; top:20px; color:#7189a6; font-size:.76rem; font-weight:850; letter-spacing:.13em; }
+    @keyframes reveal { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:none; } }
+    h1,h2,h3,p { margin-top:0; }
+    h1 { max-width:78cqw; margin-bottom:20px; font-size:clamp(2.3rem,5.1cqw,4.9rem); line-height:1.08; letter-spacing:-.05em; }
+    h2 { max-width:82cqw; margin-bottom:clamp(16px,2.2cqw,30px); font-size:clamp(1.75rem,3.35cqw,3.15rem); line-height:1.17; letter-spacing:-.035em; }
+    h3 { margin-bottom:8px; color:var(--teal); font-size:clamp(.98rem,1.38cqw,1.3rem); }
+    p,li { font-size:clamp(.83rem,1.23cqw,1.13rem); line-height:1.53; }
+    p { margin-bottom:.72em; }
+    ul,ol { margin:.1em 0 0; padding-left:1.25em; }
+    li { margin:.38em 0; }
+    li::marker { color:var(--teal); font-weight:800; }
+    strong { color:#fff; }
+    .kicker { margin:0 0 7px; color:var(--teal); font-size:clamp(.68rem,1cqw,.9rem); font-weight:900; letter-spacing:.13em; text-transform:uppercase; }
+    .subtitle { max-width:72cqw; color:var(--muted); font-size:clamp(1rem,1.68cqw,1.5rem); line-height:1.5; }
+    .accent { color:var(--teal); } .violet { color:var(--violet); } .amber { color:var(--amber); } .red { color:var(--red); } .green { color:var(--green); }
+    .big { max-width:78cqw; font-size:clamp(1.28rem,2.3cqw,2.12rem); line-height:1.45; letter-spacing:-.02em; }
+    .quote { max-width:76cqw; margin:12px 0; padding-left:22px; border-left:5px solid var(--violet); font-size:clamp(1.2rem,2.25cqw,2rem); line-height:1.43; font-weight:760; }
+    .two { display:grid; grid-template-columns:1fr 1fr; gap:clamp(15px,2.2cqw,30px); align-items:stretch; }
+    .wide { display:grid; grid-template-columns:1.3fr .85fr; gap:clamp(18px,2.6cqw,36px); align-items:center; }
+    .panel { padding:clamp(14px,1.8cqw,23px); border:1px solid var(--line); border-radius:14px; background:#0f2138d9; }
+    .panel.teal { border-top:4px solid var(--teal); } .panel.violet { border-top:4px solid var(--violet); } .panel.amber { border-top:4px solid var(--amber); } .panel.redline { border-top:4px solid var(--red); }
+    .callout { margin-top:15px; padding:13px 18px; border-left:4px solid var(--teal); border-radius:8px; background:#10243c; }
+    .callout.warning { border-left-color:var(--amber); } .callout.danger { border-left-color:var(--red); }
+    .callout p:last-child,.panel p:last-child { margin-bottom:0; }
+    pre { margin:10px 0 0; padding:clamp(13px,1.65cqw,21px); overflow:auto; border:1px solid var(--line); border-radius:12px; background:#030a13; color:#dceafa; white-space:pre; font:clamp(.68rem,1.04cqw,.96rem)/1.58 Consolas,"D2Coding",monospace; }
+    p code,li code { padding:.08em .32em; border:1px solid #344d69; border-radius:5px; background:#081522; color:var(--amber); font-family:Consolas,"D2Coding",monospace; font-size:.92em; }
+    .code-focus { color:var(--amber); font-weight:800; }
+    .source { margin-top:10px; color:#7f94ad; font-size:clamp(.62rem,.82cqw,.76rem); }
+    .flow { display:grid; grid-template-columns:repeat(7,auto); align-items:center; justify-content:center; gap:9px; margin-top:22px; }
+    .node { min-width:9cqw; min-height:66px; display:grid; place-items:center; padding:10px 12px; border:1px solid #3b5575; border-radius:12px; background:var(--panel); text-align:center; font-size:clamp(.7rem,.95cqw,.9rem); font-weight:800; }
+    .arrow { color:var(--teal); font-size:1.35rem; font-weight:900; }
+    .state-board { display:grid; grid-template-columns:1fr auto 1fr; gap:18px; align-items:center; margin-top:14px; }
+    .coord { min-height:140px; display:grid; place-items:center; padding:22px; border:1px solid var(--line); border-radius:14px; background:#07111e; text-align:center; font:800 clamp(1rem,1.7cqw,1.55rem)/1.6 Consolas,monospace; }
+    .missing { color:var(--red); text-decoration:line-through; text-decoration-thickness:3px; }
+    .compare { width:100%; border-collapse:collapse; font-size:clamp(.72rem,1cqw,.94rem); line-height:1.42; }
+    .compare th,.compare td { padding:10px 13px; border:1px solid var(--line); vertical-align:top; text-align:left; }
+    .compare th { color:var(--teal); background:#071321; }
+    .stack { width:min(440px,70cqw); margin:14px auto 0; display:grid; gap:8px; }
+    .stack-item { padding:11px 16px; border:1px solid #405c7d; border-radius:9px; background:var(--panel); text-align:center; font-weight:800; }
+    .stack-item.top { border-color:var(--amber); color:var(--amber); }
+    .question { padding:clamp(20px,2.7cqw,38px); border:1px solid #5b4e25; border-radius:15px; background:linear-gradient(135deg,#221d10,#101c2d); }
+    .question .big { margin-bottom:0; }
+    .role-map { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:18px; }
+    .role { min-height:125px; padding:15px; border-top:4px solid var(--teal); border-radius:12px; background:var(--panel); }
+    .role:nth-child(2) { border-color:var(--violet); } .role:nth-child(3) { border-color:var(--amber); } .role:nth-child(4) { border-color:var(--red); }
+    .role b { display:block; margin-bottom:7px; font-size:clamp(.82rem,1.12cqw,1rem); }
+    .role span { color:var(--muted); font-size:clamp(.7rem,.92cqw,.86rem); line-height:1.45; }
+    .controls { min-height:60px; display:flex; align-items:center; justify-content:center; gap:9px; padding:7px 14px 10px; }
+    .control-btn { min-width:44px; min-height:40px; padding:7px 15px; border:1px solid #354c68; border-radius:10px; background:#0d1d30; cursor:pointer; }
+    .control-btn:hover:not(:disabled) { border-color:var(--teal); color:var(--teal); }
+    .control-btn:focus-visible,.toc-link:focus-visible { outline:3px solid var(--amber); outline-offset:2px; }
+    .control-btn:disabled { opacity:.35; cursor:not-allowed; }
+    #slideCounter { min-width:76px; color:var(--muted); text-align:center; font-weight:850; font-variant-numeric:tabular-nums; }
+    dialog { width:min(780px,calc(100% - 32px)); max-height:min(80vh,740px); padding:0; border:1px solid #405b7a; border-radius:18px; background:#091526; color:var(--text); box-shadow:0 30px 100px #000d; }
+    dialog::backdrop { background:#020710df; backdrop-filter:blur(4px); }
+    .toc-head { position:sticky; top:0; z-index:2; display:flex; align-items:center; justify-content:space-between; padding:18px 21px; border-bottom:1px solid var(--line); background:#091526; }
+    .toc-head h2 { margin:0; font-size:1.4rem; }
+    .toc-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; padding:16px; }
+    .toc-link { display:grid; grid-template-columns:34px 1fr; gap:8px; padding:9px 11px; border:1px solid transparent; border-radius:8px; color:var(--muted); text-decoration:none; font-size:.88rem; }
+    .toc-link:hover { color:var(--text); background:var(--panel); border-color:var(--line); }
+    .toc-link span { color:var(--teal); font-weight:900; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @media (max-height:650px) and (min-width:721px) {
+      .slide { padding:24px 40px; }
+      h1 { font-size:3rem; } h2 { font-size:1.72rem; margin-bottom:12px; } h3 { font-size:.91rem; }
+      p,li { font-size:.76rem; line-height:1.38; } li { margin:.25em 0; }
+      .panel { padding:10px 13px; } .callout { margin-top:8px; padding:8px 13px; }
+      pre { margin-top:6px; padding:9px 12px; font-size:.64rem; line-height:1.4; }
+      .node { min-height:48px; padding:6px 9px; font-size:.65rem; }
+      .role { min-height:90px; padding:10px; } .coord { min-height:105px; padding:14px; }
+    }
+    @media (max-width:720px) {
+      .stage { padding:0; }
+      .deck { width:100%; height:calc(100vh - 60px); max-height:none; aspect-ratio:auto; border:0; border-radius:0; }
+      .slide { padding:48px 21px 28px; }
+      .slide.is-active { align-content:start; }
+      .two,.wide,.state-board,.role-map { grid-template-columns:1fr; }
+      .flow { grid-template-columns:1fr; }
+      .flow .arrow { transform:rotate(90deg); }
+      .toc-grid { grid-template-columns:1fr; }
+      h1 { font-size:clamp(2.05rem,10.5cqw,3.25rem); }
+      h2 { font-size:clamp(1.6rem,7.2cqw,2.25rem); }
+      p,li { font-size:1rem; }
+      pre { font-size:.75rem; white-space:pre-wrap; overflow-wrap:anywhere; }
+    }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; } }
+    @media print {
+      html,body { height:auto; overflow:visible; background:#fff; color:#111; }
+      .app,.stage,.deck { display:block; width:auto; height:auto; max-height:none; padding:0; overflow:visible; border:0; box-shadow:none; }
+      .slide,.slide.is-active { position:relative; display:grid; width:100%; min-height:175mm; padding:15mm; break-after:page; overflow:hidden; background:#fff; color:#111; animation:none; }
+      .slide:last-child { break-after:auto; }
+      .controls,dialog { display:none !important; }
+      h1,h2,h3,p,li,strong,.subtitle,.kicker,.accent,.violet,.amber,.red,.green,.source { color:#111; }
+      .panel,.callout,pre,.node,.coord,.role,.stack-item,.question,.compare th,.compare td { background:#fff; color:#111; border-color:#777; }
+    }
+  </style>
+<style id="layout-safety">
+    .slide > div,.two > div,.wide > div,.role,.node { min-width:0; }
+    .compare { table-layout:fixed; overflow-wrap:anywhere; }
+    .role b,.role span { overflow-wrap:anywhere; }
+    @media (max-width:720px) { .state-board > .arrow { transform:rotate(90deg); justify-self:center; } .flow > .arrow { justify-self:center; } }
+    @media print { .deck { container-type:normal; aspect-ratio:auto; } .slide,.slide.is-active { height:auto; overflow:visible; break-inside:avoid; } }
+    </style>
+</head>
+<body>
+  <div class="app">
+    <main class="stage">
+      <div class="deck" id="deck">
+<section class="slide is-active" id="slide-1" data-slide="01 / 24" aria-labelledby="title-1"><div><p class="kicker">Mini Tactics · Lesson 09</p><h1 id="title-1">미니 택틱스로 이해하는<br><span class="accent">Bytecode 패턴</span></h1><p class="subtitle">작은 동작의 뜻은 코드에 두고,<br>동작의 순서와 값은 데이터로 표현한다.</p></div></section>
+
+<section class="slide" id="slide-2" data-slide="02 / 24" aria-labelledby="title-2"><div><p class="kicker">Starting point</p><h2 id="title-2">직접 호출은 고정된 순서를 읽기 쉽다</h2><pre data-example-kind="design-comparison"><code>void FirstSequence()
+{
+    ShowText(&quot;시작&quot;);
+    Wait(1);
+    ShowText(&quot;끝&quot;);
+}</code></pre><p class="source code-caption">설계 비교용 가상 코드 · 호출 순서가 코드에 고정된 첫 시도다. ShowText와 Wait는 비교를 위한 가상 메서드다.</p><div class="callout "><p>동작이 적고 순서가 잘 바뀌지 않으면 이 방식으로 충분하다. 위에서 아래로 읽으면 실행 순서를 알 수 있다.</p></div></div></section>
+
+<section class="slide" id="slide-3" data-slide="03 / 24" aria-labelledby="title-3"><div><p class="kicker">New requirement</p><h2 id="title-3">같은 동작을 다른 순서로 조합한다</h2><div class="question"><p class="big">작은 동작은 같은데<br>값과 순서만 다른 조합이 계속 늘어난다.<br>조합마다 C# 메서드를 만들어야 할까?</p></div><div class="two"><div class="panel teal"><h3>같은 부분</h3><p>각 동작이 실제로 일하는 방법이다.</p></div><div class="panel violet"><h3>달라지는 부분</h3><p>무슨 동작을 어떤 값으로, 어떤 순서에 실행하는가다.</p></div></div></div></section>
+
+<section class="slide" id="slide-4" data-slide="04 / 24" aria-labelledby="title-4"><div><p class="kicker">First attempt</p><h2 id="title-4">첫 시도는 조합마다 메서드를 만든다</h2><pre data-example-kind="design-comparison"><code>void SequenceA() { Damage(2); Heal(3); }
+void SequenceB() { Heal(3); Damage(2); }
+void SequenceC() { Damage(5); Heal(3); }</code></pre><p class="source code-caption">설계 비교용 가상 코드 · 조합을 별도 메서드로 적은 비교 예다. Damage와 Heal은 가상 메서드다.</p><div class="callout warning"><p>각 줄은 이해하기 쉽다. 하지만 순서나 값이 바뀔 때마다 코드에서 조합을 수정한다. 동작의 구현과 조합의 수정 주기가 달라질수록 분리할 이유가 생긴다.</p></div></div></section>
+
+<section class="slide" id="slide-5" data-slide="05 / 24" aria-labelledby="title-5"><div><p class="kicker">Observe the limit</p><h2 id="title-5">조합의 차이를 코드로 반복해서 적는다</h2><table class="compare"><thead><tr><th>변경</th><th>첫 시도에서 수정할 것</th></tr></thead><tbody><tr><td>같은 동작, 다른 값</td><td>메서드 본문의 인수</td></tr><tr><td>같은 값, 다른 순서</td><td>메서드 안의 호출 순서</td></tr><tr><td>새로운 조합</td><td>새 메서드 또는 분기</td></tr><tr><td>새로운 작은 동작</td><td>그 동작의 실제 구현</td></tr></tbody></table><div class="callout "><p>앞의 세 변경은 동작의 뜻을 바꾸지 않는다. 이 차이를 데이터로 적을 수 있는지 살펴본다.</p></div></div></section>
+
+<section class="slide" id="slide-6" data-slide="06 / 24" aria-labelledby="title-6"><div><p class="kicker">Find the boundary</p><h2 id="title-6">동작의 뜻과 명령 목록을 나눈다</h2><div class="two"><div class="panel teal"><h3>실행기가 정하는 것</h3><p>각 명령이 어떤 작업을 하는지 정한다. 명령을 읽고 해당 작업을 호출한다.</p></div><div class="panel violet"><h3>데이터가 정하는 것</h3><p>실행할 명령의 종류, 그 명령에 줄 값, 명령의 나열 순서를 정한다.</p></div></div><p class="quote">같은 실행기에 다른 명령 목록을 주면 다른 조합을 실행한다.</p></div></section>
+
+<section class="slide" id="slide-7" data-slide="07 / 24" aria-labelledby="title-7"><div><p class="kicker">Bytecode pattern</p><h2 id="title-7">명령을 데이터로 적고 실행기가 해석한다</h2><div class="role-map"><div class="role"><b>원본 문자열</b><span>사람이 적은 명령과 값이다.</span></div><div class="role"><b>파서 · SkillProgram</b><span>문자열을 검사하고 명령 목록을 만든다.</span></div><div class="role"><b>명령 · Instruction</b><span>명령의 종류와 정수 값을 보관한다.</span></div><div class="role"><b>실행기 · ScriptedSkill</b><span>목록을 순서대로 읽고 동작을 고른다.</span></div></div><div class="callout "><p>파서는 글을 정해진 구조로 읽는 코드다. 인터프리터는 그 구조의 뜻을 해석해 실행하는 코드다.</p></div></div></section>
+
+<section class="slide" id="slide-8" data-slide="08 / 24" aria-labelledby="title-8"><div><p class="kicker">Model boundary</p><h2 id="title-8">이 수업은 단순한 데이터 인터프리터를 사용한다</h2><div class="two"><div class="panel teal"><h3>일반적인 Bytecode</h3><p>가상 머신이 읽는 명령을 인코딩한 나열이다. 가상 머신은 프로그램 안에서 구현한 실행기다.</p></div><div class="panel violet"><h3>수업의 축소 모델</h3><p>문자열을 네 종류의 명령과 정수 값으로 바꾼다. C# 실행기가 명령 목록을 해석한다.</p></div></div><div class="callout "><p>압축 바이트 스트림이나 범용 스택 VM을 구현하는 것은 아니다. 데이터와 실행기를 나누는 책임 경계에 집중한다.</p></div></div></section>
+
+<section class="slide" id="slide-9" data-slide="09 / 24" aria-labelledby="title-9"><div><p class="kicker">Actual code · SkillProgram</p><h2 id="title-9">명령 하나는 종류와 값을 함께 가진다</h2><pre data-source-file="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/SkillProgram.cs" data-source-start="8" data-source-end="8" data-source-sha256="59d8f63168d6c6f0f8704d50df3792f6ea2847968a726e8367db29f46f2809d0"><code>public enum OpCode { AREA, DAMAGE, HEAL, PUSH }</code></pre><p class="source code-caption">실제 코드 · SkillProgram.cs 8–8행 · 일부 발췌다. 바깥 선언과 다른 메서드는 생략했다.</p><pre data-source-file="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/SkillProgram.cs" data-source-start="18" data-source-end="19" data-source-sha256="d87b3a778e9a62b3770248e37d9ee6902c4068b942a62f7daf37d27ef229ba4c"><code>public OpCode Code { get; }
+public int Value { get; }</code></pre><p class="source code-caption">실제 코드 · SkillProgram.cs 18–19행 · 일부 발췌다. 바깥 선언과 다른 메서드는 생략했다.</p><table class="compare"><thead><tr><th>용어</th><th>이 코드에서의 뜻</th><th>예</th></tr></thead><tbody><tr><td>opcode</td><td>어떤 동작인지 나타내는 종류</td><td>HEAL</td></tr><tr><td>operand</td><td>그 동작에 줄 값</td><td>5</td></tr><tr><td>instruction</td><td>종류와 값을 묶은 명령 하나</td><td>HEAL 5</td></tr></tbody></table></div></section>
+
+<section class="slide" id="slide-10" data-slide="10 / 24" aria-labelledby="title-10"><div><p class="kicker">Actual code · Instruction</p><h2 id="title-10">생성한 명령의 값은 읽기만 한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/SkillProgram.cs" data-source-start="12" data-source-end="19" data-source-sha256="49038190aa0714c073ef48c70c0172519849bf69e00c5b012ae312c0cf7d66aa"><code>public Instruction(OpCode code, int value)
+{
+    Code = code;
+    Value = value;
+}
+
+public OpCode Code { get; }
+public int Value { get; }</code></pre><p class="source code-caption">실제 코드 · SkillProgram.cs 12–19행 · 일부 발췌다. 바깥 선언과 다른 메서드는 생략했다.</p><div class="callout "><p>생성자가 Code와 Value를 기록한다. get만 있는 속성은 만들어진 명령의 값을 읽는 입구다. 해석 도중 명령 자체를 고치는 대신 실행기가 별도 상태를 가진다.</p></div></div></section>
+
+<section class="slide" id="slide-11" data-slide="11 / 24" aria-labelledby="title-11"><div><p class="kicker">Actual code · Parser</p><h2 id="title-11">한 줄은 이름 하나와 정수 하나다</h2><pre data-source-file="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/SkillProgram.cs" data-source-start="57" data-source-end="61" data-source-sha256="d89e19413f19c9f18e105baead7c807fcc3a47c00dbef472d5052c55987dd598"><code>string[] parts = line.Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+if (parts.Length != 2) return false;
+if (!Enum.TryParse(parts[0], out OpCode code)) return false;
+if (!Enum.IsDefined(typeof(OpCode), code) || code.ToString() != parts[0]) return false;
+if (!int.TryParse(parts[1], out int value)) return false;</code></pre><p class="source code-caption">실제 코드 · SkillProgram.cs 57–61행 · 일부 발췌다. 바깥 선언과 다른 메서드는 생략했다.</p><div class="callout "><p>공백으로 나눈 조각이 정확히 둘이어야 한다. 명령 이름은 AREA·DAMAGE·HEAL·PUSH 중 하나를 대문자로 적는다. 숫자로 된 enum 표기와 소문자 이름도 거부한다.</p></div></div></section>
+
+<section class="slide" id="slide-12" data-slide="12 / 24" aria-labelledby="title-12"><div><p class="kicker">Actual code · Validation</p><h2 id="title-12">값의 허용 범위도 파서가 확인한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/SkillProgram.cs" data-source-start="62" data-source-end="67" data-source-sha256="324c9989c6b12a9e6339d754704f49996982376db0fa5df3454dbe73875ab63b"><code>int maximum = code == OpCode.AREA ? 3 : 99;
+if (value &lt; 0 || value &gt; maximum) return false;
+if (code == OpCode.PUSH &amp;&amp; value != 1) return false;
+instruction = new Instruction(code, value);
+error = string.Empty;
+return true;</code></pre><p class="source code-caption">실제 코드 · SkillProgram.cs 62–67행 · 일부 발췌다. 바깥 선언과 다른 메서드는 생략했다.</p><table class="compare"><thead><tr><th>명령</th><th>허용 값</th></tr></thead><tbody><tr><td>AREA</td><td>0부터 3</td></tr><tr><td>DAMAGE, HEAL</td><td>0부터 99</td></tr><tr><td>PUSH</td><td>1만 허용</td></tr></tbody></table><div class="callout "><p>문자열을 정수로 바꿨다는 사실만으로 유효한 명령이 되지는 않는다. 뜻에 맞는 값인지 한 번 더 확인한다.</p></div></div></section>
+
+<section class="slide" id="slide-13" data-slide="13 / 24" aria-labelledby="title-13"><div><p class="kicker">Actual code · Program</p><h2 id="title-13">모든 줄을 읽은 뒤 프로그램을 돌려준다</h2><pre data-source-file="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/SkillProgram.cs" data-source-start="39" data-source-end="45" data-source-sha256="9e4005a667aa1b37404947e7365577c1949b365cecc354e3a85c8c773dc48a4d"><code>if (!TryInstruction(lines[index], out Instruction instruction, out error))
+{
+    error = $&quot;Line {index + 1}: {error}&quot;;
+    return false;
+}
+
+instructions.Add(instruction);</code></pre><p class="source code-caption">실제 코드 · SkillProgram.cs 39–45행 · 일부 발췌다. 바깥 선언과 다른 메서드는 생략했다.</p><pre data-source-file="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/SkillProgram.cs" data-source-start="48" data-source-end="50" data-source-sha256="cf8b86457c59d21ccb77efb336a45f0d4258bd303eee9270a6bb407f166dc151"><code>program = new SkillProgram(instructions);
+error = string.Empty;
+return true;</code></pre><p class="source code-caption">실제 코드 · SkillProgram.cs 48–50행 · 일부 발췌다. 바깥 선언과 다른 메서드는 생략했다.</p><div class="callout "><p>중간에 한 줄이라도 틀리면 false로 끝난다. 모든 줄이 유효할 때만 명령 목록을 가진 프로그램을 만든다. 빈 줄은 건너뛴다.</p></div></div></section>
+
+<section class="slide" id="slide-14" data-slide="14 / 24" aria-labelledby="title-14"><div><p class="kicker">Validation before execution</p><h2 id="title-14">틀린 마지막 줄 앞의 명령도 실행하지 않는다</h2><div class="two"><pre data-example-kind="instruction-input"><code>HEAL 5
+PUSH 2</code></pre><p class="source code-caption">실행 추적용 입력이다. C# 코드가 아니라 이 실행기가 읽는 명령 문자열이다.</p><div class="panel amber"><h3>예측과 답</h3><p><strong>첫 줄의 효과가 먼저 실행될까?</strong></p><p>아니다. PUSH는 1만 허용하므로 파싱이 실패한다. 프로그램 전체를 읽기 전에 효과를 실행하지 않는다.</p></div></div><pre data-source-file="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/ScriptedSkill.cs" data-source-start="20" data-source-end="20" data-source-sha256="44aee93428853c1331e37f62505e95f54e9c0fb7e52d0635473a54610c0bb83a"><code>if (!ReadProgram(out SkillProgram program)) return;</code></pre><p class="source code-caption">실제 코드 · ScriptedSkill.cs 20–20행 · 일부 발췌다. 바깥 선언과 다른 메서드는 생략했다.</p><div class="callout "><p>문법 검증을 실행과 분리했기 때문에 가능한 결과다. 실행 도중의 모든 실패를 되돌리는 트랜잭션까지 구현한 것은 아니다.</p></div></div></section>
+
+<section class="slide" id="slide-15" data-slide="15 / 24" aria-labelledby="title-15"><div><p class="kicker">Actual code · Interpreter</p><h2 id="title-15">AREA는 이후 명령에 사용할 상태를 바꾼다</h2><pre data-source-file="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/ScriptedSkill.cs" data-source-start="21" data-source-end="27" data-source-sha256="6412ebd060ec917d1b335e0cb134e177d2c658b28f06411cce9a8a992a01d9b4"><code>int radius = 0;
+foreach (SkillProgram.Instruction instruction in program.Instructions)
+{
+    if (instruction.Code == SkillProgram.OpCode.AREA)
+    {
+        radius = instruction.Value;
+    }</code></pre><p class="source code-caption">실제 코드 · ScriptedSkill.cs 21–27행 · 일부 발췌다. 바깥 선언과 다른 메서드는 생략했다.</p><div class="callout "><p>반경은 매번 실행을 시작할 때 0이다. AREA를 만나면 값을 바꾸고, 다음 AREA가 나올 때까지 그 값을 유지한다. 명령 목록 자체는 바뀌지 않는다.</p></div></div></section>
+
+<section class="slide" id="slide-16" data-slide="16 / 24" aria-labelledby="title-16"><div><p class="kicker">Actual code · Dispatch</p><h2 id="title-16">실행기가 명령의 뜻을 한 곳에서 연결한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/ScriptedSkill.cs" data-source-start="43" data-source-end="48" data-source-sha256="50f12955a557e911af23131795cfe21c4a05c3406183df3b4a2bd65d442193bf"><code>case SkillProgram.OpCode.DAMAGE:
+    Strike(target, instruction.Value);
+    break;
+case SkillProgram.OpCode.HEAL:
+    Restore(target, instruction.Value);
+    break;</code></pre><p class="source code-caption">실제 코드 · ScriptedSkill.cs 43–48행 · 일부 발췌다. 바깥 선언과 다른 메서드는 생략했다.</p><pre data-source-file="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/ScriptedSkill.cs" data-source-start="49" data-source-end="51" data-source-sha256="be37cb3ebe66d0c95fa0d1cb89dc29f4f75602b6788d49cefdf1abd640c39eba"><code>case SkillProgram.OpCode.PUSH:
+    Turns.PushAway(User, target);
+    break;</code></pre><p class="source code-caption">실제 코드 · ScriptedSkill.cs 49–51행 · 일부 발췌다. 바깥 선언과 다른 메서드는 생략했다.</p><div class="callout "><p>DAMAGE의 값은 기존 공격 처리에 더할 추가 피해다. DAMAGE 0도 기존 공격을 실행한다. HEAL은 회복량, PUSH 1은 한 칸 밀기다.</p></div></div></section>
+
+<section class="slide" id="slide-17" data-slide="17 / 24" aria-labelledby="title-17"><div><p class="kicker">Trace · State</p><h2 id="title-17">명령 순서에 따라 반경 상태를 따라간다</h2><pre data-example-kind="instruction-input"><code>HEAL 2
+AREA 1
+HEAL 5
+AREA 0
+HEAL 1</code></pre><p class="source code-caption">실행 추적용 입력이다. C# 코드가 아니라 이 실행기가 읽는 명령 문자열이다.</p><table class="compare"><thead><tr><th>읽은 명령</th><th>현재 반경</th><th>효과의 범위</th></tr></thead><tbody><tr><td>HEAL 2</td><td>0</td><td>중심 칸</td></tr><tr><td>AREA 1, HEAL 5</td><td>1</td><td>중심과 맨해튼 거리 1 이내</td></tr><tr><td>AREA 0, HEAL 1</td><td>0</td><td>다시 중심 칸</td></tr></tbody></table><div class="callout "><p>중심은 선택한 대상이다. AREA는 사용자의 사거리나 명령 자체의 값을 바꾸지 않는다.</p></div></div></section>
+
+<section class="slide" id="slide-18" data-slide="18 / 24" aria-labelledby="title-18"><div><p class="kicker">Trace · Result</p><h2 id="title-18">같은 목록의 결과를 수치로 확인한다</h2><p>실행 추적의 가정: 중심 아군 A와 거리 1의 아군 B가 각각 HP 1/20이다. 둘 모두 살아 있고 다른 대상은 없다.</p><table class="compare"><thead><tr><th>명령</th><th>A의 HP</th><th>B의 HP</th></tr></thead><tbody><tr><td>HEAL 2</td><td>3</td><td>1</td></tr><tr><td>AREA 1 다음 HEAL 5</td><td>8</td><td>6</td></tr><tr><td>AREA 0 다음 HEAL 1</td><td>9</td><td>6</td></tr></tbody></table><div class="callout "><p>첫 명령과 마지막 명령은 반경 0이어서 A만 바꾼다. 순서와 상태를 함께 읽으면 같은 HEAL도 적용 범위가 달라지는 이유를 설명할 수 있다.</p></div></div></section>
+
+<section class="slide" id="slide-19" data-slide="19 / 24" aria-labelledby="title-19"><div><p class="kicker">Actual code · Execution context</p><h2 id="title-19">명령이 사용할 대상은 실행 문맥에서 정한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/ScriptedSkill.cs" data-source-start="37" data-source-end="39" data-source-sha256="0f855851b5309309bfa17bbfef401cbe11a17c9221990789a00c72cc22d2f3f4"><code>bool heal = instruction.Code == SkillProgram.OpCode.HEAL;
+Team team = heal ? User.Team : (User.Team == Team.Player ? Team.Enemy : Team.Player);
+foreach (Unit target in Turns.GetUnitsInRange(center, radius, team))</code></pre><p class="source code-caption">실제 코드 · ScriptedSkill.cs 37–39행 · 일부 발췌다. 바깥 선언과 다른 메서드는 생략했다.</p><div class="callout "><p>User와 Turns는 실행기가 사용하는 문맥이다. HEAL은 사용자의 진영, 나머지 효과는 반대 진영을 고른다. 명령마다 현재 중심과 반경으로 대상을 다시 찾는다.</p></div></div></section>
+
+<section class="slide" id="slide-20" data-slide="20 / 24" aria-labelledby="title-20"><div><p class="kicker">Change locations</p><h2 id="title-20">새 조합과 새 동작은 수정 위치가 다르다</h2><table class="compare"><thead><tr><th>바꾸려는 것</th><th>어디를 바꾸는가</th><th>이유</th></tr></thead><tbody><tr><td>HEAL 5를 HEAL 3으로</td><td>명령 데이터</td><td>실행기가 HEAL을 이미 안다.</td></tr><tr><td>AREA 뒤에 HEAL 추가</td><td>명령 데이터</td><td>기존 명령을 다른 순서로 조합한다.</td></tr><tr><td>새로운 TELEPORT 동작</td><td>명령 종류·검증·실행기</td><td>현재 네 opcode로 표현할 수 없다.</td></tr></tbody></table><div class="callout "><p>데이터가 표현할 수 있는 범위는 실행기가 제공하는 명령의 범위다.</p></div></div></section>
+
+<section class="slide" id="slide-21" data-slide="21 / 24" aria-labelledby="title-21"><div><p class="kicker">Costs</p><h2 id="title-21">유연한 조합에는 해석과 검증 비용이 따른다</h2><table class="compare"><thead><tr><th>이득</th><th>함께 생기는 비용</th></tr></thead><tbody><tr><td>같은 실행기로 조합을 바꾼다.</td><td>데이터와 실행기를 함께 추적해야 한다.</td></tr><tr><td>동작 순서를 데이터로 적는다.</td><td>허용 이름·값·순서의 규칙을 정해야 한다.</td></tr><tr><td>표현 가능한 동작을 제한한다.</td><td>새 종류의 동작은 실행기를 고쳐야 한다.</td></tr></tbody></table><div class="callout warning"><p>이 구조가 자동으로 실행 속도를 높여 주지는 않는다. 간접 해석의 비용과 제작·변경의 이득은 따로 판단한다.</p></div></div></section>
+
+<section class="slide" id="slide-22" data-slide="22 / 24" aria-labelledby="title-22"><div><p class="kicker">Judgment</p><h2 id="title-22">반복되는 차이가 순서와 값인지 살핀다</h2><div class="two"><div class="panel teal"><h3>도입을 검토할 상황</h3><p>같은 작은 동작의 조합이 많다. 순서와 값을 자주 바꾼다. 정해진 명령만 사용하도록 제한할 이유가 있다.</p></div><div class="panel amber"><h3>직접 코드가 충분한 상황</h3><p>흐름이 고정되어 있다. 조합이 적다. 매번 새로운 종류의 동작을 구현해야 해서 명령 목록의 이득이 작다.</p></div></div><div class="callout "><p>코드 파일의 수만 세지 말고, 실제로 바뀌는 부분이 동작의 뜻인지 조합 데이터인지 확인한다.</p></div></div></section>
+
+<section class="slide" id="slide-23" data-slide="23 / 24" aria-labelledby="title-23"><div><p class="kicker">Check yourself</p><h2 id="title-23">명령의 값과 실행기의 책임을 구분한다</h2><div class="two"><div class="panel amber"><h3>질문 1</h3><p>AREA 1을 읽은 다음 AREA가 없으면 반경이 자동으로 0이 되는가?</p><p><strong>답:</strong> 아니다. 이번 실행에서 이후 명령은 계속 반경 1을 사용한다. 다음 실행은 다시 0으로 시작한다.</p></div><div class="panel violet"><h3>질문 2</h3><p>DAMAGE 0 다음 알 수 없는 이름이 있다. 첫 피해는 실행되는가?</p><p><strong>답:</strong> 아니다. 전체 파싱이 먼저 실패한다. 유효한 DAMAGE 0 하나만 있다면 기본 공격 피해는 발생한다.</p></div></div></div></section>
+
+<section class="slide" id="slide-24" data-slide="24 / 24" aria-labelledby="title-24"><div><p class="kicker">Takeaway</p><h2 id="title-24">데이터는 조합을 적고 실행기는 뜻을 정한다</h2><ol><li>명령은 종류와 값을 가진 데이터다.</li><li>파서는 모든 줄을 검사한 뒤 프로그램을 만든다.</li><li>실행기는 순서대로 읽으며 필요한 실행 상태를 관리한다.</li><li>새 조합은 데이터로, 새 동작은 실행기 확장으로 만든다.</li></ol><p class="quote">유연하게 바꿀 부분과 코드가 책임질 부분을 함께 정한다.</p><p class="source">더 읽기: <a href="https://gameprogrammingpatterns.com/bytecode.html">Game Programming Patterns · Bytecode</a></p></div></section>
+</div>
+    </main>
+
+    <nav class="controls" aria-label="슬라이드 탐색">
+      <button class="control-btn" id="prevBtn" type="button" aria-label="이전 슬라이드">←</button>
+      <button class="control-btn" id="tocBtn" type="button">목차</button>
+      <span id="slideCounter" aria-live="polite">1 / 24</span>
+      <button class="control-btn" id="nextBtn" type="button" aria-label="다음 슬라이드">→</button>
+    </nav>
+  </div>
+
+  <dialog id="tocDialog" aria-labelledby="tocTitle">
+    <div class="toc-head"><h2 id="tocTitle">전체 목차</h2><button class="control-btn" id="tocCloseBtn" type="button">닫기</button></div>
+    <div class="toc-grid">
+<a class="toc-link" href="#slide-1"><span>01</span>미니 택틱스로 이해하는 Bytecode 패턴</a>
+<a class="toc-link" href="#slide-2"><span>02</span>직접 호출은 고정된 순서를 읽기 쉽다</a>
+<a class="toc-link" href="#slide-3"><span>03</span>같은 동작을 다른 순서로 조합한다</a>
+<a class="toc-link" href="#slide-4"><span>04</span>첫 시도는 조합마다 메서드를 만든다</a>
+<a class="toc-link" href="#slide-5"><span>05</span>조합의 차이를 코드로 반복해서 적는다</a>
+<a class="toc-link" href="#slide-6"><span>06</span>동작의 뜻과 명령 목록을 나눈다</a>
+<a class="toc-link" href="#slide-7"><span>07</span>명령을 데이터로 적고 실행기가 해석한다</a>
+<a class="toc-link" href="#slide-8"><span>08</span>이 수업은 단순한 데이터 인터프리터를 사용한다</a>
+<a class="toc-link" href="#slide-9"><span>09</span>명령 하나는 종류와 값을 함께 가진다</a>
+<a class="toc-link" href="#slide-10"><span>10</span>생성한 명령의 값은 읽기만 한다</a>
+<a class="toc-link" href="#slide-11"><span>11</span>한 줄은 이름 하나와 정수 하나다</a>
+<a class="toc-link" href="#slide-12"><span>12</span>값의 허용 범위도 파서가 확인한다</a>
+<a class="toc-link" href="#slide-13"><span>13</span>모든 줄을 읽은 뒤 프로그램을 돌려준다</a>
+<a class="toc-link" href="#slide-14"><span>14</span>틀린 마지막 줄 앞의 명령도 실행하지 않는다</a>
+<a class="toc-link" href="#slide-15"><span>15</span>AREA는 이후 명령에 사용할 상태를 바꾼다</a>
+<a class="toc-link" href="#slide-16"><span>16</span>실행기가 명령의 뜻을 한 곳에서 연결한다</a>
+<a class="toc-link" href="#slide-17"><span>17</span>명령 순서에 따라 반경 상태를 따라간다</a>
+<a class="toc-link" href="#slide-18"><span>18</span>같은 목록의 결과를 수치로 확인한다</a>
+<a class="toc-link" href="#slide-19"><span>19</span>명령이 사용할 대상은 실행 문맥에서 정한다</a>
+<a class="toc-link" href="#slide-20"><span>20</span>새 조합과 새 동작은 수정 위치가 다르다</a>
+<a class="toc-link" href="#slide-21"><span>21</span>유연한 조합에는 해석과 검증 비용이 따른다</a>
+<a class="toc-link" href="#slide-22"><span>22</span>반복되는 차이가 순서와 값인지 살핀다</a>
+<a class="toc-link" href="#slide-23"><span>23</span>명령의 값과 실행기의 책임을 구분한다</a>
+<a class="toc-link" href="#slide-24"><span>24</span>데이터는 조합을 적고 실행기는 뜻을 정한다</a>
+</div>
+  </dialog>
+
+  <script>
+    const slides = [...document.querySelectorAll('.slide')];
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const tocBtn = document.getElementById('tocBtn');
+    const tocDialog = document.getElementById('tocDialog');
+    const tocCloseBtn = document.getElementById('tocCloseBtn');
+    const slideCounter = document.getElementById('slideCounter');
+    let current = 0;
+
+    function showSlide(index, updateHash = true) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      slides.forEach((slide, slideIndex) => slide.classList.toggle('is-active', slideIndex === current));
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current === slides.length - 1;
+      slideCounter.textContent = `${current + 1} / ${slides.length}`;
+      if (updateHash) history.replaceState(null, '', `#slide-${current + 1}`);
+    }
+
+    function indexFromHash() {
+      const match = location.hash.match(/^#slide-(\d+)$/);
+      const index = match ? Number(match[1]) - 1 : -1;
+      if (index >= 0 && index < slides.length) return index;
+      history.replaceState(null, '', '#slide-1');
+      return 0;
+    }
+
+    function openToc() { if (!tocDialog.open) tocDialog.showModal(); }
+    function closeToc() { if (tocDialog.open) tocDialog.close(); }
+
+    prevBtn.addEventListener('click', () => showSlide(current - 1));
+    nextBtn.addEventListener('click', () => showSlide(current + 1));
+    tocBtn.addEventListener('click', openToc);
+    tocCloseBtn.addEventListener('click', closeToc);
+    tocDialog.addEventListener('click', (event) => { if (event.target === tocDialog) closeToc(); });
+    tocDialog.querySelectorAll('.toc-link').forEach((link) => link.addEventListener('click', (event) => {
+      event.preventDefault();
+      const index = Number(link.hash.replace('#slide-', '')) - 1;
+      closeToc();
+      showSlide(index);
+    }));
+    window.addEventListener('hashchange', () => showSlide(indexFromHash(), false));
+    window.addEventListener('keydown', (event) => {
+      if (tocDialog.open) return;
+      const tag = document.activeElement?.tagName;
+      if (['ArrowRight','ArrowLeft','PageDown','PageUp','Home','End'].includes(event.key)) event.preventDefault();
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (event.key === 'ArrowRight' || event.key === 'PageDown') showSlide(current + 1);
+      else if (event.key === 'ArrowLeft' || event.key === 'PageUp') showSlide(current - 1);
+      else if (event.key === 'Home') showSlide(0);
+      else if (event.key === 'End') showSlide(slides.length - 1);
+    });
+
+    const initialIndex = indexFromHash();
+    showSlide(initialIndex);
+  </script>
+<noscript><style>
+    html,body{height:auto;overflow:visible}.app,.stage,.deck{display:block;width:100%;height:auto;max-height:none;aspect-ratio:auto;overflow:visible;container-type:normal}
+    .slide,.slide.is-active{position:relative;display:block;overflow:visible;animation:none;margin-bottom:20px}.controls,dialog{display:none}
+    </style></noscript></body>
+</html>
