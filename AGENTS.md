@@ -1,5 +1,29 @@
 # Mini Tactics Student project instructions
 
+## New course overrides (user decision, 2026-10-24)
+
+Rebuild the new course sequentially from Lesson1 toward the final Lesson12 game.
+For this new course, the user authorized changes to previously taught Lessons1–4
+and their typed code. The older freeze rules below remain historical records.
+Keep later lessons marked pending until their own sequential migration is verified.
+
+- The 350-line typing cap is retired; record actual typing volume and provided files.
+- The actual Student starter and **every completed saved code block must compile
+  with zero errors**. Do not call members entered later or allow a multi-file
+  temporary error window. Incomplete typing inside one block is not a checkpoint.
+- Student N inherits Teacher N-1 code plus new skeletons and explicitly declared
+  provided infrastructure. Lesson1 has its own documented preparation baseline.
+  Provided helpers must compile alongside empty current-lesson types; integration
+  with newly introduced APIs is entered during class.
+- Replay the literal Teacher guide blocks in order using the Teacher repository's
+  `tools/lesson-tools/guide_replay.py` and `docs/teaching-steps/README.md` contract.
+  Compile after each one-file edit and compare the complete final runtime sources
+  to Teacher. Do not mask dependencies with temporary stubs or completed course DLLs.
+  Retain separate real Unity scene/asset/play verification.
+
+This dated section supersedes older contradictory freeze, typing-cap and temporary
+compiler-error allowances only for the newly authorized course rebuild.
+
 ## Presentation HTML: preserve the user's chosen format
 
 Before creating, revising or reviewing any lesson presentation HTML, read
