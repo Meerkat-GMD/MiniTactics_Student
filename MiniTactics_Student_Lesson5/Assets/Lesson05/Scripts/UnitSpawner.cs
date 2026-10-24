@@ -10,11 +10,10 @@ namespace MiniTactics.Lesson05
 
         private void Awake()
         {
-            for (int index = 0; index < _spawnCells.Length; index++)
+            for (int i = 0; i < _spawnCells.Length; i++)
             {
-                Unit unit = Instantiate(_unitPrefab, transform);
-                unit.name = $"Squad Unit {index + 1}";
-                unit.transform.position = _board.CellToWorld(_spawnCells[index]);
+                Unit unit = Instantiate(_unitPrefab, _board.CellToWorld(_spawnCells[i]), Quaternion.identity, transform);
+                unit.name = "Unit " + (i + 1);
             }
         }
     }

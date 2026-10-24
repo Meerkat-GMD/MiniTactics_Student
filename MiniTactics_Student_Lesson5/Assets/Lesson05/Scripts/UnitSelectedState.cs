@@ -4,13 +4,11 @@ namespace MiniTactics.Lesson05
 {
     public sealed class UnitSelectedState : InputState
     {
-        private readonly InputStateMachine _machine;
         private readonly BattleController _controller;
         private readonly Unit _unit;
 
-        public UnitSelectedState(InputStateMachine machine, BattleController controller, Unit unit)
+        public UnitSelectedState(BattleController controller, Unit unit)
         {
-            _machine = machine;
             _controller = controller;
             _unit = unit;
         }
@@ -20,20 +18,24 @@ namespace MiniTactics.Lesson05
 
         public override void HandleBoardClick(Unit clickedUnit, Vector2Int cell)
         {
-            if (clickedUnit != null && clickedUnit.CanMove)
+            if (_controller.CanSelect(clickedUnit))
             {
-                _machine.ChangeState(new UnitSelectedState(_machine, _controller, clickedUnit));
+                _controller.Select(clickedUnit);
                 return;
             }
 
-            _controller.ExecuteMove(_unit, cell);
-            _machine.ChangeState(new IdleState(_machine, _controller));
+            if (_controller.ExecuteMove(_unit, cell))
+            {
+                _controller.Select(null);
+            }
         }
 
         public override void HandleUndo()
         {
-            _controller.UndoLast();
-            _controller.ShowSelection(_unit);
+            if (_controller.UndoLast())
+            {
+                _controller.ShowSelection(_unit);
+            }
         }
     }
 }

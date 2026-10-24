@@ -10,7 +10,7 @@ namespace MiniTactics.Lesson05
         private readonly Dictionary<Vector2Int, int> _costs;
         private readonly Dictionary<Vector2Int, Vector2Int> _previous;
 
-        internal MovementRangeResult(
+        public MovementRangeResult(
             Vector2Int start,
             Dictionary<Vector2Int, int> costs,
             Dictionary<Vector2Int, Vector2Int> previous)
@@ -20,7 +20,6 @@ namespace MiniTactics.Lesson05
             _previous = previous;
         }
 
-        public IReadOnlyDictionary<Vector2Int, int> Costs => _costs;
         public IReadOnlyCollection<Vector2Int> ReachableCells => _costs.Keys;
 
         public static MovementRangeResult Empty(Vector2Int start)
@@ -90,7 +89,7 @@ namespace MiniTactics.Lesson05
             Dictionary<Vector2Int, Vector2Int> previous =
                 new Dictionary<Vector2Int, Vector2Int>();
 
-            if (!board.Contains(start) || !board.GetTerrain(start).IsWalkable)
+            if (!board.Contains(start) || !board.GetTile(start).IsWalkable)
             {
                 return new MovementRangeResult(start, costs, previous);
             }
@@ -111,7 +110,7 @@ namespace MiniTactics.Lesson05
                         continue;
                     }
 
-                    TerrainType terrain = board.GetTerrain(next);
+                    TileData terrain = board.GetTile(next);
                     if (!terrain.IsWalkable)
                     {
                         continue;
