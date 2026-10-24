@@ -12,11 +12,6 @@ namespace MiniTactics.Lesson02
 
         public void MoveTo(BoardView board, Vector2Int targetCell)
         {
-            if (board == null)
-            {
-                return;
-            }
-
             transform.position = board.CellToWorld(targetCell);
         }
     }

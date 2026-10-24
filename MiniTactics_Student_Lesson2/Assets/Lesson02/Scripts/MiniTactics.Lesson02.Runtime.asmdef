@@ -2,7 +2,8 @@
   "name": "MiniTactics.Lesson02.Runtime",
   "rootNamespace": "MiniTactics.Lesson02",
   "references": [
-    "Unity.InputSystem"
+    "Unity.InputSystem",
+    "UnityEngine.UI"
   ],
   "autoReferenced": true
 }
