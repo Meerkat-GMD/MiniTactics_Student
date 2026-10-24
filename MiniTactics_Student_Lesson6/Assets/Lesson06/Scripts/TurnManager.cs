@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -9,80 +10,70 @@ namespace MiniTactics.Lesson06
         [SerializeField] private UnitSpawner _spawner;
         [SerializeField] private BoardView _board;
         [SerializeField] private EnemyAI _enemyAi;
-        [SerializeField] private Transform _playerBase;
-        [SerializeField] private Transform _enemyBase;
-
         public BattlePhase Phase { get; private set; } = BattlePhase.Player;
 
-        public bool CanAct(Unit unit)
-        {
-            return GameManager.Instance.IsPlaying
-                && Phase == BattlePhase.Player
-                && unit.CanMove
-                && unit.Team == Team.Player
-                && !unit.HasMoved;
-        }
+        public bool CanAct(Unit unit) => unit != null && unit.CanMove &&
+            unit.Team == Team.Player && Phase == BattlePhase.Player && !unit.HasMoved;
 
         public bool AreAllPlayersMoved()
         {
+            bool found = false;
             foreach (Unit unit in _spawner.Units)
             {
-                if (unit.Team == Team.Player && !unit.HasMoved)
-                {
-                    return false;
-                }
+                if (unit.Team != Team.Player || !unit.CanMove) continue;
+                found = true;
+                if (!unit.HasMoved) return false;
             }
-
-            return true;
-        }
-
-        public bool CheckBase(Unit unit)
-        {
-            Transform targetBase = unit.Team == Team.Player ? _enemyBase : _playerBase;
-            if (_board.WorldToCell(unit.transform.position) != _board.WorldToCell(targetBase.position))
-            {
-                return false;
-            }
-
-            BattleResult result = unit.Team == Team.Player ? BattleResult.PlayerWon : BattleResult.PlayerLost;
-            GameManager.Instance.Finish(result);
-            return true;
+            return found;
         }
 
         public void EndPlayerPhase()
         {
+            if (Phase != BattlePhase.Player) return;
             Phase = BattlePhase.Enemy;
             RunEnemyPhaseAsync(destroyCancellationToken).Forget();
         }
 
         private async UniTask RunEnemyPhaseAsync(CancellationToken token)
         {
-            Vector2Int goalCell = _board.WorldToCell(_playerBase.position);
-            foreach (Unit unit in _spawner.Units)
+            try
             {
-                if (unit.Team != Team.Enemy)
+                foreach (Unit unit in _spawner.Units)
                 {
-                    continue;
+                    token.ThrowIfCancellationRequested();
+                    if (unit.Team != Team.Enemy || !unit.CanMove) continue;
+                    Unit target = FindNearestPlayer(unit);
+                    if (target == null) continue;
+                    Vector2Int goal = _board.WorldToCell(target.transform.position);
+                    await _enemyAi.TakeTurnAsync(unit, goal, token);
                 }
-
-                await _enemyAi.TakeTurnAsync(unit, goalCell, token);
-                if (CheckBase(unit))
-                {
-                    return;
-                }
+                token.ThrowIfCancellationRequested();
+                BeginPlayerPhase();
             }
-
-            BeginPlayerPhase();
+            catch (OperationCanceledException) when (token.IsCancellationRequested) { }
         }
 
         private void BeginPlayerPhase()
         {
+            foreach (Unit unit in _spawner.Units) unit.HasMoved = false;
+            Phase = BattlePhase.Player;
+        }
+
+        private Unit FindNearestPlayer(Unit enemy)
+        {
+            Unit nearest = null;
+            int bestDistance = int.MaxValue;
+            Vector2Int origin = _board.WorldToCell(enemy.transform.position);
             foreach (Unit unit in _spawner.Units)
             {
-                unit.HasMoved = false;
+                if (unit.Team != Team.Player) continue;
+                Vector2Int cell = _board.WorldToCell(unit.transform.position);
+                int distance = Mathf.Abs(origin.x - cell.x) + Mathf.Abs(origin.y - cell.y);
+                if (distance >= bestDistance) continue;
+                nearest = unit;
+                bestDistance = distance;
             }
-
-            Phase = BattlePhase.Player;
+            return nearest;
         }
     }
 }

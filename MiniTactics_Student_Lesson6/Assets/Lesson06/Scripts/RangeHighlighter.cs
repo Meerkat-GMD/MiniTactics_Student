@@ -8,23 +8,23 @@ namespace MiniTactics.Lesson06
         private readonly BoardView _board;
         private readonly MovementOverlayPool _overlayPool;
 
-        public RangeHighlighter(Transform root, BoardView board)
+        public RangeHighlighter(Transform root, SpriteRenderer prefab, BoardView board)
         {
             _board = board;
-            _overlayPool = new MovementOverlayPool(root, board);
+            _overlayPool = new MovementOverlayPool(root, prefab);
         }
 
         public void Show(MovementRangeResult range, Unit selectedUnit)
         {
-            List<MovementCell> cells = new List<MovementCell>();
+            List<Vector3> positions = new List<Vector3>();
+            List<bool> occupied = new List<bool>();
             foreach (Vector2Int cell in range.ReachableCells)
             {
-                cells.Add(new MovementCell(
-                    cell,
-                    _board.IsOccupiedByOther(selectedUnit, cell)));
+                positions.Add(_board.CellToWorld(cell));
+                occupied.Add(_board.IsOccupiedByOther(selectedUnit, cell));
             }
 
-            _overlayPool.Show(cells);
+            _overlayPool.Show(positions, occupied);
         }
 
         public void Hide()

@@ -12,19 +12,10 @@ namespace MiniTactics.Lesson06
         [SerializeField] private bool _isWalkable = true;
         [SerializeField] private TileBase _tile;
 
-        [NonSerialized] private TerrainType _runtimeTerrain;
-
+        public string DisplayName => _displayName;
+        public int MovementCost => _movementCost;
+        public bool IsWalkable => _isWalkable;
         public TileBase Tile => _tile;
-
-        // One immutable runtime flyweight per asset, shared by all its map cells.
-        public TerrainType RuntimeTerrain
-        {
-            get
-            {
-                Validate();
-                return _runtimeTerrain ??= new TerrainType(_displayName, _movementCost, _isWalkable);
-            }
-        }
 
         public void Validate()
         {
@@ -33,8 +24,5 @@ namespace MiniTactics.Lesson06
             if (_tile == null)
                 throw new ArgumentException($"Tile data '{name}' needs a visual tile.");
         }
-
-        private void OnValidate() => _runtimeTerrain = null;
-        private void OnEnable() => _runtimeTerrain = null;
     }
 }
