@@ -1,10 +1,4 @@
-<!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>미니 택틱스로 이해하는 Command 패턴</title>
-  <style>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>미니 택틱스로 이해하는 Command 패턴</title><style>
     :root {
       --bg:#040a13; --slide:#091526; --panel:#10233a; --panel2:#142b45;
       --text:#eef5ff; --muted:#afbed1; --teal:#55e4cf; --violet:#b8a4ff;
@@ -115,153 +109,103 @@
       h1,h2,h3,p,li,strong,.subtitle,.kicker,.accent,.violet,.amber,.red,.green,.source { color:#111; }
       .panel,.callout,pre,.node,.coord,.role,.stack-item,.question,.compare th,.compare td { background:#fff; color:#111; border-color:#777; }
     }
-  </style>
-</head>
-<body>
-  <div class="app">
-    <main class="stage">
-      <div class="deck" id="deck">
-        <section class="slide is-active" id="slide-1" data-slide="01 / 31" aria-labelledby="title-1"><div><p class="kicker">Mini Tactics · Lesson 02</p><h1 id="title-1">미니 택틱스로 이해하는<br><span class="accent">Command 패턴</span></h1><p class="subtitle">잘못 이동한 유닛을 되돌리려면, 게임은 무엇을 기억해야 할까?</p></div></section>
-
-        <section class="slide" id="slide-2" data-slide="02 / 31" aria-labelledby="title-2"><div><p class="kicker">Yesterday's Success</p><h2 id="title-2">1차시 코드는 목표를 정확히 달성했다</h2><div class="two"><div><ul><li>이동 가능한 유닛을 마우스로 선택한다.</li><li>이동거리 2의 범위를 계산해 표시한다.</li><li>점유 셀은 빨간색으로 구분한다.</li><li>유효한 목적지를 클릭하면 셀 중심으로 이동한다.</li></ul></div><div class="panel teal"><h3>중요한 관점</h3><p class="big">Undo가 요구되지 않았던 1차시에는 <strong>직접 이동 호출이 단순하고 충분한 설계</strong>였다.</p></div></div><p class="source">근거: 교사용_1차시_진행안.md</p></div></section>
-
-        <section class="slide" id="slide-3" data-slide="03 / 31" aria-labelledby="title-3"><div><p class="kicker">New Requirement</p><h2 id="title-3">오늘, 요구가 하나 추가된다</h2><div class="question"><p class="big">“방금 이동은 실수였어요.<br><span class="amber">Undo 버튼으로 원래 자리로 돌려주세요.</span>”</p></div><div class="callout"><p>기능 하나가 추가되었을 뿐인데, 어제의 코드에서 새로운 설계 문제가 보이기 시작한다.</p></div></div></section>
-
-        <section class="slide" id="slide-4" data-slide="04 / 31" aria-labelledby="title-4"><div><p class="kicker">Call Flow</p><h2 id="title-4">현재 이동은 클릭한 프레임에 바로 끝난다</h2><div class="flow"><div class="node">마우스<br>클릭</div><div class="arrow">→</div><div class="node">목적지<br>셀 변환</div><div class="arrow">→</div><div class="node">이동 가능<br>검사</div><div class="arrow">→</div><div class="node">MoveTo()<br>즉시 호출</div></div><div class="callout"><p>입력과 실행 사이에 보관되는 <strong>이동 요청 객체</strong>는 없다.</p></div></div></section>
-
-        <section class="slide" id="slide-5" data-slide="05 / 31" aria-labelledby="title-5"><div><p class="kicker">Actual Code · BattleController</p><h2 id="title-5">이동 가능하면 MoveTo()를 직접 호출한다</h2><pre>public bool TryMoveSelectedUnit(Vector2Int targetCell)
+  </style><style id="layout-safety">
+    .slide > div,.two > div,.wide > div,.role,.node { min-width:0; }
+    .compare { table-layout:fixed; overflow-wrap:anywhere; }
+    .role b,.role span { overflow-wrap:anywhere; }
+    @media (max-width:720px) { .state-board > .arrow { transform:rotate(90deg); justify-self:center; } .flow > .arrow { justify-self:center; } }
+    @media print { .deck { container-type:normal; aspect-ratio:auto; background:#fff; } .slide,.slide.is-active { height:auto; overflow:visible; break-inside:avoid; } }
+    @media print { .role span,.role b,.stack-item.top { color:#111; border-color:#777; } }</style></head><body><div class="app"><main class="stage"><div class="deck" id="deck"><section class="slide is-active" id="slide-1" data-slide="01 / 30" aria-labelledby="title-1"><div><p class="kicker">Mini Tactics · Lesson 02</p><h1 id="title-1">미니 택틱스로 이해하는<br><span class="accent">Command 패턴</span></h1><p class="subtitle">이동은 끝났다. 그 이동을 되돌리려면<br>어떤 정보와 행동을 함께 남겨야 할까?</p><p class="quote">요청 하나를 객체 하나로 표현한다.</p></div></section>
+<section class="slide" id="slide-2" data-slide="02 / 30" aria-labelledby="title-2"><div><p class="kicker">A Small Success</p><h2 id="title-2">직접 호출로도 이동은 잘 해결된다</h2><pre><code data-source="MiniTactics_Teacher_Lesson1/Assets/Lesson01/Scripts/BattleController.cs" data-commit="ad7daec70b925db8b2db754ae9c809ce00816b23">SelectedUnit.MoveTo(_board, targetCell);
+SelectedUnit = null;
+_overlayPool.Hide();
+return true;</code></pre><p class="source">이전 1차시 실제 코드 발췌 — MiniTactics_Teacher_Lesson1/Assets/Lesson01/Scripts/BattleController.cs · TryMoveSelectedUnit 성공 분기; 앞의 검사 생략</p><div class="callout"><p>1차시에는 허용된 목적지로 Unit.MoveTo를 직접 호출하면 충분했다. 단순한 요청 하나에 언제나 새 객체가 필요한 것은 아니다.</p></div></div></section>
+<section class="slide" id="slide-3" data-slide="03 / 30" aria-labelledby="title-3"><div><p class="kicker">New Requirement</p><h2 id="title-3">끝난 이동을 한 번 되돌리고 싶다</h2><div class="question"><p class="big">“방금 이동은 실수였어요.<br>출발했던 셀로 돌려주세요.”</p></div><div class="two"><div class="panel teal"><h3>지금 있는 정보</h3><p>Blue 유닛의 현재 위치다. 실제 장면의 다른 Black 유닛은 움직이지 않는 장애물이다.</p></div><div class="panel violet"><h3>추가로 필요한 정보</h3><p>방금 요청의 대상과 출발 셀이다. 현재 위치만으로 출발 셀을 알 수는 없다.</p></div></div></div></section>
+<section class="slide" id="slide-4" data-slide="04 / 30" aria-labelledby="title-4"><div><p class="kicker">Observation</p><h2 id="title-4">결과가 남아도 요청 기록은 남지 않는다</h2><pre><code data-source="MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/Unit.cs" data-commit="368f338bc553682ea69fba7c3c2d605d791ab509">public void MoveTo(BoardView board, Vector2Int targetCell)
 {
-    if (SelectedUnit == null || _board == null ||
-        !_board.CanMoveTo(SelectedUnit, targetCell))
-        return false;
-
-    <span class="code-focus">SelectedUnit.MoveTo(_board, targetCell);</span>
-    SelectedUnit = null;
-    _overlayPool?.Hide();
-    return true;
-}</pre><p class="source">실제 코드: BattleController.cs 74–84행</p></div></section>
-
-        <section class="slide" id="slide-6" data-slide="06 / 31" aria-labelledby="title-6"><div><p class="kicker">Observation</p><h2 id="title-6">직접 호출은 결과를 만들지만 요청을 남기지 않는다</h2><div class="two"><div class="panel teal"><h3>남는 것</h3><ul><li>유닛의 새로운 월드 위치</li><li>이동이 끝난 화면</li></ul></div><div class="panel redline"><h3>남지 않는 것</h3><ul><li>어떤 유닛이 이동했는가</li><li>어디에서 출발했는가</li><li>어디로 이동했는가</li><li>어떤 순서로 이동했는가</li></ul></div></div><p class="quote">실행된 행동과 행동의 기록은 서로 다른 문제다.</p></div></section>
-
-        <section class="slide" id="slide-7" data-slide="07 / 31" aria-labelledby="title-7"><div><p class="kicker">Actual Code · Unit</p><h2 id="title-7">MoveTo()는 현재 위치를 새 위치로 덮어쓴다</h2><pre>public void MoveTo(BoardView board, Vector2Int targetCell)
-{
-    if (board == null)
-        return;
-
-    <span class="code-focus">transform.position = board.CellToWorld(targetCell);</span>
-}</pre><div class="callout danger"><p>대입이 끝난 뒤 <code>transform.position</code>만 살펴보면 출발 위치를 복구할 수 없다.</p></div><p class="source">실제 코드: Unit.cs 13–20행</p></div></section>
-
-        <section class="slide" id="slide-8" data-slide="08 / 31" aria-labelledby="title-8"><div><p class="kicker">State Change</p><h2 id="title-8">이동 전후 상태를 비교하면 손실이 보인다</h2><div class="state-board"><div class="coord"><span class="green">이동 전</span><br>Unit A<br>cell (5, 4)</div><div class="arrow">→</div><div class="coord"><span class="amber">이동 후</span><br>Unit A<br>cell (5, 6)<br><span class="missing">from (5, 4)</span></div></div><div class="callout"><p>Undo는 단순히 “반대로 이동”하는 기능이 아니다. <strong>과거의 정확한 상태를 알아야 하는 기능</strong>이다.</p></div></div></section>
-
-        <section class="slide" id="slide-9" data-slide="09 / 31" aria-labelledby="title-9"><div><p class="kicker">Think · 60 Seconds</p><h2 id="title-9">Undo하려면 무엇을 기억해야 할까?</h2><div class="question"><p class="big">유닛 A가 <code>(5,4)</code>에서 <code>(5,6)</code>으로 이동했다.<br>원상 복구에 필요한 정보를 모두 말해 보자.</p></div><div class="two" style="margin-top:16px"><div><h3>누가?</h3><p>이동한 유닛</p></div><div><h3>어디에서 어디로?</h3><p>출발 셀과 도착 셀</p></div></div></div></section>
-
-        <section class="slide" id="slide-10" data-slide="10 / 31" aria-labelledby="title-10"><div><p class="kicker">First Attempt</p><h2 id="title-10">첫 생각: lastCell만 저장하자</h2><pre>private Vector2Int lastCell;
-
-lastCell = _board.WorldToCell(SelectedUnit.transform.position);
-SelectedUnit.MoveTo(_board, targetCell);</pre><div class="callout warning"><p>한 유닛의 마지막 이동 한 번만 취소한다면 작동할 수 있다. 아직 틀린 해결책은 아니다.</p></div></div></section>
-
-        <section class="slide" id="slide-11" data-slide="11 / 31" aria-labelledby="title-11"><div><p class="kicker">More State</p><h2 id="title-11">그런데 어떤 유닛인지도 기억해야 한다</h2><pre>private Unit lastUnit;
-private Vector2Int lastCell;
-
-lastUnit = SelectedUnit;
-lastCell = _board.WorldToCell(SelectedUnit.transform.position);</pre><div class="two" style="margin-top:14px"><div class="panel"><h3>현재 행동</h3><p><code>BattleController</code>가 이동을 검증하고 실행한다.</p></div><div class="panel amber"><h3>추가된 책임</h3><p>이제 과거 이동의 유닛과 위치까지 관리한다.</p></div></div></div></section>
-
-        <section class="slide" id="slide-12" data-slide="12 / 31" aria-labelledby="title-12"><div><p class="kicker">Overwrite Again</p><h2 id="title-12">두 번 이동하면 첫 번째 기록이 사라진다</h2><table class="compare"><thead><tr><th>순서</th><th>이동</th><th>lastUnit</th><th>lastCell</th></tr></thead><tbody><tr><td>1</td><td>A: (5,4) → (5,6)</td><td>A</td><td>(5,4)</td></tr><tr><td>2</td><td>B: (2,2) → (3,2)</td><td class="amber">B</td><td class="amber">(2,2)</td></tr></tbody></table><div class="callout danger"><p>두 번째 저장이 첫 번째 기록을 덮어쓴다. 이제 A의 이동은 취소할 수 없다.</p></div></div></section>
-
-        <section class="slide" id="slide-13" data-slide="13 / 31" aria-labelledby="title-13"><div><p class="kicker">Think · Predict</p><h2 id="title-13">Undo를 세 번 지원하려면 필드가 몇 개 필요할까?</h2><div class="two"><div class="question"><p class="big"><code>lastCell1</code>, <code>lastCell2</code>, <code>lastCell3</code>…<br>이 방향이 계속 가능할까?</p></div><div><ul><li>기록 개수만큼 필드가 늘어난다.</li><li>유닛과 위치의 짝을 맞춰야 한다.</li><li>실행 순서도 따로 관리해야 한다.</li><li>Redo가 추가되면 기록 이동도 필요하다.</li></ul></div></div><div class="callout"><p>우리는 이미 “이동 한 건”이라는 새로운 데이터 단위를 찾고 있다.</p></div></div></section>
-
-        <section class="slide" id="slide-14" data-slide="14 / 31" aria-labelledby="title-14"><div><p class="kicker">Data Boundary</p><h2 id="title-14">필요한 것은 위치 하나가 아니라 완전한 이동 기록이다</h2><div class="panel teal"><p class="big"><strong>이동 기록</strong> = 유닛 + 보드 + 출발 셀 + 도착 셀 + 실행/취소 방법</p></div><div class="callout"><p>서로 항상 함께 사용되는 정보와 행동을 하나의 객체로 묶으면 기록 한 건을 통째로 저장하고 꺼낼 수 있다.</p></div></div></section>
-
-        <section class="slide" id="slide-15" data-slide="15 / 31" aria-labelledby="title-15"><div><p class="kicker">Command Pattern</p><h2 id="title-15">Command는 요청을 객체로 만든다</h2><p class="quote">“이 유닛을 이 셀로 이동해라”라는 메서드 호출을, 저장하고 전달할 수 있는 객체로 바꾼다.</p><div class="two"><div><h3>직접 호출</h3><pre>unit.MoveTo(board, to);</pre></div><div><h3>명령 객체</h3><pre>ICommand command =
-    new MoveUnitCommand(...);</pre></div></div><p class="source">참고: Game Programming Patterns, Command — 메서드 호출을 객체로 다루는 설명</p></div></section>
-
-        <section class="slide" id="slide-16" data-slide="16 / 31" aria-labelledby="title-16"><div><p class="kicker">What Changes?</p><h2 id="title-16">호출을 객체로 만들면 시간에서 분리할 수 있다</h2><table class="compare"><thead><tr><th>직접 호출</th><th>명령 객체</th></tr></thead><tbody><tr><td>호출하는 순간 실행된다.</td><td>지금 만들고 나중에 실행할 수 있다.</td></tr><tr><td>실행이 끝나면 호출 자체는 사라진다.</td><td>실행 후에도 객체를 기록으로 보관할 수 있다.</td></tr><tr><td>과거 상태는 호출자가 따로 저장한다.</td><td>명령이 실행과 취소에 필요한 상태를 가진다.</td></tr></tbody></table><div class="callout"><p>핵심은 간접 호출 자체가 아니라, <strong>요청이 데이터가 되었다는 점</strong>이다.</p></div></div></section>
-
-        <section class="slide" id="slide-17" data-slide="17 / 31" aria-labelledby="title-17"><div><p class="kicker">Roles</p><h2 id="title-17">Command 패턴은 네 역할을 분리한다</h2><div class="role-map"><div class="role"><b>Client</b><span>필요한 정보를 모아 명령을 만든다.</span></div><div class="role"><b>Command</b><span>실행할 요청과 관련 상태를 표현한다.</span></div><div class="role"><b>Invoker</b><span>명령을 실행하고 순서를 관리한다.</span></div><div class="role"><b>Receiver</b><span>실제 작업을 수행하는 객체다.</span></div></div><div class="callout"><p>역할 이름보다 중요한 질문은 “누가 만들고, 누가 보관하고, 누가 실제로 움직이는가?”이다.</p></div></div></section>
-
-        <section class="slide" id="slide-18" data-slide="18 / 31" aria-labelledby="title-18"><div><p class="kicker">Mini Tactics Mapping</p><h2 id="title-18">미니 택틱스에서는 이렇게 대응된다</h2><div class="role-map"><div class="role"><b>BattleController</b><span>목적지를 검증하고 MoveUnitCommand를 만든다.</span></div><div class="role"><b>MoveUnitCommand</b><span>이동 한 건을 표현한다.</span></div><div class="role"><b>CommandHistory</b><span>명령을 실행하고 스택에 기록한다.</span></div><div class="role"><b>Unit</b><span>MoveTo()로 실제 위치를 바꾼다.</span></div></div><p class="source">Undo UI 버튼은 CommandHistory에 최근 명령 취소를 요청하는 입력 수단이다.</p></div></section>
-
-        <section class="slide" id="slide-19" data-slide="19 / 31" aria-labelledby="title-19"><div><p class="kicker">Execution Contract</p><h2 id="title-19">ICommand는 실행할 수 있다는 약속이다</h2><pre>public interface ICommand
+    transform.position = board.CellToWorld(targetCell);
+}</code></pre><p class="source">현재 실제 코드 발췌 — MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/Unit.cs</p><div class="callout"><p>위치 대입은 이전 위치를 덮어쓴다. Unit 객체가 사라진다는 뜻은 아니다. 직접 호출만으로는 “누가 어디에서 어디로 이동했는가”라는 별도의 기록이 생기지 않는다.</p></div></div></section>
+<section class="slide" id="slide-5" data-slide="05 / 30" aria-labelledby="title-5"><div><p class="kicker">First Attempt</p><h2 id="title-5">출발 셀 하나만 기억해 볼까?</h2><p class="source">설계 비교용 가상 코드 — 현재 구현에 없는 첫 시도</p><pre><code>lastCell = board.WorldToCell(unit.transform.position);
+unit.MoveTo(board, targetCell);</code></pre><div class="two"><div class="panel teal"><h3>해결한 것</h3><p>이동 전에 출발 셀 값을 보존했다. 항상 같은 대상 하나만 다루면 유용한 시작이다.</p></div><div class="panel violet"><h3>남은 질문과 답</h3><p>어느 Unit을 돌릴까? 목적지와 대상도 요청에 속한다. 여러 이동 대상이 있는 가상 상황이라면 셀 하나로 대상을 구별할 수 없다.</p></div></div></div></section>
+<section class="slide" id="slide-6" data-slide="06 / 30" aria-labelledby="title-6"><div><p class="kicker">A Limited Solution</p><h2 id="title-6">lastUnit과 lastCell이면 한 번은 되돌린다</h2><p class="source">설계 비교용 가상 코드 — 현재 구현에 없는 첫 시도</p><pre><code>lastUnit = unit;
+lastCell = board.WorldToCell(unit.transform.position);
+unit.MoveTo(board, targetCell);
+// 한 번 되돌릴 때
+lastUnit.MoveTo(board, lastCell);</code></pre><div class="callout"><p>가상 첫 시도는 마지막 행동 하나만 취소하는 요구에는 충분할 수 있다. 현재 Teacher에는 이 lastUnit/lastCell 필드가 없다. 여러 번 취소할 때의 보관 방법은 아직 없다.</p></div></div></section>
+<section class="slide" id="slide-7" data-slide="07 / 30" aria-labelledby="title-7"><div><p class="kicker">Lost Records</p><h2 id="title-7">같은 유닛을 두 번 움직이면 첫 기록이 덮인다</h2><table class="compare"><thead><tr><th>시점</th><th>실제 위치</th><th>가상 lastCell</th></tr></thead><tbody><tr><td>시작</td><td>(5,4)</td><td>없음</td></tr><tr><td>첫 이동</td><td>(5,5)</td><td>(5,4)</td></tr><tr><td>둘째 이동</td><td>(4,5)</td><td>(5,5) · 앞 값 덮음</td></tr><tr><td>한 번 취소</td><td>(5,5)</td><td>첫 출발 (5,4)는 이미 소실</td></tr></tbody></table><div class="callout"><p>두 이동은 같은 Blue에 대한 요청이다. 값 한 칸을 계속 덮어쓰는 대신, 이동마다 별도 기록과 취소 행동을 묶어야 한다.</p></div></div></section>
+<section class="slide" id="slide-8" data-slide="08 / 30" aria-labelledby="title-8"><div><p class="kicker">Responsibility Boundary</p><h2 id="title-8">한 요청에 속한 것들을 한곳에 모은다</h2><div class="two"><div class="panel teal"><h3>함께 기억할 것</h3><ul><li>수신자: 어느 Unit인가</li><li>협력자: 어느 BoardView인가</li><li>출발 셀과 목적지 셀</li></ul></div><div class="panel violet"><h3>함께 제공할 행동</h3><ul><li>Execute: 저장한 목적지로 요청</li><li>Undo: 저장한 출발 셀로 요청</li></ul></div></div><div class="callout"><p>수신자는 실제 작업을 수행하는 객체다. 이력은 이동의 세부를 직접 계산하지 않고 이 묶음에 실행이나 취소를 요청한다.</p></div></div></section>
+<section class="slide" id="slide-9" data-slide="09 / 30" aria-labelledby="title-9"><div><p class="kicker">Command</p><h2 id="title-9">Command는 요청을 객체로 표현한다</h2><p class="quote">누가 무엇을 할지에 필요한 정보와<br>실행 행동을 하나의 객체에 담는다.</p><div class="two"><div class="panel teal"><h3>이동 요청 객체</h3><p>MoveUnitCommand 하나가 Unit 참조, 좌표와 실행·취소 방법을 기억한다. 이동마다 새 객체를 만든다.</p></div><div class="panel violet"><h3>분리되는 책임</h3><p>요청을 만드는 쪽, 보관하고 호출하는 쪽, 실제 위치를 바꾸는 쪽을 구분할 수 있다.</p></div></div></div></section>
+<section class="slide" id="slide-10" data-slide="10 / 30" aria-labelledby="title-10"><div><p class="kicker">Roles</p><h2 id="title-10">실제 클래스는 어떤 역할을 맡을까?</h2><div class="role-map"><div class="role"><b>Client · 생성</b><span>BattleController<br>검사한 이동 요청을 만든다.</span></div><div class="role"><b>Command · 요청</b><span>MoveUnitCommand<br>정보와 실행·취소를 묶는다.</span></div><div class="role"><b>Invoker · 호출/보관</b><span>CommandHistory<br>실행하고 이력을 보관한다.</span></div><div class="role"><b>Receiver · 작업</b><span>Unit<br>MoveTo로 위치를 바꾼다.</span></div></div><div class="callout"><p>BoardView는 셀 변환을 돕는 협력자다. 역할은 설계상의 관점이며 클래스 이름을 반드시 Client나 Receiver로 지어야 하는 규칙은 아니다.</p></div></div></section>
+<section class="slide" id="slide-11" data-slide="11 / 30" aria-labelledby="title-11"><div><p class="kicker">Request and Notification</p><h2 id="title-11">요청과 알림은 방향이 다르다</h2><div class="two"><div class="panel teal"><h3>Command · 해 달라</h3><p>“이 Unit을 이 셀로 이동해 달라.”<br>실행할 대상과 매개변수를 가진 요청이다.</p></div><div class="panel violet"><h3>이벤트/알림 · 일어났다</h3><p>“이동이 끝났다.”<br>이미 일어난 사실의 전달이다. 알림 자체가 원상 복구 방법을 제공하지는 않는다.</p></div></div><div class="callout"><p>개념 비교다. Lesson2에 새 이벤트 API가 있는 것은 아니다. 요청을 객체로 만들어야 실행 전에 보관하거나 실행 뒤 취소 정보와 함께 다루기 쉽다.</p></div></div></section>
+<section class="slide" id="slide-12" data-slide="12 / 30" aria-labelledby="title-12"><div><p class="kicker">Execution Contract</p><h2 id="title-12">ICommand는 실행할 수 있다는 약속이다</h2><pre><code data-source="MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/ICommand.cs" data-commit="368f338bc553682ea69fba7c3c2d605d791ab509">public interface ICommand
 {
     void Execute();
-}</pre><div class="two" style="margin-top:14px"><div><h3>호출자는</h3><p>구체적인 이동 방법을 몰라도 <code>Execute()</code>를 호출한다.</p></div><div><h3>명령은</h3><p>자신이 가진 정보로 Receiver에게 실제 작업을 요청한다.</p></div></div></div></section>
-
-        <section class="slide" id="slide-20" data-slide="20 / 31" aria-labelledby="title-20"><div><p class="kicker">Undo Contract</p><h2 id="title-20">IUndoableCommand는 되돌릴 수 있다는 약속을 더한다</h2><pre>public interface IUndoableCommand : ICommand
+}</code></pre><p class="source">현재 실제 코드 발췌 — MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/ICommand.cs</p><div class="two"><div class="panel teal"><h3>void Execute()</h3><p>매개변수와 반환값이 없다. 실행에 필요한 정보는 이 계약을 구현한 객체가 가진다.</p></div><div class="panel violet"><h3>계약의 한계</h3><p>bool 성공 결과가 아니다. 이 선언만으로 이동 허용 검사나 취소 가능성까지 보장하지 않는다.</p></div></div></div></section>
+<section class="slide" id="slide-13" data-slide="13 / 30" aria-labelledby="title-13"><div><p class="kicker">Undo Contract</p><h2 id="title-13">취소할 요청은 Undo도 제공한다</h2><pre><code data-source="MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/IUndoableCommand.cs" data-commit="368f338bc553682ea69fba7c3c2d605d791ab509">public interface IUndoableCommand : ICommand
 {
     void Undo();
-}</pre><div class="callout"><p><code>Execute()</code>와 <code>Undo()</code>가 한 객체 안에 있으므로 실행할 때 사용한 상태와 되돌릴 때 사용할 상태가 분리되지 않는다.</p></div></div></section>
-
-        <section class="slide" id="slide-21" data-slide="21 / 31" aria-labelledby="title-21"><div><p class="kicker">Concrete Command</p><h2 id="title-21">MoveUnitCommand는 이동 한 건의 상태를 가진다</h2><pre>public sealed class MoveUnitCommand : IUndoableCommand
+}</code></pre><p class="source">현재 실제 코드 발췌 — MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/IUndoableCommand.cs</p><div class="callout"><p>IUndoableCommand는 ICommand를 이어받으므로 Execute와 Undo를 모두 약속한다. 이력은 구체 이동 클래스 대신 이 계약으로 요청을 보관한다. 실제 이동 방법은 MoveUnitCommand가 구현한다.</p></div></div></section>
+<section class="slide" id="slide-14" data-slide="14 / 30" aria-labelledby="title-14"><div><p class="kicker">Concrete State</p><h2 id="title-14">참조와 좌표를 요청 객체가 보관한다</h2><pre><code data-source="MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/MoveUnitCommand.cs" data-commit="368f338bc553682ea69fba7c3c2d605d791ab509">private readonly Unit _unit;
+private readonly BoardView _board;
+private readonly Vector2Int _fromCell;
+private readonly Vector2Int _toCell;</code></pre><p class="source">현재 실제 코드 발췌 — MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/MoveUnitCommand.cs</p><table class="compare"><thead><tr><th>멤버</th><th>기억하는 뜻</th></tr></thead><tbody><tr><td>_unit / _board</td><td>작업할 Unit / 좌표 변환 협력자</td></tr><tr><td>_fromCell / _toCell</td><td>되돌릴 출발 / 실행할 목적지</td></tr></tbody></table><div class="callout"><p>readonly는 생성 후 이 필드에 다시 대입하지 않는다는 뜻이다. 참조한 Unit 전체가 불변이 되는 것은 아니다. Unit의 현재 위치는 실행으로 바뀐다.</p></div></div></section>
+<section class="slide" id="slide-15" data-slide="15 / 30" aria-labelledby="title-15"><div><p class="kicker">Capture Timing</p><h2 id="title-15">이 구현은 생성자에서 출발 셀을 잡는다</h2><pre><code data-source="MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/MoveUnitCommand.cs" data-commit="368f338bc553682ea69fba7c3c2d605d791ab509">public MoveUnitCommand(Unit unit, BoardView board, Vector2Int toCell)
 {
-    private readonly Unit _unit;
-    private readonly BoardView _board;
-    private readonly Vector2Int _fromCell;
-    private readonly Vector2Int _toCell;
-}</pre><div class="callout"><p>이 네 값이 하나의 객체에 묶이면서 여러 이동 기록을 같은 형태로 보관할 수 있다.</p></div></div></section>
-
-        <section class="slide" id="slide-22" data-slide="22 / 31" aria-labelledby="title-22"><div><p class="kicker">Capture Timing</p><h2 id="title-22">출발 셀은 명령을 만들 때 확정한다</h2><div class="wide"><div><pre>Vector2Int fromCell =
-    board.WorldToCell(unit.transform.position);
-
-var command = new MoveUnitCommand(
-    unit, board, fromCell, targetCell);</pre></div><div class="panel amber"><h3>왜 지금인가?</h3><p>실행한 뒤에는 유닛의 현재 위치가 도착 셀로 바뀐다. 과거 상태는 바뀌기 전에 캡처해야 한다.</p></div></div></div></section>
-
-        <section class="slide" id="slide-23" data-slide="23 / 31" aria-labelledby="title-23"><div><p class="kicker">Execute</p><h2 id="title-23">Execute()는 저장된 도착 셀을 사용한다</h2><pre>public void Execute()
+    _unit = unit;
+    _board = board;
+    _fromCell = board.WorldToCell(unit.transform.position);
+    _toCell = toCell;
+}</code></pre><p class="source">현재 실제 코드 발췌 — MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/MoveUnitCommand.cs</p><div class="callout"><p>new MoveUnitCommand가 실행되는 순간, BoardView.WorldToCell로 현재 위치를 셀로 바꿔 저장한다. Controller는 생성 직후 실행한다. 생성과 실행 사이에 Unit이 별도로 이동하면 저장한 출발 셀은 실행 직전 위치와 달라질 수 있다.</p></div></div></section>
+<section class="slide" id="slide-16" data-slide="16 / 30" aria-labelledby="title-16"><div><p class="kicker">Execute</p><h2 id="title-16">실행은 저장한 목적지로 요청한다</h2><pre><code data-source="MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/MoveUnitCommand.cs" data-commit="368f338bc553682ea69fba7c3c2d605d791ab509">public void Execute()
 {
     _unit.MoveTo(_board, _toCell);
-}</pre><div class="flow"><div class="node">History</div><div class="arrow">→</div><div class="node">Command<br>Execute()</div><div class="arrow">→</div><div class="node">Unit<br>MoveTo()</div><div class="arrow">→</div><div class="node">도착 셀</div></div></div></section>
-
-        <section class="slide" id="slide-24" data-slide="24 / 31" aria-labelledby="title-24"><div><p class="kicker">Record Rule</p><h2 id="title-24">성공한 명령만 History에 기록한다</h2><div class="two"><div><h3>실행 가능</h3><ol><li>명령을 실행한다.</li><li>Undo 스택에 Push한다.</li></ol></div><div class="panel redline"><h3>기록하지 않는 경우</h3><ul><li>점유된 목적지</li><li>이동 범위 밖</li><li>선택된 유닛 없음</li></ul></div></div><div class="callout"><p>History는 “시도한 입력”이 아니라 <strong>실제로 일어난 상태 변화</strong>를 기록한다.</p></div></div></section>
-
-        <section class="slide" id="slide-25" data-slide="25 / 31" aria-labelledby="title-25"><div><p class="kicker">LIFO</p><h2 id="title-25">CommandHistory는 스택으로 최근 이동을 찾는다</h2><div class="stack"><div class="stack-item top">TOP · C: (8,7) → (9,7)</div><div class="stack-item">B: (3,2) → (3,4)</div><div class="stack-item">A: (5,4) → (5,6)</div></div><div class="callout"><p>가장 나중에 실행한 행동부터 되돌려야 상태가 자연스럽게 이전 단계로 돌아간다.</p></div></div></section>
-
-        <section class="slide" id="slide-26" data-slide="26 / 31" aria-labelledby="title-26"><div><p class="kicker">Undo Flow</p><h2 id="title-26">Undo는 최근 명령을 꺼내 출발 셀로 복원한다</h2><pre>public void Undo()
+}</code></pre><p class="source">현재 실제 코드 발췌 — MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/MoveUnitCommand.cs</p><div class="two"><div class="panel teal"><h3>누구에게?</h3><p>선택을 다시 조회하지 않고, 생성할 때 저장한 _unit에게 요청한다.</p></div><div class="panel violet"><h3>어디로?</h3><p>지금 마우스 위치가 아니라 저장한 _toCell이다. 구체 위치 대입은 Unit.MoveTo가 맡는다.</p></div></div></div></section>
+<section class="slide" id="slide-17" data-slide="17 / 30" aria-labelledby="title-17"><div><p class="kicker">Undo</p><h2 id="title-17">취소는 저장한 출발 셀로 요청한다</h2><pre><code data-source="MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/MoveUnitCommand.cs" data-commit="368f338bc553682ea69fba7c3c2d605d791ab509">public void Undo()
 {
     _unit.MoveTo(_board, _fromCell);
-}</pre><div class="flow"><div class="node">Undo<br>버튼</div><div class="arrow">→</div><div class="node">History<br>Pop()</div><div class="arrow">→</div><div class="node">Command<br>Undo()</div><div class="arrow">→</div><div class="node">출발 셀<br>복원</div></div></div></section>
+}</code></pre><p class="source">현재 실제 코드 발췌 — MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/MoveUnitCommand.cs</p><div class="callout"><p>Execute와 같은 Unit.MoveTo 통로를 사용한다. 방향만 반대로 계산하는 것이 아니라 기억한 _fromCell로 복원한다. Command 안에 프레임 보간이나 애니메이션 역재생은 없다.</p></div></div></section>
+<section class="slide" id="slide-18" data-slide="18 / 30" aria-labelledby="title-18"><div><p class="kicker">Receiver and Visual</p><h2 id="title-18">논리 위치 변경과 화면 표현은 독립적이다</h2><pre><code data-source="MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/Unit.cs" data-commit="368f338bc553682ea69fba7c3c2d605d791ab509">public void MoveTo(BoardView board, Vector2Int targetCell)
+{
+    transform.position = board.CellToWorld(targetCell);
+}</code></pre><p class="source">현재 실제 코드 발췌 — MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/Unit.cs</p><div class="two"><div class="panel teal"><h3>Unit · 즉시 변경</h3><p>셀 중심으로 루트 Transform을 대입한다. Execute와 Undo 모두 같은 작업을 요청한다.</p></div><div class="panel violet"><h3>UnitAnimator · 독립 관찰</h3><p>루트 변화를 관찰해 자식 Visual의 표현을 조정한다. Command가 애니메이션 메서드를 호출하는 구조가 아니다.</p></div></div></div></section>
+<section class="slide" id="slide-19" data-slide="19 / 30" aria-labelledby="title-19"><div><p class="kicker">Validation Boundary</p><h2 id="title-19">허용되지 않은 시도는 기록 앞에서 멈춘다</h2><pre><code data-source="MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/BattleController.cs" data-commit="368f338bc553682ea69fba7c3c2d605d791ab509">if (SelectedUnit == null || !_board.CanMoveTo(SelectedUnit, targetCell))
+{
+    return false;
+}</code></pre><p class="source">현재 실제 코드 발췌 — MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/BattleController.cs · TryMoveSelectedUnit 앞부분</p><div class="callout"><p>선택 없음 또는 목적지 거절이면 false다. Command를 만들거나 이력에 넘기기 전이므로 유령 기록이 생기지 않는다. 기존 선택이 있었다면 선택과 범위 표시도 유지한다. 필수 참조는 연결되어 있다는 전제다.</p></div></div></section>
+<section class="slide" id="slide-20" data-slide="20 / 30" aria-labelledby="title-20"><div><p class="kicker">Accepted Request</p><h2 id="title-20">검사 뒤에 생성하고 실행을 맡긴다</h2><pre><code data-source="MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/BattleController.cs" data-commit="368f338bc553682ea69fba7c3c2d605d791ab509">MoveUnitCommand command = new MoveUnitCommand(SelectedUnit, _board, targetCell);
+_history.Execute(command);
+SelectedUnit = null;
+_overlayPool.Hide();
+return true;</code></pre><p class="source">현재 실제 코드 발췌 — MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/BattleController.cs · 앞의 선택/목적지 검사 생략</p><div class="callout"><p>허용된 경우에만 Command를 만들고 이력에 실행을 맡긴다. 그 뒤 선택을 null로 하고 표시를 숨긴다. 성공한 이동이 이전 선택 상태까지 기록하는 것은 아니다.</p></div></div></section>
+<section class="slide" id="slide-21" data-slide="21 / 30" aria-labelledby="title-21"><div><p class="kicker">History</p><h2 id="title-21">실행이 끝난 다음 이력에 넣는다</h2><pre><code data-source="MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/CommandHistory.cs" data-commit="368f338bc553682ea69fba7c3c2d605d791ab509">public void Execute(IUndoableCommand command)
+{
+    command.Execute();
+    _commands.Push(command);
+}</code></pre><p class="source">현재 실제 코드 발췌 — MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/CommandHistory.cs</p><div class="two"><div class="panel teal"><h3>순서의 의미</h3><p>Execute가 정상 반환한 뒤 Push한다. 실행 중 예외가 나면 이 요청은 Push에 도달하지 않는다.</p></div><div class="panel violet"><h3>검사의 주인</h3><p>Execute는 void다. 이력은 이동 허용 여부를 판정하지 않는다. Controller의 사전 검사를 전제로 한다.</p></div></div></div></section>
+<section class="slide" id="slide-22" data-slide="22 / 30" aria-labelledby="title-22"><div><p class="kicker">Stack and LIFO</p><h2 id="title-22">가장 나중 요청부터 꺼낸다</h2><div class="stack"><div class="stack-item top">위 · m2 : (5,5) → (4,5)</div><div class="stack-item">아래 · m1 : (5,4) → (5,5)</div></div><div class="callout"><p><strong>Stack</strong>은 넣은 곳에서 거꾸로 꺼내는 자료구조다. Last In, First Out = LIFO. m1 다음 m2를 실행했다면 첫 Undo 대상은 m2다. m1/m2와 항목 수는 설명용 표기이며 공개 Count API가 아니다.</p></div></div></section>
+<section class="slide" id="slide-23" data-slide="23 / 30" aria-labelledby="title-23"><div><p class="kicker">Worked Trace</p><h2 id="title-23">두 이동과 거절 한 번을 따라가자</h2><table class="compare"><thead><tr><th>입력 · 매번 필요한 선택을 한 뒤</th><th>Blue 셀</th><th>이력 아래 → 위</th></tr></thead><tbody><tr><td>시작</td><td>(5,4)</td><td>비어 있음</td></tr><tr><td>m1: (5,5)로 허용된 이동</td><td>(5,5)</td><td>m1</td></tr><tr><td>(6,4) 시도 · Black 점유로 거절</td><td>(5,5)</td><td>m1 · 새 기록 없음</td></tr><tr><td>m2: (4,5)로 허용된 이동</td><td>(4,5)</td><td>m1, m2</td></tr></tbody></table><div class="callout"><p>이 셀들은 현재 보드 안에 있고 두 성공 이동은 각각 한 칸이다. 거절된 시도는 기존 선택을 유지한다. 월드 좌표 숫자는 Grid/Tilemap에 따라 달라지므로 셀로 추적한다.</p></div></div></section>
+<section class="slide" id="slide-24" data-slide="24 / 30" aria-labelledby="title-24"><div><p class="kicker">Undo Result</p><h2 id="title-24">Undo 두 번, 그다음 한 번의 결과는?</h2><table class="compare"><thead><tr><th>요청</th><th>꺼내는 기록</th><th>Blue 결과</th><th>이력 아래 → 위</th></tr></thead><tbody><tr><td>첫 Undo</td><td>m2 · 출발 (5,5)</td><td>(5,5)</td><td>m1</td></tr><tr><td>둘째 Undo</td><td>m1 · 출발 (5,4)</td><td>(5,4)</td><td>비어 있음</td></tr><tr><td>셋째 Undo</td><td>없음 · false</td><td>(5,4) 그대로</td><td>비어 있음</td></tr></tbody></table><div class="callout"><p><strong>답과 이유:</strong> m2가 가장 위이므로 먼저 취소한다. 각 Command가 자기 출발 셀을 보관했기에 앞선 출발 값이 덮이지 않는다. Black은 어떤 요청의 수신자도 아니므로 움직이지 않는다.</p></div></div></section>
+<section class="slide" id="slide-25" data-slide="25 / 30" aria-labelledby="title-25"><div><p class="kicker">Empty History</p><h2 id="title-25">비어 있으면 false, 있으면 꺼내서 Undo한다</h2><pre><code data-source="MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/CommandHistory.cs" data-commit="368f338bc553682ea69fba7c3c2d605d791ab509">public bool UndoLast()
+{
+    if (_commands.Count == 0)
+    {
+        return false;
+    }
 
-        <section class="slide" id="slide-27" data-slide="27 / 31" aria-labelledby="title-27"><div><p class="kicker">Think · Trace the Stack</p><h2 id="title-27">Undo를 두 번 누르면 어떤 이동이 취소될까?</h2><div class="two"><div class="stack"><div class="stack-item top">C 이동</div><div class="stack-item">B 이동</div><div class="stack-item">A 이동</div></div><div class="question"><p class="big">1회: <span class="amber">C 이동 취소</span><br>2회: <span class="violet">B 이동 취소</span><br><br>스택에는 A 이동만 남는다.</p></div></div></div></section>
-
-        <section class="slide" id="slide-28" data-slide="28 / 31" aria-labelledby="title-28"><div><p class="kicker">Beyond Undo</p><h2 id="title-28">기록이 생기면 Redo와 Replay도 같은 구조에서 나온다</h2><div class="two"><div class="panel violet"><h3>Redo</h3><p>Undo한 명령을 별도 스택에 보관했다가 다시 <code>Execute()</code>한다.</p></div><div class="panel teal"><h3>Replay</h3><p>저장된 명령 순서를 처음부터 실행해 같은 행동 흐름을 재현한다.</p></div></div><div class="callout"><p>새 기능의 기반은 좌표가 아니라 <strong>시간 순서가 있는 명령 기록</strong>이다.</p></div><p class="source">참고: Game Programming Patterns, Command — Undo/Redo와 이동 명령 기록</p></div></section>
-
-        <section class="slide" id="slide-29" data-slide="29 / 31" aria-labelledby="title-29"><div><p class="kicker">Shared Language</p><h2 id="title-29">사람 입력과 AI가 같은 명령을 사용할 수 있다</h2><div class="flow"><div class="node">마우스<br>입력</div><div class="arrow">↘</div><div class="node">MoveUnit<br>Command</div><div class="arrow">→</div><div class="node">Unit</div></div><div class="flow" style="margin-top:10px"><div class="node">적 AI<br>판단</div><div class="arrow">↗</div><div class="node">같은 실행<br>경로</div><div class="arrow">→</div><div class="node">같은 규칙</div></div><div class="callout"><p>누가 결정했는지와 실제 행동을 어떻게 실행하는지를 분리할 수 있다.</p></div></div></section>
-
-        <section class="slide" id="slide-30" data-slide="30 / 31" aria-labelledby="title-30"><div><p class="kicker">Judgment</p><h2 id="title-30">모든 호출을 Command로 만들 필요는 없다</h2><div class="two"><div class="panel teal"><h3>도입 가치가 큰 경우</h3><ul><li>Undo·Redo가 필요하다.</li><li>실행을 나중으로 미뤄야 한다.</li><li>행동을 기록·재생해야 한다.</li><li>입력과 실행 주체를 분리한다.</li></ul></div><div class="panel amber"><h3>비용</h3><ul><li>명령 클래스와 객체가 늘어난다.</li><li>어떤 상태를 언제 캡처할지 정해야 한다.</li><li>실패한 명령의 기록 규칙이 필요하다.</li></ul></div></div><div class="question" style="margin-top:14px"><p><strong>생각하기:</strong> 단순한 UI 패널 열기와 유닛 이동 중 어느 쪽에 기록 가치가 더 큰가?</p></div></div></section>
-
-        <section class="slide" id="slide-31" data-slide="31 / 31" aria-labelledby="title-31"><div><p class="kicker">Takeaway</p><h2 id="title-31">새 요구가 생기면 요청을 기억해야 할 때가 온다</h2><ol><li>1차시의 직접 호출은 이동을 잘 실행하지만 과거를 기록하지 않는다.</li><li>Undo에는 유닛·출발·도착·실행 순서가 필요하다.</li><li>Command는 요청과 필요한 상태를 객체로 묶는다.</li><li>History는 명령을 순서대로 보관하고 최근 행동부터 취소한다.</li></ol><p class="quote">Command 패턴의 핵심은 “실행할 행동”을 저장하고 다룰 수 있는 데이터로 만드는 것이다.</p><div class="callout"><p><strong>확인 질문:</strong> <code>MoveUnitCommand</code>가 출발 셀을 실행 후가 아니라 생성 시 저장해야 하는 이유는 무엇인가?</p></div></div></section>
-      </div>
-    </main>
-
-    <nav class="controls" aria-label="슬라이드 탐색">
-      <button class="control-btn" id="prevBtn" type="button" aria-label="이전 슬라이드">←</button>
-      <button class="control-btn" id="tocBtn" type="button">목차</button>
-      <span id="slideCounter" aria-live="polite">1 / 31</span>
-      <button class="control-btn" id="nextBtn" type="button" aria-label="다음 슬라이드">→</button>
-    </nav>
-  </div>
-
-  <dialog id="tocDialog" aria-labelledby="tocTitle">
-    <div class="toc-head"><h2 id="tocTitle">전체 목차</h2><button class="control-btn" id="tocCloseBtn" type="button">닫기</button></div>
-    <div class="toc-grid">
-      <a class="toc-link" href="#slide-1"><span>01</span>Command 패턴</a><a class="toc-link" href="#slide-2"><span>02</span>1차시 성공</a>
-      <a class="toc-link" href="#slide-3"><span>03</span>새 요구</a><a class="toc-link" href="#slide-4"><span>04</span>현재 호출 흐름</a>
-      <a class="toc-link" href="#slide-5"><span>05</span>직접 이동 코드</a><a class="toc-link" href="#slide-6"><span>06</span>요청이 남지 않음</a>
-      <a class="toc-link" href="#slide-7"><span>07</span>위치 덮어쓰기</a><a class="toc-link" href="#slide-8"><span>08</span>상태 비교</a>
-      <a class="toc-link" href="#slide-9"><span>09</span>필요 정보 찾기</a><a class="toc-link" href="#slide-10"><span>10</span>lastCell</a>
-      <a class="toc-link" href="#slide-11"><span>11</span>lastUnit</a><a class="toc-link" href="#slide-12"><span>12</span>기록 덮어쓰기</a>
-      <a class="toc-link" href="#slide-13"><span>13</span>다단계 Undo</a><a class="toc-link" href="#slide-14"><span>14</span>완전한 이동 기록</a>
-      <a class="toc-link" href="#slide-15"><span>15</span>요청의 객체화</a><a class="toc-link" href="#slide-16"><span>16</span>직접 호출과 비교</a>
-      <a class="toc-link" href="#slide-17"><span>17</span>네 역할</a><a class="toc-link" href="#slide-18"><span>18</span>미니 택틱스 대응</a>
-      <a class="toc-link" href="#slide-19"><span>19</span>ICommand</a><a class="toc-link" href="#slide-20"><span>20</span>IUndoableCommand</a>
-      <a class="toc-link" href="#slide-21"><span>21</span>MoveUnitCommand</a><a class="toc-link" href="#slide-22"><span>22</span>상태 캡처 시점</a>
-      <a class="toc-link" href="#slide-23"><span>23</span>Execute 흐름</a><a class="toc-link" href="#slide-24"><span>24</span>기록 규칙</a>
-      <a class="toc-link" href="#slide-25"><span>25</span>History 스택</a><a class="toc-link" href="#slide-26"><span>26</span>Undo 흐름</a>
-      <a class="toc-link" href="#slide-27"><span>27</span>스택 추적</a><a class="toc-link" href="#slide-28"><span>28</span>Redo와 Replay</a>
-      <a class="toc-link" href="#slide-29"><span>29</span>사람과 AI</a><a class="toc-link" href="#slide-30"><span>30</span>적용 기준</a>
-      <a class="toc-link" href="#slide-31"><span>31</span>핵심 정리</a>
-    </div>
-  </dialog>
-
-  <script>
+    _commands.Pop().Undo();
+    return true;
+}</code></pre><p class="source">현재 실제 코드 발췌 — MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/CommandHistory.cs</p><div class="callout"><p>Count는 내부 Stack에서만 사용한다. CommandHistory가 Count/Clear/Redo를 공개하는 것은 아니다. 빈 이력은 정상 결과이며 Unit에 Undo 요청을 보내지 않는다.</p></div></div></section>
+<section class="slide" id="slide-26" data-slide="26 / 30" aria-labelledby="title-26"><div><p class="kicker">Current Selection</p><h2 id="title-26">Undo 뒤의 선택 표시는 어디까지 바뀔까?</h2><pre><code data-source="MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/BattleController.cs" data-commit="368f338bc553682ea69fba7c3c2d605d791ab509">public void OnUndoClicked()
+{
+    if (_history.UndoLast() &amp;&amp; SelectedUnit != null)
+    {
+        Select(SelectedUnit);
+    }
+}</code></pre><p class="source">현재 실제 코드 발췌 — MiniTactics_Teacher_Lesson2/Assets/Lesson02/Scripts/BattleController.cs</p><div class="callout"><p>UndoLast가 true이고 <strong>현재</strong> 선택이 있을 때만 Select로 범위를 다시 계산한다. 빈 이력이면 재선택하지 않는다. 이전 이동 유닛을 자동 선택하거나 과거 선택·UI 상태를 통째로 복원하지 않는다.</p></div></div></section>
+<section class="slide" id="slide-27" data-slide="27 / 30" aria-labelledby="title-27"><div><p class="kicker">Bounded Restoration</p><h2 id="title-27">위치 취소는 게임 전체의 시간 되감기가 아니다</h2><div class="two"><div class="panel teal"><h3>현재 복원 범위</h3><p>저장한 Unit을 저장한 출발 셀로 옮긴다. LIFO로 최근 이동을 먼저 취소한다.</p></div><div class="panel violet"><h3>별도 정책이 필요한 것</h3><p>외부에서 중간에 바꾼 상태, 사라진 수신자, 다른 부작용, 과거 UI와 애니메이션 시간은 자동 복원되지 않는다.</p></div></div><div class="callout"><p>정확한 Undo에는 “무엇을 저장하고 어떤 순서로 바꿀 것인가”라는 정책이 필요하다. 요청 객체 하나가 모든 상태 변경을 알아서 추적하지는 않는다.</p></div></div></section>
+<section class="slide" id="slide-28" data-slide="28 / 30" aria-labelledby="title-28"><div><p class="kicker">Possible Extensions</p><h2 id="title-28">보관한 요청은 다른 설계로 확장할 수 있다</h2><table class="compare"><thead><tr><th>가능한 확장 · 현재 미구현</th><th>추가로 정할 것</th></tr></thead><tbody><tr><td>지연 실행 / 다른 Client(예: AI)</td><td>생성·실행 사이 상태 변화와 유효성 검사 시점</td></tr><tr><td>Redo</td><td>취소 이력과 새 행동 발생 시 분기 처리</td></tr><tr><td>Replay</td><td>적절한 시작 상태, 안정된 참조·매개변수, 재현 가능한 실행</td></tr></tbody></table><div class="callout"><p>Unity 참조를 담은 C# 객체는 자동으로 파일/네트워크 형식이 되지 않는다. Command를 사용했다고 결정적 재현이나 직렬화가 보장되는 것도 아니다.</p></div></div></section>
+<section class="slide" id="slide-29" data-slide="29 / 30" aria-labelledby="title-29"><div><p class="kicker">Costs and Judgment</p><h2 id="title-29">기록이 필요한 요청인지 먼저 판단한다</h2><div class="two"><div class="panel teal"><h3>유용할 때</h3><p>행동별 이력과 취소, 요청 보관, 다른 생성자/입력 주체의 연결이 실제로 필요하다.</p></div><div class="panel violet"><h3>부담과 대안</h3><p>요청마다 객체·저장 상태·연결·수명 정책이 늘어난다. 단순 UI 패널 표시 한 번이면 직접 호출로 충분할 수 있다.</p></div></div><div class="callout"><p><strong>질문 → 답:</strong> 모든 버튼을 Command로 만들까? 아니다. 버튼이 있다는 사실보다 요청을 보관·취소해야 하는지가 판단 근거다.</p></div></div></section>
+<section class="slide" id="slide-30" data-slide="30 / 30" aria-labelledby="title-30"><div><p class="kicker">Visible Review Answers</p><h2 id="title-30">핵심 질문에 코드의 말로 답해 보자</h2><table class="compare"><thead><tr><th>질문</th><th>답과 이유</th></tr></thead><tbody><tr><td>출발 셀은 언제 저장하는가?</td><td>생성자에서 WorldToCell · 위치가 덮이기 전에</td></tr><tr><td>누가 실제 위치를 바꾸는가?</td><td>저장한 Unit의 MoveTo · Command는 요청</td></tr><tr><td>실패한 이동도 이력에 들어가는가?</td><td>Controller가 생성 전에 거절하므로 들어가지 않음</td></tr><tr><td>왜 최신 요청부터 취소하는가?</td><td>나중 변경부터 되돌려 앞선 상태로 접근하는 LIFO</td></tr><tr><td>Undo하면 이전 선택도 돌아오는가?</td><td>아니다. 성공 Undo 뒤 현재 선택이 있을 때만 범위 갱신</td></tr></tbody></table></div></section></div></main><nav class="controls" aria-label="슬라이드 탐색"><button class="control-btn" id="prevBtn" type="button" aria-label="이전 슬라이드">←</button><button class="control-btn" id="tocBtn" type="button">목차</button><span id="slideCounter" aria-live="polite">1 / 30</span><button class="control-btn" id="nextBtn" type="button" aria-label="다음 슬라이드">→</button></nav></div><dialog id="tocDialog" aria-labelledby="tocTitle"><div class="toc-head"><h2 id="tocTitle">전체 목차</h2><button class="control-btn" id="tocCloseBtn" type="button">닫기</button></div><div class="toc-grid"><a class="toc-link" href="#slide-1"><span>01</span>Command 패턴</a><a class="toc-link" href="#slide-2"><span>02</span>직접 호출로도 이동은 잘 해결된다</a><a class="toc-link" href="#slide-3"><span>03</span>끝난 이동을 한 번 되돌리고 싶다</a><a class="toc-link" href="#slide-4"><span>04</span>결과가 남아도 요청 기록은 남지 않는다</a><a class="toc-link" href="#slide-5"><span>05</span>출발 셀 하나만 기억해 볼까?</a><a class="toc-link" href="#slide-6"><span>06</span>lastUnit과 lastCell이면 한 번은 되돌린다</a><a class="toc-link" href="#slide-7"><span>07</span>같은 유닛을 두 번 움직이면 첫 기록이 덮인다</a><a class="toc-link" href="#slide-8"><span>08</span>한 요청에 속한 것들을 한곳에 모은다</a><a class="toc-link" href="#slide-9"><span>09</span>Command는 요청을 객체로 표현한다</a><a class="toc-link" href="#slide-10"><span>10</span>실제 클래스는 어떤 역할을 맡을까?</a><a class="toc-link" href="#slide-11"><span>11</span>요청과 알림은 방향이 다르다</a><a class="toc-link" href="#slide-12"><span>12</span>ICommand는 실행할 수 있다는 약속이다</a><a class="toc-link" href="#slide-13"><span>13</span>취소할 요청은 Undo도 제공한다</a><a class="toc-link" href="#slide-14"><span>14</span>참조와 좌표를 요청 객체가 보관한다</a><a class="toc-link" href="#slide-15"><span>15</span>이 구현은 생성자에서 출발 셀을 잡는다</a><a class="toc-link" href="#slide-16"><span>16</span>실행은 저장한 목적지로 요청한다</a><a class="toc-link" href="#slide-17"><span>17</span>취소는 저장한 출발 셀로 요청한다</a><a class="toc-link" href="#slide-18"><span>18</span>논리 위치 변경과 화면 표현은 독립적이다</a><a class="toc-link" href="#slide-19"><span>19</span>허용되지 않은 시도는 기록 앞에서 멈춘다</a><a class="toc-link" href="#slide-20"><span>20</span>검사 뒤에 생성하고 실행을 맡긴다</a><a class="toc-link" href="#slide-21"><span>21</span>실행이 끝난 다음 이력에 넣는다</a><a class="toc-link" href="#slide-22"><span>22</span>가장 나중 요청부터 꺼낸다</a><a class="toc-link" href="#slide-23"><span>23</span>두 이동과 거절 한 번을 따라가자</a><a class="toc-link" href="#slide-24"><span>24</span>Undo 두 번, 그다음 한 번의 결과는?</a><a class="toc-link" href="#slide-25"><span>25</span>비어 있으면 false, 있으면 꺼내서 Undo한다</a><a class="toc-link" href="#slide-26"><span>26</span>Undo 뒤의 선택 표시는 어디까지 바뀔까?</a><a class="toc-link" href="#slide-27"><span>27</span>위치 취소는 게임 전체의 시간 되감기가 아니다</a><a class="toc-link" href="#slide-28"><span>28</span>보관한 요청은 다른 설계로 확장할 수 있다</a><a class="toc-link" href="#slide-29"><span>29</span>기록이 필요한 요청인지 먼저 판단한다</a><a class="toc-link" href="#slide-30"><span>30</span>핵심 질문에 코드의 말로 답해 보자</a></div></dialog><script>
     const slides = [...document.querySelectorAll('.slide')];
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
@@ -304,7 +248,9 @@ var command = new MoveUnitCommand(
     }));
     window.addEventListener('hashchange', () => showSlide(indexFromHash(), false));
     window.addEventListener('keydown', (event) => {
+      if (tocDialog.open) return;
       const tag = document.activeElement?.tagName;
+      if (['ArrowRight','ArrowLeft','PageDown','PageUp','Home','End'].includes(event.key)) event.preventDefault();
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       if (event.key === 'ArrowRight' || event.key === 'PageDown') showSlide(current + 1);
       else if (event.key === 'ArrowLeft' || event.key === 'PageUp') showSlide(current - 1);
@@ -314,6 +260,7 @@ var command = new MoveUnitCommand(
 
     const initialIndex = indexFromHash();
     showSlide(initialIndex);
-  </script>
-</body>
-</html>
+  </script><noscript><style>
+    html,body{height:auto;overflow:visible}.app,.stage,.deck{display:block;width:100%;height:auto;max-height:none;aspect-ratio:auto;overflow:visible;container-type:normal}
+    .slide,.slide.is-active{position:relative;display:block;overflow:visible;animation:none;margin-bottom:20px}.controls,dialog{display:none}
+    </style></noscript></body></html>
