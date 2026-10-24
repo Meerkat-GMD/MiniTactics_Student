@@ -30,6 +30,8 @@ Board의 Map Data에 map01을 연결하고, 다음 저장에서 Awake를 추가�
 완성 Teacher 씬이나 빌더로 학생 씬을 교체하지 않습니다.
 Play 밖에서는 이전 수동 Tilemap 미리보기가 남을 수 있고,
 Play에 들어갈 때 Awake가 MapData로120칸을 다시 그립니다.
+Play를 종료하면 실행 전의 이전 수동 Tilemap 편집 미리보기가 정상적으로 복원됩니다.
+다시 칠할 필요 없이 다음 Play에서 Awake가 같은 MapData로 다시 그립니다.
 
 Controller를 가중 표시로 바꾼 직후부터 BoardView 이동 허가를 바꾸기 전까지는
 **컴파일 전용**입니다. 허가까지 바꾼 뒤 플레이합니다.
