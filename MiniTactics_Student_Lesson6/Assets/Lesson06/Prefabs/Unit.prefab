@@ -297,9 +297,6 @@ MonoBehaviour:
   _animator: {fileID: 2822496375482230280}
   _playerLook: {fileID: 11400000, guid: cc1dd1e53b9058b9d968bbcba611687a, type: 2}
   _enemyLook: {fileID: 11400000, guid: 23f1365d22f07870fd04b75f1c6ed826, type: 2}
-  _maxHp: 10
-  _attackPower: 6
-  _defense: 1
 --- !u!61 &5912880587724107798
 BoxCollider2D:
   m_ObjectHideFlags: 0
