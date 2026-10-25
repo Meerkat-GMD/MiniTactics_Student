@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace MiniTactics.Lesson08
 {
-    public sealed class HealSkill
+    public sealed class HealSkill : ScriptableObject
     {
     }
 }
