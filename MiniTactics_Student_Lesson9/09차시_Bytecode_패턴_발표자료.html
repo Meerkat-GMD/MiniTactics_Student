@@ -1,10 +1,4 @@
-<!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>9차시 · Bytecode 패턴 | 미니 택틱스</title>
-  <style>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>미니 택틱스로 이해하는 Bytecode 패턴</title><style>
     :root {
       --bg:#040a13; --slide:#091526; --panel:#10233a; --panel2:#142b45;
       --text:#eef5ff; --muted:#afbed1; --teal:#55e4cf; --violet:#b8a4ff;
@@ -115,160 +109,116 @@
       h1,h2,h3,p,li,strong,.subtitle,.kicker,.accent,.violet,.amber,.red,.green,.source { color:#111; }
       .panel,.callout,pre,.node,.coord,.role,.stack-item,.question,.compare th,.compare td { background:#fff; color:#111; border-color:#777; }
     }
-  </style>
-<style id="layout-safety">
+  </style><style id="layout-safety">
     .slide > div,.two > div,.wide > div,.role,.node { min-width:0; }
     .compare { table-layout:fixed; overflow-wrap:anywhere; }
     .role b,.role span { overflow-wrap:anywhere; }
     @media (max-width:720px) { .state-board > .arrow { transform:rotate(90deg); justify-self:center; } .flow > .arrow { justify-self:center; } }
-    @media print { .deck { container-type:normal; aspect-ratio:auto; } .slide,.slide.is-active { height:auto; overflow:visible; break-inside:avoid; } }
-    </style>
-</head>
-<body>
-  <div class="app">
-    <main class="stage">
-      <div class="deck" id="deck">
-<section class="slide is-active" id="slide-1" data-slide="01 / 24" aria-labelledby="title-1"><div><p class="kicker">Mini Tactics · Lesson 09</p><h1 id="title-1">미니 택틱스로 이해하는<br><span class="accent">Bytecode 패턴</span></h1><p class="subtitle">작은 동작의 뜻은 코드에 두고,<br>동작의 순서와 값은 데이터로 표현한다.</p></div></section>
-
-<section class="slide" id="slide-2" data-slide="02 / 24" aria-labelledby="title-2"><div><p class="kicker">Starting point</p><h2 id="title-2">직접 호출은 고정된 순서를 읽기 쉽다</h2><pre data-example-kind="design-comparison"><code>void FirstSequence()
+    @media print { .deck { container-type:normal; aspect-ratio:auto; background:#fff; } .slide,.slide.is-active { height:auto; overflow:visible; break-inside:avoid; } }
+    @media print { .role span,.role b,.stack-item.top { color:#111; border-color:#777; } }</style></head><body><div class="app"><main class="stage"><div class="deck" id="deck"><section class="slide is-active" id="slide-1" data-slide="01 / 32" aria-labelledby="title-1"><div><p class="kicker">Mini Tactics · Lesson 09</p><h1 id="title-1">미니 택틱스로 이해하는<br><span class="accent">Bytecode 패턴</span></h1><p class="subtitle">같은 연산을 다른 순서와 값으로 조합하려면<br>무엇을 코드로 고정하고 무엇을 데이터로 남길까?</p><p class="quote">작은 명령어 언어와 해석기를 나눈다.</p><p class="source">현재 Teacher9의 SkillProgram · ScriptedSkill 발췌. 구현 절차는 교사용 진행안에서 다룬다.</p></div></section>
+<section class="slide" id="slide-2" data-slide="02 / 32" aria-labelledby="title-2"><div><p class="kicker">A Small Success</p><h2 id="title-2">작은 연산 도구가 이미 있다</h2><div class="two"><div class="panel teal"><h3>고정된 작업</h3><p>기존 Skill은 Strike와 Restore 같은 제한된 작업 통로를 제공한다. 호출할 수 있는 연산의 뜻은 C# 코드에 있다.</p></div><div class="panel violet"><h3>새로 달라지는 조합</h3><p>반경을 바꾸고, 어떤 효과를 먼저 호출할지 달리하고 싶다. 연산 자체와 연산의 조합은 다른 변경 이유다.</p></div></div><div class="callout "><p>앞선 구조는 작업의 세부를 감추는 데 유용하다. 여기서는 그 도구의 <strong>순서와 매개변수</strong>를 표현하는 문제만 본다.</p></div></div></section>
+<section class="slide" id="slide-3" data-slide="03 / 32" aria-labelledby="title-3"><div><p class="kicker">First Attempt</p><h2 id="title-3">조합마다 메서드를 복사하면?</h2><p class="source">설계 비교용 가상 코드 · 현재 소스에 없는 비교 예</p><pre><code>void VariantA()
 {
-    ShowText(&quot;시작&quot;);
-    Wait(1);
-    ShowText(&quot;끝&quot;);
-}</code></pre><p class="source code-caption">설계 비교용 가상 코드 · 호출 순서가 코드에 고정된 첫 시도다. ShowText와 Wait는 비교를 위한 가상 메서드다.</p><div class="callout "><p>동작이 적고 순서가 잘 바뀌지 않으면 이 방식으로 충분하다. 위에서 아래로 읽으면 실행 순서를 알 수 있다.</p></div></div></section>
-
-<section class="slide" id="slide-3" data-slide="03 / 24" aria-labelledby="title-3"><div><p class="kicker">New requirement</p><h2 id="title-3">같은 동작을 다른 순서로 조합한다</h2><div class="question"><p class="big">작은 동작은 같은데<br>값과 순서만 다른 조합이 계속 늘어난다.<br>조합마다 C# 메서드를 만들어야 할까?</p></div><div class="two"><div class="panel teal"><h3>같은 부분</h3><p>각 동작이 실제로 일하는 방법이다.</p></div><div class="panel violet"><h3>달라지는 부분</h3><p>무슨 동작을 어떤 값으로, 어떤 순서에 실행하는가다.</p></div></div></div></section>
-
-<section class="slide" id="slide-4" data-slide="04 / 24" aria-labelledby="title-4"><div><p class="kicker">First attempt</p><h2 id="title-4">첫 시도는 조합마다 메서드를 만든다</h2><pre data-example-kind="design-comparison"><code>void SequenceA() { Damage(2); Heal(3); }
-void SequenceB() { Heal(3); Damage(2); }
-void SequenceC() { Damage(5); Heal(3); }</code></pre><p class="source code-caption">설계 비교용 가상 코드 · 조합을 별도 메서드로 적은 비교 예다. Damage와 Heal은 가상 메서드다.</p><div class="callout warning"><p>각 줄은 이해하기 쉽다. 하지만 순서나 값이 바뀔 때마다 코드에서 조합을 수정한다. 동작의 구현과 조합의 수정 주기가 달라질수록 분리할 이유가 생긴다.</p></div></div></section>
-
-<section class="slide" id="slide-5" data-slide="05 / 24" aria-labelledby="title-5"><div><p class="kicker">Observe the limit</p><h2 id="title-5">조합의 차이를 코드로 반복해서 적는다</h2><table class="compare"><thead><tr><th>변경</th><th>첫 시도에서 수정할 것</th></tr></thead><tbody><tr><td>같은 동작, 다른 값</td><td>메서드 본문의 인수</td></tr><tr><td>같은 값, 다른 순서</td><td>메서드 안의 호출 순서</td></tr><tr><td>새로운 조합</td><td>새 메서드 또는 분기</td></tr><tr><td>새로운 작은 동작</td><td>그 동작의 실제 구현</td></tr></tbody></table><div class="callout "><p>앞의 세 변경은 동작의 뜻을 바꾸지 않는다. 이 차이를 데이터로 적을 수 있는지 살펴본다.</p></div></div></section>
-
-<section class="slide" id="slide-6" data-slide="06 / 24" aria-labelledby="title-6"><div><p class="kicker">Find the boundary</p><h2 id="title-6">동작의 뜻과 명령 목록을 나눈다</h2><div class="two"><div class="panel teal"><h3>실행기가 정하는 것</h3><p>각 명령이 어떤 작업을 하는지 정한다. 명령을 읽고 해당 작업을 호출한다.</p></div><div class="panel violet"><h3>데이터가 정하는 것</h3><p>실행할 명령의 종류, 그 명령에 줄 값, 명령의 나열 순서를 정한다.</p></div></div><p class="quote">같은 실행기에 다른 명령 목록을 주면 다른 조합을 실행한다.</p></div></section>
-
-<section class="slide" id="slide-7" data-slide="07 / 24" aria-labelledby="title-7"><div><p class="kicker">Bytecode pattern</p><h2 id="title-7">명령을 데이터로 적고 실행기가 해석한다</h2><div class="role-map"><div class="role"><b>원본 문자열</b><span>사람이 적은 명령과 값이다.</span></div><div class="role"><b>파서 · SkillProgram</b><span>문자열을 검사하고 명령 목록을 만든다.</span></div><div class="role"><b>명령 · Instruction</b><span>명령의 종류와 정수 값을 보관한다.</span></div><div class="role"><b>실행기 · ScriptedSkill</b><span>목록을 순서대로 읽고 동작을 고른다.</span></div></div><div class="callout "><p>파서는 글을 정해진 구조로 읽는 코드다. 인터프리터는 그 구조의 뜻을 해석해 실행하는 코드다.</p></div></div></section>
-
-<section class="slide" id="slide-8" data-slide="08 / 24" aria-labelledby="title-8"><div><p class="kicker">Model boundary</p><h2 id="title-8">이 수업은 단순한 데이터 인터프리터를 사용한다</h2><div class="two"><div class="panel teal"><h3>일반적인 Bytecode</h3><p>가상 머신이 읽는 명령을 인코딩한 나열이다. 가상 머신은 프로그램 안에서 구현한 실행기다.</p></div><div class="panel violet"><h3>수업의 축소 모델</h3><p>문자열을 네 종류의 명령과 정수 값으로 바꾼다. C# 실행기가 명령 목록을 해석한다.</p></div></div><div class="callout "><p>압축 바이트 스트림이나 범용 스택 VM을 구현하는 것은 아니다. 데이터와 실행기를 나누는 책임 경계에 집중한다.</p></div></div></section>
-
-<section class="slide" id="slide-9" data-slide="09 / 24" aria-labelledby="title-9"><div><p class="kicker">Actual code · SkillProgram</p><h2 id="title-9">명령 하나는 종류와 값을 함께 가진다</h2><pre data-source-file="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/SkillProgram.cs" data-source-start="8" data-source-end="8" data-source-sha256="59d8f63168d6c6f0f8704d50df3792f6ea2847968a726e8367db29f46f2809d0"><code>public enum OpCode { AREA, DAMAGE, HEAL, PUSH }</code></pre><p class="source code-caption">실제 코드 · SkillProgram.cs 8–8행 · 일부 발췌다. 바깥 선언과 다른 메서드는 생략했다.</p><pre data-source-file="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/SkillProgram.cs" data-source-start="18" data-source-end="19" data-source-sha256="d87b3a778e9a62b3770248e37d9ee6902c4068b942a62f7daf37d27ef229ba4c"><code>public OpCode Code { get; }
-public int Value { get; }</code></pre><p class="source code-caption">실제 코드 · SkillProgram.cs 18–19행 · 일부 발췌다. 바깥 선언과 다른 메서드는 생략했다.</p><table class="compare"><thead><tr><th>용어</th><th>이 코드에서의 뜻</th><th>예</th></tr></thead><tbody><tr><td>opcode</td><td>어떤 동작인지 나타내는 종류</td><td>HEAL</td></tr><tr><td>operand</td><td>그 동작에 줄 값</td><td>5</td></tr><tr><td>instruction</td><td>종류와 값을 묶은 명령 하나</td><td>HEAL 5</td></tr></tbody></table></div></section>
-
-<section class="slide" id="slide-10" data-slide="10 / 24" aria-labelledby="title-10"><div><p class="kicker">Actual code · Instruction</p><h2 id="title-10">생성한 명령의 값은 읽기만 한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/SkillProgram.cs" data-source-start="12" data-source-end="19" data-source-sha256="49038190aa0714c073ef48c70c0172519849bf69e00c5b012ae312c0cf7d66aa"><code>public Instruction(OpCode code, int value)
+    SetArea(1);
+    DealDamage(4);
+    PushOnce();
+}</code></pre><div class="two"><div class="panel teal"><h3>충분한 경우</h3><p>조합이 한두 개로 고정되고 드물게 바뀌면 직접 호출이 간단하다.</p></div><div class="panel violet"><h3>복사가 늘면</h3><p>값과 순서만 다른 메서드에도 비슷한 흐름이 반복된다. 바꿀 때마다 C# 코드를 손본다.</p></div></div></div></section>
+<section class="slide" id="slide-4" data-slide="04 / 32" aria-labelledby="title-4"><div><p class="kicker">A Limited Solution</p><h2 id="title-4">이름별 switch도 조합을 코드에 묶는다</h2><p class="source">설계 비교용 가상 코드 · 현재 소스에 없는 비교 예</p><pre><code>switch (variantName)
 {
-    Code = code;
-    Value = value;
-}
+    case &quot;A&quot;: SetArea(1); DealDamage(4); break;
+    case &quot;B&quot;: SetArea(2); DealDamage(4); break;
+}</code></pre><div class="callout "><p>이름이 적으면 합리적인 첫 시도다. 하지만 새 순서를 추가할 때마다 분기가 늘어난다. 공통 해석 흐름을 유지하며 <strong>명령 목록만 바꾸는 경계</strong>가 필요하다.</p></div></div></section>
+<section class="slide" id="slide-5" data-slide="05 / 32" aria-labelledby="title-5"><div><p class="kicker">Responsibility Boundary</p><h2 id="title-5">연산의 뜻과 조합 데이터를 나눈다</h2><div class="flow"><div class="node">원문 텍스트</div><div class="arrow">→</div><div class="node">파서 · 검사</div><div class="arrow">→</div><div class="node">명령 목록</div><div class="arrow">→</div><div class="node">해석기 · 실행</div></div><div class="two"><div class="panel teal"><h3>코드로 고정</h3><p>허용할 명령 이름, 인수 범위, 각 연산의 실행 방법.</p></div><div class="panel violet"><h3>데이터로 변경</h3><p>명령의 순서, 반경과 효과의 정수 인수.</p></div></div><div class="callout "><p>파서(parser)는 텍스트를 읽고 구조를 검사한다. 해석기(interpreter)는 검사된 명령 목록을 차례로 읽어 작업을 요청한다.</p></div></div></section>
+<section class="slide" id="slide-6" data-slide="06 / 32" aria-labelledby="title-6"><div><p class="kicker">Bytecode</p><h2 id="title-6">이 수업의 Bytecode는 메모리 속 명령 목록</h2><div class="two"><div class="panel teal"><h3>명령의 표현</h3><p>문자열을 OpCode와 정수 인수의 쌍으로 바꾸어 메모리에 보관한다. 매번 텍스트의 뜻을 추측하며 실행하지 않는다.</p></div><div class="panel violet"><h3>현재 언어의 범위</h3><p>앞에서 뒤로 읽는 작은 언어다. 스택, 점프, 반복문, 임의의 C# 실행은 없다.</p></div></div><div class="callout "><p>여기서 SkillProgram은 일반 sealed C# 클래스다. Unity 에셋이나 C# 컴파일 결과, 기계어 바이너리가 아니다. Bytecode라는 패턴의 <strong>명령 데이터와 해석 흐름 분리</strong>를 작게 구현한다.</p></div></div></section>
+<section class="slide" id="slide-7" data-slide="07 / 32" aria-labelledby="title-7"><div><p class="kicker">Roles</p><h2 id="title-7">현재 소스의 이름과 책임을 대응하자</h2><table class="compare"><thead><tr><th>역할</th><th>현재 이름</th><th>책임</th></tr></thead><tbody><tr><td>파서</td><td>SkillProgram.TryParse / TryInstruction</td><td>전체 원문 / 한 줄의 문법 검사</td></tr><tr><td>프로그램</td><td>SkillProgram / Instruction / Instructions</td><td>검사된 명령과 순서 보관</td></tr><tr><td>연결</td><td>ScriptedSkill.ReadProgram</td><td>원문 해석 요청과 오류 전달</td></tr><tr><td>해석기</td><td>ScriptedSkill.Activate / Execute</td><td>반경 상태 갱신과 연산 요청</td></tr></tbody></table><div class="callout "><p>이름을 바꾼 클래스가 패턴의 조건은 아니다. <strong>어떤 데이터가 어떤 규칙으로 실행되는가</strong>를 구분하는 것이 핵심이다.</p></div></div></section>
+<section class="slide" id="slide-8" data-slide="08 / 32" aria-labelledby="title-8"><div><p class="kicker">Vocabulary</p><h2 id="title-8">OpCode는 실행 가능한 말의 목록</h2><pre><code data-source="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/SkillProgram.cs" data-commit="71d64d202f911609acd21c818b416d8656464721" data-lines="8-8">public enum OpCode { AREA, DAMAGE, HEAL, PUSH }</code></pre><p class="source">현재 실제 코드 발췌 · SkillProgram.cs 8–8행 · 주변 코드 생략</p><table class="compare"><thead><tr><th>명령</th><th>인수</th><th>해석</th></tr></thead><tbody><tr><td>AREA</td><td>0..3</td><td>뒤에 오는 효과의 반경을 바꿈</td></tr><tr><td>DAMAGE / HEAL</td><td>0..99</td><td>추가 피해 인수 / 회복량 인수</td></tr><tr><td>PUSH</td><td>1</td><td>밀기 작업 요청</td></tr></tbody></table><div class="callout "><p>DAMAGE의 값은 최종 피해량 그 자체가 아니라 Strike에 넘기는 추가 피해 인수다. 어휘는 제한적이며 임의의 메서드 이름을 실행하지 않는다.</p></div></div></section>
+<section class="slide" id="slide-9" data-slide="09 / 32" aria-labelledby="title-9"><div><p class="kicker">Instruction Value</p><h2 id="title-9">Instruction 하나는 명령과 값을 묶는다</h2><pre><code data-source="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/SkillProgram.cs" data-commit="71d64d202f911609acd21c818b416d8656464721" data-lines="10-19">public readonly struct Instruction
+{
+    public Instruction(OpCode code, int value)
+    {
+        Code = code;
+        Value = value;
+    }
 
-public OpCode Code { get; }
-public int Value { get; }</code></pre><p class="source code-caption">실제 코드 · SkillProgram.cs 12–19행 · 일부 발췌다. 바깥 선언과 다른 메서드는 생략했다.</p><div class="callout "><p>생성자가 Code와 Value를 기록한다. get만 있는 속성은 만들어진 명령의 값을 읽는 입구다. 해석 도중 명령 자체를 고치는 대신 실행기가 별도 상태를 가진다.</p></div></div></section>
+    public OpCode Code { get; }
+    public int Value { get; }</code></pre><p class="source">현재 실제 코드 발췌 · SkillProgram.cs 10–19행 · 주변 코드 생략</p><p class="source">발췌는 마지막 속성까지 · 타입의 닫는 중괄호 생략</p><div class="callout "><p>생성자가 Code와 Value를 함께 채운다. readonly 값 타입과 읽기 전용 속성으로 이 명령 값의 재대입을 제한한다. 명령은 스스로 실행하지 않는다.</p></div></div></section>
+<section class="slide" id="slide-10" data-slide="10 / 32" aria-labelledby="title-10"><div><p class="kicker">Program Ownership</p><h2 id="title-10">Instructions는 읽기 전용 목록으로 공개한다</h2><pre><code data-source="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/SkillProgram.cs" data-commit="71d64d202f911609acd21c818b416d8656464721" data-lines="22-26">public IReadOnlyList&lt;Instruction&gt; Instructions { get; }
 
-<section class="slide" id="slide-11" data-slide="11 / 24" aria-labelledby="title-11"><div><p class="kicker">Actual code · Parser</p><h2 id="title-11">한 줄은 이름 하나와 정수 하나다</h2><pre data-source-file="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/SkillProgram.cs" data-source-start="57" data-source-end="61" data-source-sha256="d89e19413f19c9f18e105baead7c807fcc3a47c00dbef472d5052c55987dd598"><code>string[] parts = line.Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+private SkillProgram(List&lt;Instruction&gt; instructions)
+{
+    Instructions = instructions.AsReadOnly();</code></pre><p class="source">현재 실제 코드 발췌 · SkillProgram.cs 22–26행 · 주변 코드 생략</p><p class="source">생성자의 닫는 중괄호 생략</p><div class="callout "><p>TryParse가 만든 지역 목록을 private 생성자에 넘긴다. 현재 경로에는 외부 생산자가 그 변경 가능한 목록을 계속 보유하는 별칭이 없다. AsReadOnly는 읽기 전용 뷰이며 Unity 객체 전체의 깊은 불변성을 보장한다는 뜻은 아니다.</p></div></div></section>
+<section class="slide" id="slide-11" data-slide="11 / 32" aria-labelledby="title-11"><div><p class="kicker">Syntax</p><h2 id="title-11">한 줄은 명령 이름과 정수 인수 두 토큰</h2><table class="compare"><thead><tr><th>입력 예</th><th>문법 결과</th><th>이유</th></tr></thead><tbody><tr><td>AREA 2 / PUSH 1</td><td>허용</td><td>이름과 인수가 정해진 범위</td></tr><tr><td>area 2 / 0 2</td><td>거절</td><td>대문자 명령 이름만 허용</td></tr><tr><td>AREA 4 / PUSH 2</td><td>거절</td><td>반경 상한 / PUSH의 고정 인수 위반</td></tr><tr><td>HEAL / HEAL 3 extra</td><td>거절</td><td>정확히 두 토큰 필요</td></tr></tbody></table><div class="callout "><p>토큰은 공백으로 나뉜 문자열 조각이다. 빈 줄은 무시한다. 정수 해석은 int.TryParse를 사용하므로 “숫자 문자만”이라는 별도 정규식을 가정하지 않는다.</p></div></div></section>
+<section class="slide" id="slide-12" data-slide="12 / 32" aria-labelledby="title-12"><div><p class="kicker">Token and Name Validation</p><h2 id="title-12">숫자 enum 값까지 이름으로 받아들이지 않는다</h2><pre><code data-source="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/SkillProgram.cs" data-commit="71d64d202f911609acd21c818b416d8656464721" data-lines="57-61">string[] parts = line.Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
 if (parts.Length != 2) return false;
 if (!Enum.TryParse(parts[0], out OpCode code)) return false;
 if (!Enum.IsDefined(typeof(OpCode), code) || code.ToString() != parts[0]) return false;
-if (!int.TryParse(parts[1], out int value)) return false;</code></pre><p class="source code-caption">실제 코드 · SkillProgram.cs 57–61행 · 일부 발췌다. 바깥 선언과 다른 메서드는 생략했다.</p><div class="callout "><p>공백으로 나눈 조각이 정확히 둘이어야 한다. 명령 이름은 AREA·DAMAGE·HEAL·PUSH 중 하나를 대문자로 적는다. 숫자로 된 enum 표기와 소문자 이름도 거부한다.</p></div></div></section>
-
-<section class="slide" id="slide-12" data-slide="12 / 24" aria-labelledby="title-12"><div><p class="kicker">Actual code · Validation</p><h2 id="title-12">값의 허용 범위도 파서가 확인한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/SkillProgram.cs" data-source-start="62" data-source-end="67" data-source-sha256="324c9989c6b12a9e6339d754704f49996982376db0fa5df3454dbe73875ab63b"><code>int maximum = code == OpCode.AREA ? 3 : 99;
+if (!int.TryParse(parts[1], out int value)) return false;</code></pre><p class="source">현재 실제 코드 발췌 · SkillProgram.cs 57–61행 · 주변 코드 생략</p><div class="callout "><p>Enum.TryParse만으로는 숫자 표기도 통과할 수 있다. IsDefined와 code.ToString()의 이름 일치 검사를 함께 써서, 정의된 대문자 이름만 남긴다.</p></div></div></section>
+<section class="slide" id="slide-13" data-slide="13 / 32" aria-labelledby="title-13"><div><p class="kicker">Operand Validation</p><h2 id="title-13">같은 정수라도 명령마다 허용 범위가 다르다</h2><pre><code data-source="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/SkillProgram.cs" data-commit="71d64d202f911609acd21c818b416d8656464721" data-lines="62-65">int maximum = code == OpCode.AREA ? 3 : 99;
 if (value &lt; 0 || value &gt; maximum) return false;
 if (code == OpCode.PUSH &amp;&amp; value != 1) return false;
-instruction = new Instruction(code, value);
-error = string.Empty;
-return true;</code></pre><p class="source code-caption">실제 코드 · SkillProgram.cs 62–67행 · 일부 발췌다. 바깥 선언과 다른 메서드는 생략했다.</p><table class="compare"><thead><tr><th>명령</th><th>허용 값</th></tr></thead><tbody><tr><td>AREA</td><td>0부터 3</td></tr><tr><td>DAMAGE, HEAL</td><td>0부터 99</td></tr><tr><td>PUSH</td><td>1만 허용</td></tr></tbody></table><div class="callout "><p>문자열을 정수로 바꿨다는 사실만으로 유효한 명령이 되지는 않는다. 뜻에 맞는 값인지 한 번 더 확인한다.</p></div></div></section>
-
-<section class="slide" id="slide-13" data-slide="13 / 24" aria-labelledby="title-13"><div><p class="kicker">Actual code · Program</p><h2 id="title-13">모든 줄을 읽은 뒤 프로그램을 돌려준다</h2><pre data-source-file="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/SkillProgram.cs" data-source-start="39" data-source-end="45" data-source-sha256="9e4005a667aa1b37404947e7365577c1949b365cecc354e3a85c8c773dc48a4d"><code>if (!TryInstruction(lines[index], out Instruction instruction, out error))
+instruction = new Instruction(code, value);</code></pre><p class="source">현재 실제 코드 발췌 · SkillProgram.cs 62–65행 · 주변 코드 생략</p><div class="callout "><p>음수는 거절한다. AREA는 3까지, 나머지는 99까지 먼저 검사하고 PUSH는 추가로 1만 허용한다. 검사 뒤에만 Instruction 값을 만든다.</p></div></div></section>
+<section class="slide" id="slide-14" data-slide="14 / 32" aria-labelledby="title-14"><div><p class="kicker">Whole Program Validation</p><h2 id="title-14">실패 시 공개할 program은 먼저 null</h2><pre><code data-source="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/SkillProgram.cs" data-commit="71d64d202f911609acd21c818b416d8656464721" data-lines="31-35">program = null;
+error = &quot;Program is empty.&quot;;
+if (string.IsNullOrWhiteSpace(source)) return false;
+var instructions = new List&lt;Instruction&gt;();
+string[] lines = source.Split(&#x27;\n&#x27;);</code></pre><p class="source">현재 실제 코드 발췌 · SkillProgram.cs 31–35행 · 주변 코드 생략</p><div class="callout "><p>null이나 공백뿐인 원문은 false와 정확한 오류 문구 Program is empty.를 돌려준다. 목록은 파서 안에서 새로 만든다. 이 단계에서는 효과를 실행하지 않는다.</p></div></div></section>
+<section class="slide" id="slide-15" data-slide="15 / 32" aria-labelledby="title-15"><div><p class="kicker">Read Every Line</p><h2 id="title-15">끝줄까지 확인한 뒤에야 실행에 넘긴다</h2><pre><code data-source="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/SkillProgram.cs" data-commit="71d64d202f911609acd21c818b416d8656464721" data-lines="36-42">for (int index = 0; index &lt; lines.Length; index++)
 {
-    error = $&quot;Line {index + 1}: {error}&quot;;
-    return false;
+    if (string.IsNullOrWhiteSpace(lines[index])) continue;
+    if (!TryInstruction(lines[index], out Instruction instruction, out error))
+    {
+        error = $&quot;Line {index + 1}: {error}&quot;;
+        return false;</code></pre><p class="source">현재 실제 코드 발췌 · SkillProgram.cs 36–42행 · 주변 코드 생략</p><p class="source">실패 분기의 return까지 · 반복문 뒷부분은 다음 장</p><div class="callout "><p>중간 빈 줄은 건너뛰지만 index는 실제 줄 위치를 유지한다. 늦은 줄의 오류도 Line {index + 1}로 보고하고 false로 끝난다.</p></div></div></section>
+<section class="slide" id="slide-16" data-slide="16 / 32" aria-labelledby="title-16"><div><p class="kicker">Publish After Validation</p><h2 id="title-16">모든 줄이 통과해야 프로그램이 만들어진다</h2><pre><code data-source="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/SkillProgram.cs" data-commit="71d64d202f911609acd21c818b416d8656464721" data-lines="45-50">    instructions.Add(instruction);
 }
 
-instructions.Add(instruction);</code></pre><p class="source code-caption">실제 코드 · SkillProgram.cs 39–45행 · 일부 발췌다. 바깥 선언과 다른 메서드는 생략했다.</p><pre data-source-file="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/SkillProgram.cs" data-source-start="48" data-source-end="50" data-source-sha256="cf8b86457c59d21ccb77efb336a45f0d4258bd303eee9270a6bb407f166dc151"><code>program = new SkillProgram(instructions);
+program = new SkillProgram(instructions);
 error = string.Empty;
-return true;</code></pre><p class="source code-caption">실제 코드 · SkillProgram.cs 48–50행 · 일부 발췌다. 바깥 선언과 다른 메서드는 생략했다.</p><div class="callout "><p>중간에 한 줄이라도 틀리면 false로 끝난다. 모든 줄이 유효할 때만 명령 목록을 가진 프로그램을 만든다. 빈 줄은 건너뛴다.</p></div></div></section>
+return true;</code></pre><p class="source">현재 실제 코드 발췌 · SkillProgram.cs 45–50행 · 주변 코드 생략</p><div class="callout "><p>앞 장의 반복에서 한 줄이라도 실패하면 여기에 도달하지 않는다. 완성 목록을 SkillProgram에 담은 뒤에만 true다. <strong>전체 문법 검사 완료 → 명령 실행</strong> 순서가 중요하다.</p></div></div></section>
+<section class="slide" id="slide-17" data-slide="17 / 32" aria-labelledby="title-17"><div><p class="kicker">Physical Line Numbers</p><h2 id="title-17">빈 줄을 빼도 오류의 줄 번호는 바뀌지 않는다</h2><p class="source">실행 순서를 설명하는 입력 예 · C# 코드 아님</p><pre><code>AREA 1
 
-<section class="slide" id="slide-14" data-slide="14 / 24" aria-labelledby="title-14"><div><p class="kicker">Validation before execution</p><h2 id="title-14">틀린 마지막 줄 앞의 명령도 실행하지 않는다</h2><div class="two"><pre data-example-kind="instruction-input"><code>HEAL 5
-PUSH 2</code></pre><p class="source code-caption">실행 추적용 입력이다. C# 코드가 아니라 이 실행기가 읽는 명령 문자열이다.</p><div class="panel amber"><h3>예측과 답</h3><p><strong>첫 줄의 효과가 먼저 실행될까?</strong></p><p>아니다. PUSH는 1만 허용하므로 파싱이 실패한다. 프로그램 전체를 읽기 전에 효과를 실행하지 않는다.</p></div></div><pre data-source-file="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/ScriptedSkill.cs" data-source-start="20" data-source-end="20" data-source-sha256="44aee93428853c1331e37f62505e95f54e9c0fb7e52d0635473a54610c0bb83a"><code>if (!ReadProgram(out SkillProgram program)) return;</code></pre><p class="source code-caption">실제 코드 · ScriptedSkill.cs 20–20행 · 일부 발췌다. 바깥 선언과 다른 메서드는 생략했다.</p><div class="callout "><p>문법 검증을 실행과 분리했기 때문에 가능한 결과다. 실행 도중의 모든 실패를 되돌리는 트랜잭션까지 구현한 것은 아니다.</p></div></div></section>
-
-<section class="slide" id="slide-15" data-slide="15 / 24" aria-labelledby="title-15"><div><p class="kicker">Actual code · Interpreter</p><h2 id="title-15">AREA는 이후 명령에 사용할 상태를 바꾼다</h2><pre data-source-file="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/ScriptedSkill.cs" data-source-start="21" data-source-end="27" data-source-sha256="6412ebd060ec917d1b335e0cb134e177d2c658b28f06411cce9a8a992a01d9b4"><code>int radius = 0;
+HEAL 3
+UNKNOWN 1</code></pre><table class="compare"><thead><tr><th>실제 줄</th><th>파서 동작</th></tr></thead><tbody><tr><td>1행 AREA 1</td><td>지역 목록에 추가</td></tr><tr><td>2행 빈 줄</td><td>건너뜀</td></tr><tr><td>3행 HEAL 3</td><td>지역 목록에 추가</td></tr><tr><td>4행 UNKNOWN 1</td><td>Line 4 오류 · program은 null</td></tr></tbody></table><div class="callout "><p>답: 효과는 0번 실행된다. CRLF의 남은 공백도 공백 분리로 처리된다. 앞의 두 유효 명령이 지역 목록에 있었다는 사실이 실행을 뜻하지는 않는다.</p></div></div></section>
+<section class="slide" id="slide-18" data-slide="18 / 32" aria-labelledby="title-18"><div><p class="kicker">Query Boundary</p><h2 id="title-18">대상 조회에서도 먼저 원문을 검사한다</h2><pre><code data-source="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/ScriptedSkill.cs" data-commit="71d64d202f911609acd21c818b416d8656464721" data-lines="12-15">protected override List&lt;Unit&gt; FindTargets()
+{
+    if (!ReadProgram(out _)) return new List&lt;Unit&gt;();
+    return _targetsAllies ? WoundedAlliesInRange() : EnemiesInRange();</code></pre><p class="source">현재 실제 코드 발췌 · ScriptedSkill.cs 12–15행 · 주변 코드 생략</p><p class="source">메서드 닫는 중괄호 생략</p><div class="callout "><p>FindTargets는 문법이 틀리면 빈 목록을 반환한다. 통과하면 기존 대상 조회 도구를 이용한다. AREA는 이 중심 대상 후보 조회의 반경을 바꾸는 명령이 아니라 <strong>실행 중 효과 반경 상태</strong>다.</p></div></div></section>
+<section class="slide" id="slide-19" data-slide="19 / 32" aria-labelledby="title-19"><div><p class="kicker">Parse Again</p><h2 id="title-19">조회 때와 사용할 때 각각 다시 파싱한다</h2><pre><code data-source="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/ScriptedSkill.cs" data-commit="71d64d202f911609acd21c818b416d8656464721" data-lines="56-60">private bool ReadProgram(out SkillProgram program)
+{
+    if (SkillProgram.TryParse(_source, out program, out string error)) return true;
+    Debug.LogError($&quot;{name}: {error}&quot;, this);
+    return false;</code></pre><p class="source">현재 실제 코드 발췌 · ScriptedSkill.cs 56–60행 · 주변 코드 생략</p><p class="source">메서드 닫는 중괄호 생략</p><div class="callout "><p>FindTargets와 Activate가 각각 ReadProgram을 호출한다. 한 번 컴파일해 캐시하는 구조가 아니다. 호출 때마다 TryParse의 목록·분리 문자열 등이 다시 만들어지는 비용이 있다. 실패하면 원문 오류를 로그로 전달한다.</p></div></div></section>
+<section class="slide" id="slide-20" data-slide="20 / 32" aria-labelledby="title-20"><div><p class="kicker">Interpreter State</p><h2 id="title-20">반경은 0에서 시작해 AREA가 바꾼다</h2><pre><code data-source="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/ScriptedSkill.cs" data-commit="71d64d202f911609acd21c818b416d8656464721" data-lines="21-26">int radius = 0;
 foreach (SkillProgram.Instruction instruction in program.Instructions)
 {
     if (instruction.Code == SkillProgram.OpCode.AREA)
     {
-        radius = instruction.Value;
-    }</code></pre><p class="source code-caption">실제 코드 · ScriptedSkill.cs 21–27행 · 일부 발췌다. 바깥 선언과 다른 메서드는 생략했다.</p><div class="callout "><p>반경은 매번 실행을 시작할 때 0이다. AREA를 만나면 값을 바꾸고, 다음 AREA가 나올 때까지 그 값을 유지한다. 명령 목록 자체는 바뀌지 않는다.</p></div></div></section>
-
-<section class="slide" id="slide-16" data-slide="16 / 24" aria-labelledby="title-16"><div><p class="kicker">Actual code · Dispatch</p><h2 id="title-16">실행기가 명령의 뜻을 한 곳에서 연결한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/ScriptedSkill.cs" data-source-start="43" data-source-end="48" data-source-sha256="50f12955a557e911af23131795cfe21c4a05c3406183df3b4a2bd65d442193bf"><code>case SkillProgram.OpCode.DAMAGE:
+        radius = instruction.Value;</code></pre><p class="source">현재 실제 코드 발췌 · ScriptedSkill.cs 21–26행 · 주변 코드 생략</p><p class="source">Activate 내부 · AREA 분기까지 발췌</p><div class="callout "><p>program.Instructions의 원문 순서대로 읽는다. AREA 자체는 피해나 회복을 요청하지 않는다. 바뀐 radius는 그 뒤의 효과에 쓰이고 다음 AREA까지 유지된다.</p></div></div></section>
+<section class="slide" id="slide-21" data-slide="21 / 32" aria-labelledby="title-21"><div><p class="kicker">Dispatch Boundary</p><h2 id="title-21">AREA 이외의 명령은 현재 반경과 함께 넘긴다</h2><pre><code data-source="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/ScriptedSkill.cs" data-commit="71d64d202f911609acd21c818b416d8656464721" data-lines="28-30">else
+{
+    Execute(instruction, target, radius);</code></pre><p class="source">현재 실제 코드 발췌 · ScriptedSkill.cs 28–30행 · 주변 코드 생략</p><p class="source">Activate의 else 분기 · 닫는 중괄호 생략</p><div class="two"><div class="panel teal"><h3>Activate</h3><p>명령 순서와 radius 상태를 관리한다.</p></div><div class="panel violet"><h3>Execute</h3><p>받은 명령을 실제 도구 호출로 연결한다.</p></div></div><div class="callout "><p>이 경계 덕분에 명령의 조합을 데이터로 바꿀 수 있다. 새 연산 종류를 늘리려면 어휘 검사와 해석기의 코드도 함께 바뀐다.</p></div></div></section>
+<section class="slide" id="slide-22" data-slide="22 / 32" aria-labelledby="title-22"><div><p class="kicker">Fresh Query</p><h2 id="title-22">각 효과마다 현재 살아 있는 대상을 다시 찾는다</h2><pre><code data-source="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/ScriptedSkill.cs" data-commit="71d64d202f911609acd21c818b416d8656464721" data-lines="37-39">bool heal = instruction.Code == SkillProgram.OpCode.HEAL;
+Team team = heal ? User.Team : (User.Team == Team.Player ? Team.Enemy : Team.Player);
+foreach (Unit target in Turns.GetUnitsInRange(center, radius, team))</code></pre><p class="source">현재 실제 코드 발췌 · ScriptedSkill.cs 37–39행 · 주변 코드 생략</p><div class="callout "><p>HEAL은 사용자 팀, 다른 효과는 반대 팀을 조회한다. GetUnitsInRange는 <strong>현재 중심 위치</strong>를 읽고 살아 있는 유닛을 새 목록으로 고른다. 모든 명령이 최초 대상 집합 하나를 공유하는 구조가 아니다.</p></div></div></section>
+<section class="slide" id="slide-23" data-slide="23 / 32" aria-labelledby="title-23"><div><p class="kicker">Fixed Dispatch</p><h2 id="title-23">명령의 뜻은 switch의 실제 호출에 있다</h2><pre><code data-source="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/ScriptedSkill.cs" data-commit="71d64d202f911609acd21c818b416d8656464721" data-lines="43-47">case SkillProgram.OpCode.DAMAGE:
     Strike(target, instruction.Value);
     break;
 case SkillProgram.OpCode.HEAL:
-    Restore(target, instruction.Value);
-    break;</code></pre><p class="source code-caption">실제 코드 · ScriptedSkill.cs 43–48행 · 일부 발췌다. 바깥 선언과 다른 메서드는 생략했다.</p><pre data-source-file="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/ScriptedSkill.cs" data-source-start="49" data-source-end="51" data-source-sha256="be37cb3ebe66d0c95fa0d1cb89dc29f4f75602b6788d49cefdf1abd640c39eba"><code>case SkillProgram.OpCode.PUSH:
-    Turns.PushAway(User, target);
-    break;</code></pre><p class="source code-caption">실제 코드 · ScriptedSkill.cs 49–51행 · 일부 발췌다. 바깥 선언과 다른 메서드는 생략했다.</p><div class="callout "><p>DAMAGE의 값은 기존 공격 처리에 더할 추가 피해다. DAMAGE 0도 기존 공격을 실행한다. HEAL은 회복량, PUSH 1은 한 칸 밀기다.</p></div></div></section>
-
-<section class="slide" id="slide-17" data-slide="17 / 24" aria-labelledby="title-17"><div><p class="kicker">Trace · State</p><h2 id="title-17">명령 순서에 따라 반경 상태를 따라간다</h2><pre data-example-kind="instruction-input"><code>HEAL 2
-AREA 1
-HEAL 5
-AREA 0
-HEAL 1</code></pre><p class="source code-caption">실행 추적용 입력이다. C# 코드가 아니라 이 실행기가 읽는 명령 문자열이다.</p><table class="compare"><thead><tr><th>읽은 명령</th><th>현재 반경</th><th>효과의 범위</th></tr></thead><tbody><tr><td>HEAL 2</td><td>0</td><td>중심 칸</td></tr><tr><td>AREA 1, HEAL 5</td><td>1</td><td>중심과 맨해튼 거리 1 이내</td></tr><tr><td>AREA 0, HEAL 1</td><td>0</td><td>다시 중심 칸</td></tr></tbody></table><div class="callout "><p>중심은 선택한 대상이다. AREA는 사용자의 사거리나 명령 자체의 값을 바꾸지 않는다.</p></div></div></section>
-
-<section class="slide" id="slide-18" data-slide="18 / 24" aria-labelledby="title-18"><div><p class="kicker">Trace · Result</p><h2 id="title-18">같은 목록의 결과를 수치로 확인한다</h2><p>실행 추적의 가정: 중심 아군 A와 거리 1의 아군 B가 각각 HP 1/20이다. 둘 모두 살아 있고 다른 대상은 없다.</p><table class="compare"><thead><tr><th>명령</th><th>A의 HP</th><th>B의 HP</th></tr></thead><tbody><tr><td>HEAL 2</td><td>3</td><td>1</td></tr><tr><td>AREA 1 다음 HEAL 5</td><td>8</td><td>6</td></tr><tr><td>AREA 0 다음 HEAL 1</td><td>9</td><td>6</td></tr></tbody></table><div class="callout "><p>첫 명령과 마지막 명령은 반경 0이어서 A만 바꾼다. 순서와 상태를 함께 읽으면 같은 HEAL도 적용 범위가 달라지는 이유를 설명할 수 있다.</p></div></div></section>
-
-<section class="slide" id="slide-19" data-slide="19 / 24" aria-labelledby="title-19"><div><p class="kicker">Actual code · Execution context</p><h2 id="title-19">명령이 사용할 대상은 실행 문맥에서 정한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/ScriptedSkill.cs" data-source-start="37" data-source-end="39" data-source-sha256="0f855851b5309309bfa17bbfef401cbe11a17c9221990789a00c72cc22d2f3f4"><code>bool heal = instruction.Code == SkillProgram.OpCode.HEAL;
-Team team = heal ? User.Team : (User.Team == Team.Player ? Team.Enemy : Team.Player);
-foreach (Unit target in Turns.GetUnitsInRange(center, radius, team))</code></pre><p class="source code-caption">실제 코드 · ScriptedSkill.cs 37–39행 · 일부 발췌다. 바깥 선언과 다른 메서드는 생략했다.</p><div class="callout "><p>User와 Turns는 실행기가 사용하는 문맥이다. HEAL은 사용자의 진영, 나머지 효과는 반대 진영을 고른다. 명령마다 현재 중심과 반경으로 대상을 다시 찾는다.</p></div></div></section>
-
-<section class="slide" id="slide-20" data-slide="20 / 24" aria-labelledby="title-20"><div><p class="kicker">Change locations</p><h2 id="title-20">새 조합과 새 동작은 수정 위치가 다르다</h2><table class="compare"><thead><tr><th>바꾸려는 것</th><th>어디를 바꾸는가</th><th>이유</th></tr></thead><tbody><tr><td>HEAL 5를 HEAL 3으로</td><td>명령 데이터</td><td>실행기가 HEAL을 이미 안다.</td></tr><tr><td>AREA 뒤에 HEAL 추가</td><td>명령 데이터</td><td>기존 명령을 다른 순서로 조합한다.</td></tr><tr><td>새로운 TELEPORT 동작</td><td>명령 종류·검증·실행기</td><td>현재 네 opcode로 표현할 수 없다.</td></tr></tbody></table><div class="callout "><p>데이터가 표현할 수 있는 범위는 실행기가 제공하는 명령의 범위다.</p></div></div></section>
-
-<section class="slide" id="slide-21" data-slide="21 / 24" aria-labelledby="title-21"><div><p class="kicker">Costs</p><h2 id="title-21">유연한 조합에는 해석과 검증 비용이 따른다</h2><table class="compare"><thead><tr><th>이득</th><th>함께 생기는 비용</th></tr></thead><tbody><tr><td>같은 실행기로 조합을 바꾼다.</td><td>데이터와 실행기를 함께 추적해야 한다.</td></tr><tr><td>동작 순서를 데이터로 적는다.</td><td>허용 이름·값·순서의 규칙을 정해야 한다.</td></tr><tr><td>표현 가능한 동작을 제한한다.</td><td>새 종류의 동작은 실행기를 고쳐야 한다.</td></tr></tbody></table><div class="callout warning"><p>이 구조가 자동으로 실행 속도를 높여 주지는 않는다. 간접 해석의 비용과 제작·변경의 이득은 따로 판단한다.</p></div></div></section>
-
-<section class="slide" id="slide-22" data-slide="22 / 24" aria-labelledby="title-22"><div><p class="kicker">Judgment</p><h2 id="title-22">반복되는 차이가 순서와 값인지 살핀다</h2><div class="two"><div class="panel teal"><h3>도입을 검토할 상황</h3><p>같은 작은 동작의 조합이 많다. 순서와 값을 자주 바꾼다. 정해진 명령만 사용하도록 제한할 이유가 있다.</p></div><div class="panel amber"><h3>직접 코드가 충분한 상황</h3><p>흐름이 고정되어 있다. 조합이 적다. 매번 새로운 종류의 동작을 구현해야 해서 명령 목록의 이득이 작다.</p></div></div><div class="callout "><p>코드 파일의 수만 세지 말고, 실제로 바뀌는 부분이 동작의 뜻인지 조합 데이터인지 확인한다.</p></div></div></section>
-
-<section class="slide" id="slide-23" data-slide="23 / 24" aria-labelledby="title-23"><div><p class="kicker">Check yourself</p><h2 id="title-23">명령의 값과 실행기의 책임을 구분한다</h2><div class="two"><div class="panel amber"><h3>질문 1</h3><p>AREA 1을 읽은 다음 AREA가 없으면 반경이 자동으로 0이 되는가?</p><p><strong>답:</strong> 아니다. 이번 실행에서 이후 명령은 계속 반경 1을 사용한다. 다음 실행은 다시 0으로 시작한다.</p></div><div class="panel violet"><h3>질문 2</h3><p>DAMAGE 0 다음 알 수 없는 이름이 있다. 첫 피해는 실행되는가?</p><p><strong>답:</strong> 아니다. 전체 파싱이 먼저 실패한다. 유효한 DAMAGE 0 하나만 있다면 기본 공격 피해는 발생한다.</p></div></div></div></section>
-
-<section class="slide" id="slide-24" data-slide="24 / 24" aria-labelledby="title-24"><div><p class="kicker">Takeaway</p><h2 id="title-24">데이터는 조합을 적고 실행기는 뜻을 정한다</h2><ol><li>명령은 종류와 값을 가진 데이터다.</li><li>파서는 모든 줄을 검사한 뒤 프로그램을 만든다.</li><li>실행기는 순서대로 읽으며 필요한 실행 상태를 관리한다.</li><li>새 조합은 데이터로, 새 동작은 실행기 확장으로 만든다.</li></ol><p class="quote">유연하게 바꿀 부분과 코드가 책임질 부분을 함께 정한다.</p><p class="source">더 읽기: <a href="https://gameprogrammingpatterns.com/bytecode.html">Game Programming Patterns · Bytecode</a></p></div></section>
-</div>
-    </main>
-
-    <nav class="controls" aria-label="슬라이드 탐색">
-      <button class="control-btn" id="prevBtn" type="button" aria-label="이전 슬라이드">←</button>
-      <button class="control-btn" id="tocBtn" type="button">목차</button>
-      <span id="slideCounter" aria-live="polite">1 / 24</span>
-      <button class="control-btn" id="nextBtn" type="button" aria-label="다음 슬라이드">→</button>
-    </nav>
-  </div>
-
-  <dialog id="tocDialog" aria-labelledby="tocTitle">
-    <div class="toc-head"><h2 id="tocTitle">전체 목차</h2><button class="control-btn" id="tocCloseBtn" type="button">닫기</button></div>
-    <div class="toc-grid">
-<a class="toc-link" href="#slide-1"><span>01</span>미니 택틱스로 이해하는 Bytecode 패턴</a>
-<a class="toc-link" href="#slide-2"><span>02</span>직접 호출은 고정된 순서를 읽기 쉽다</a>
-<a class="toc-link" href="#slide-3"><span>03</span>같은 동작을 다른 순서로 조합한다</a>
-<a class="toc-link" href="#slide-4"><span>04</span>첫 시도는 조합마다 메서드를 만든다</a>
-<a class="toc-link" href="#slide-5"><span>05</span>조합의 차이를 코드로 반복해서 적는다</a>
-<a class="toc-link" href="#slide-6"><span>06</span>동작의 뜻과 명령 목록을 나눈다</a>
-<a class="toc-link" href="#slide-7"><span>07</span>명령을 데이터로 적고 실행기가 해석한다</a>
-<a class="toc-link" href="#slide-8"><span>08</span>이 수업은 단순한 데이터 인터프리터를 사용한다</a>
-<a class="toc-link" href="#slide-9"><span>09</span>명령 하나는 종류와 값을 함께 가진다</a>
-<a class="toc-link" href="#slide-10"><span>10</span>생성한 명령의 값은 읽기만 한다</a>
-<a class="toc-link" href="#slide-11"><span>11</span>한 줄은 이름 하나와 정수 하나다</a>
-<a class="toc-link" href="#slide-12"><span>12</span>값의 허용 범위도 파서가 확인한다</a>
-<a class="toc-link" href="#slide-13"><span>13</span>모든 줄을 읽은 뒤 프로그램을 돌려준다</a>
-<a class="toc-link" href="#slide-14"><span>14</span>틀린 마지막 줄 앞의 명령도 실행하지 않는다</a>
-<a class="toc-link" href="#slide-15"><span>15</span>AREA는 이후 명령에 사용할 상태를 바꾼다</a>
-<a class="toc-link" href="#slide-16"><span>16</span>실행기가 명령의 뜻을 한 곳에서 연결한다</a>
-<a class="toc-link" href="#slide-17"><span>17</span>명령 순서에 따라 반경 상태를 따라간다</a>
-<a class="toc-link" href="#slide-18"><span>18</span>같은 목록의 결과를 수치로 확인한다</a>
-<a class="toc-link" href="#slide-19"><span>19</span>명령이 사용할 대상은 실행 문맥에서 정한다</a>
-<a class="toc-link" href="#slide-20"><span>20</span>새 조합과 새 동작은 수정 위치가 다르다</a>
-<a class="toc-link" href="#slide-21"><span>21</span>유연한 조합에는 해석과 검증 비용이 따른다</a>
-<a class="toc-link" href="#slide-22"><span>22</span>반복되는 차이가 순서와 값인지 살핀다</a>
-<a class="toc-link" href="#slide-23"><span>23</span>명령의 값과 실행기의 책임을 구분한다</a>
-<a class="toc-link" href="#slide-24"><span>24</span>데이터는 조합을 적고 실행기는 뜻을 정한다</a>
-</div>
-  </dialog>
-
-  <script>
+    Restore(target, instruction.Value);</code></pre><p class="source">현재 실제 코드 발췌 · ScriptedSkill.cs 43–47행 · 주변 코드 생략</p><p class="source">DAMAGE와 HEAL 분기 일부 · 나머지 분기는 다음 장</p><div class="callout "><p>DAMAGE는 Strike, HEAL은 Restore에 Value를 전달한다. 해석기는 제한된 연산만 요청한다. 데이터에 없는 C# 코드를 실행하는 통로는 없다.</p></div></div></section>
+<section class="slide" id="slide-24" data-slide="24 / 32" aria-labelledby="title-24"><div><p class="kicker">Fixed Dispatch</p><h2 id="title-24">PUSH도 정해진 도구 호출이다</h2><pre><code data-source="MiniTactics_Teacher_Lesson9/Assets/Lesson09/Scripts/ScriptedSkill.cs" data-commit="71d64d202f911609acd21c818b416d8656464721" data-lines="49-50">case SkillProgram.OpCode.PUSH:
+    Turns.PushAway(User, target);</code></pre><p class="source">현재 실제 코드 발췌 · ScriptedSkill.cs 49–50행 · 주변 코드 생략</p><p class="source">PUSH 분기 호출까지 · break와 나머지 괄호 생략</p><div class="callout "><p>PUSH 1의 인수는 문법 단계에서 1인지 확인한다. 실행 호출은 PushAway(User, target)이다. 인수만 바꿔 임의 거리 밀기를 수행하는 언어가 아니다. 직접 switch 분기는 새 명령을 저절로 지원하지 않는다.</p></div></div></section>
+<section class="slide" id="slide-25" data-slide="25 / 32" aria-labelledby="title-25"><div><p class="kicker">Worked Trace</p><h2 id="title-25">AREA 변경은 이후 효과의 반경을 바꾼다</h2><table class="compare"><thead><tr><th>원문 순서</th><th>실행 전 → 후 radius</th><th>요청</th></tr></thead><tbody><tr><td>시작</td><td>0</td><td>없음</td></tr><tr><td>AREA 2</td><td>0 → 2</td><td>상태만 변경</td></tr><tr><td>DAMAGE 4</td><td>2 → 2</td><td>현재 반경 2로 조회 후 Strike</td></tr><tr><td>AREA 0</td><td>2 → 0</td><td>상태만 변경</td></tr><tr><td>HEAL 3</td><td>0 → 0</td><td>현재 반경 0으로 조회 후 Restore</td></tr></tbody></table><div class="callout "><p>설명용 프로그램 추적이다. DAMAGE는 상대 팀, HEAL은 사용자 팀을 각각 고르므로 같은 대상 목록이라는 가정은 없다. AREA의 위치를 옮기면 그 효과가 받는 반경도 달라진다.</p></div></div></section>
+<section class="slide" id="slide-26" data-slide="26 / 32" aria-labelledby="title-26"><div><p class="kicker">Order and Fresh State</p><h2 id="title-26">PUSH 다음 DAMAGE와 그 반대는 같을까?</h2><div class="two"><div class="panel teal"><h3>AREA 1 → PUSH 1 → DAMAGE 4</h3><p>PUSH가 대상을 옮겼다면 DAMAGE는 옮겨진 상태로 새로 조회한다. 중심 대상도 이동했다면 중심의 현재 위치를 사용한다.</p></div><div class="panel violet"><h3>AREA 1 → DAMAGE 4 → PUSH 1</h3><p>DAMAGE 뒤에 살아 있는 대상만 PUSH 조회에 남는다. 앞선 명령의 결과가 뒤의 조회에 영향을 줄 수 있다.</p></div></div><div class="callout "><p><strong>답:</strong> 같다고 보장할 수 없다. 각 Execute 안의 목록은 그 호출에서 순회하지만, 다음 명령은 새로운 목록을 받는다. 원문 순서는 의미의 일부다.</p></div></div></section>
+<section class="slide" id="slide-27" data-slide="27 / 32" aria-labelledby="title-27"><div><p class="kicker">Invalid Late Instruction</p><h2 id="title-27">뒤의 문법 오류는 앞의 효과도 실행하지 않게 한다</h2><p class="source">실행 순서를 설명하는 입력 예 · C# 코드 아님</p><pre><code>AREA 1
+DAMAGE 4
+HEAL 100</code></pre><table class="compare"><thead><tr><th>단계</th><th>결과</th></tr></thead><tbody><tr><td>TryParse</td><td>3행 인수 범위 오류 · false · program null</td></tr><tr><td>Activate</td><td>ReadProgram이 false이므로 즉시 반환</td></tr><tr><td>효과 실행 수</td><td>0 · DAMAGE도 실행하지 않음</td></tr></tbody></table><div class="callout "><p>문법 검사는 전체 원문을 먼저 끝낸다. 이것은 실행한 효과를 되돌린 결과가 아니라, <strong>아직 어떤 효과도 시작하지 않은 결과</strong>다.</p></div></div></section>
+<section class="slide" id="slide-28" data-slide="28 / 32" aria-labelledby="title-28"><div><p class="kicker">Valid but Blocked</p><h2 id="title-28">유효한 명령의 작업이 막히는 것은 다른 문제</h2><p class="source">실행 순서를 설명하는 입력 예 · C# 코드 아님</p><pre><code>AREA 0
+DAMAGE 4
+PUSH 1</code></pre><div class="two"><div class="panel teal"><h3>문법</h3><p>세 줄 모두 유효하다. 명령 목록을 만들고 원문 순서대로 실행한다.</p></div><div class="panel violet"><h3>작업 규칙</h3><p>앞의 DAMAGE가 적용된 뒤 PUSH 목적지가 막혀 있으면 PushAway는 이동 없이 반환할 수 있다.</p></div></div><div class="callout warning"><p>앞의 피해가 자동 취소되지는 않는다. 문법 사전 검사와 실행 중 규칙 거절은 다르다. 현재 해석기는 이전 효과를 되돌리는 장치를 제공하지 않는다.</p></div></div></section>
+<section class="slide" id="slide-29" data-slide="29 / 32" aria-labelledby="title-29"><div><p class="kicker">A Valid No-effect Program</p><h2 id="title-29">AREA만 있어도 문법상 유효하다</h2><p class="source">실행 순서를 설명하는 입력 예 · C# 코드 아님</p><pre><code>AREA 2</code></pre><div class="two"><div class="panel teal"><h3>질문</h3><p>효과 명령이 하나도 없으면 파서가 거절할까?</p></div><div class="panel violet"><h3>답과 이유</h3><p>아니다. 유효한 한 줄이므로 TryParse는 true다. Activate는 radius만 바꾸고 끝나며 효과를 요청하지 않는다.</p></div></div><div class="callout "><p>빈 원문 거절과 “최소 한 개의 효과가 있어야 한다”는 규칙은 다르다. 후자는 현재 문법에 없다.</p></div></div></section>
+<section class="slide" id="slide-30" data-slide="30 / 32" aria-labelledby="title-30"><div><p class="kicker">Benefits and Costs</p><h2 id="title-30">조합 변경의 편의에는 언어를 유지하는 비용이 따른다</h2><div class="two"><div class="panel teal"><h3>이득</h3><p>같은 해석기를 쓰며 명령 순서와 값을 데이터로 바꾼다. 허용된 어휘로 조합의 범위를 제한한다.</p></div><div class="panel violet"><h3>비용</h3><p>문법 검사, 오류 위치, 디버깅이 필요하다. 조회·사용 때 재파싱과 할당이 반복된다. 명령 추가는 파서와 해석기 변경을 요구한다.</p></div></div><div class="callout "><p>이 패턴을 썼다고 실행 속도나 FPS가 높아지는 것은 아니다. 현재 자료는 성능 향상을 측정하거나 보장하지 않는다.</p></div></div></section>
+<section class="slide" id="slide-31" data-slide="31 / 32" aria-labelledby="title-31"><div><p class="kicker">When to Use</p><h2 id="title-31">조합이 자주 달라지는 제한된 언어가 필요한가?</h2><table class="compare"><thead><tr><th>상황</th><th>판단</th></tr></thead><tbody><tr><td>몇 개의 고정 호출만 있음</td><td>직접 호출이나 작은 분기로 충분할 수 있음</td></tr><tr><td>같은 연산을 여러 순서·값으로 자주 조합</td><td>명령 데이터와 해석기를 나눌 근거가 생김</td></tr><tr><td>복잡한 분기·반복이 필요</td><td>현재 네 명령 언어가 충분한지 다시 판단</td></tr><tr><td>새 기본 연산을 자주 추가</td><td>데이터 변경만으로 끝나지 않는 비용을 고려</td></tr></tbody></table><div class="callout "><p>먼저 바뀌는 것이 <strong>조합</strong>인지 <strong>연산의 뜻</strong>인지 구분한다. 언어를 작게 유지하는 것도 설계 결정이다.</p></div></div></section>
+<section class="slide" id="slide-32" data-slide="32 / 32" aria-labelledby="title-32"><div><p class="kicker">Visible Review Answers</p><h2 id="title-32">핵심 질문에 현재 코드로 답하자</h2><table class="compare"><thead><tr><th>질문</th><th>답과 이유</th></tr></thead><tbody><tr><td>원문은 무엇으로 바뀌는가?</td><td>메모리의 Instruction 목록 · C# 컴파일 아님</td></tr><tr><td>늦은 문법 오류 뒤 앞 효과는?</td><td>전체 파싱 실패이므로 실행 0회</td></tr><tr><td>AREA는 언제 적용되는가?</td><td>다음 효과부터 · 다음 AREA까지</td></tr><tr><td>모든 효과가 같은 대상 목록인가?</td><td>아님 · 각 Execute에서 현재 상태로 새 조회</td></tr><tr><td>막힌 작업은 앞 효과를 취소하는가?</td><td>아님 · 되돌리기 장치 없음</td></tr><tr><td>한 번만 파싱하는가?</td><td>아님 · 조회와 사용에서 각각 다시 파싱</td></tr></tbody></table></div></section></div></main><nav class="controls" aria-label="슬라이드 탐색"><button class="control-btn" id="prevBtn" type="button" aria-label="이전 슬라이드">←</button><button class="control-btn" id="tocBtn" type="button">목차</button><span id="slideCounter" aria-live="polite">1 / 32</span><button class="control-btn" id="nextBtn" type="button" aria-label="다음 슬라이드">→</button></nav></div><dialog id="tocDialog" aria-labelledby="tocTitle"><div class="toc-head"><h2 id="tocTitle">전체 목차</h2><button class="control-btn" id="tocCloseBtn" type="button">닫기</button></div><a class="toc-link" href="#slide-1"><span>01</span>Bytecode 패턴</a><a class="toc-link" href="#slide-2"><span>02</span>작은 연산 도구가 이미 있다</a><a class="toc-link" href="#slide-3"><span>03</span>조합마다 메서드를 복사하면?</a><a class="toc-link" href="#slide-4"><span>04</span>이름별 switch도 조합을 코드에 묶는다</a><a class="toc-link" href="#slide-5"><span>05</span>연산의 뜻과 조합 데이터를 나눈다</a><a class="toc-link" href="#slide-6"><span>06</span>이 수업의 Bytecode는 메모리 속 명령 목록</a><a class="toc-link" href="#slide-7"><span>07</span>현재 소스의 이름과 책임을 대응하자</a><a class="toc-link" href="#slide-8"><span>08</span>OpCode는 실행 가능한 말의 목록</a><a class="toc-link" href="#slide-9"><span>09</span>Instruction 하나는 명령과 값을 묶는다</a><a class="toc-link" href="#slide-10"><span>10</span>Instructions는 읽기 전용 목록으로 공개한다</a><a class="toc-link" href="#slide-11"><span>11</span>한 줄은 명령 이름과 정수 인수 두 토큰</a><a class="toc-link" href="#slide-12"><span>12</span>숫자 enum 값까지 이름으로 받아들이지 않는다</a><a class="toc-link" href="#slide-13"><span>13</span>같은 정수라도 명령마다 허용 범위가 다르다</a><a class="toc-link" href="#slide-14"><span>14</span>실패 시 공개할 program은 먼저 null</a><a class="toc-link" href="#slide-15"><span>15</span>끝줄까지 확인한 뒤에야 실행에 넘긴다</a><a class="toc-link" href="#slide-16"><span>16</span>모든 줄이 통과해야 프로그램이 만들어진다</a><a class="toc-link" href="#slide-17"><span>17</span>빈 줄을 빼도 오류의 줄 번호는 바뀌지 않는다</a><a class="toc-link" href="#slide-18"><span>18</span>대상 조회에서도 먼저 원문을 검사한다</a><a class="toc-link" href="#slide-19"><span>19</span>조회 때와 사용할 때 각각 다시 파싱한다</a><a class="toc-link" href="#slide-20"><span>20</span>반경은 0에서 시작해 AREA가 바꾼다</a><a class="toc-link" href="#slide-21"><span>21</span>AREA 이외의 명령은 현재 반경과 함께 넘긴다</a><a class="toc-link" href="#slide-22"><span>22</span>각 효과마다 현재 살아 있는 대상을 다시 찾는다</a><a class="toc-link" href="#slide-23"><span>23</span>명령의 뜻은 switch의 실제 호출에 있다</a><a class="toc-link" href="#slide-24"><span>24</span>PUSH도 정해진 도구 호출이다</a><a class="toc-link" href="#slide-25"><span>25</span>AREA 변경은 이후 효과의 반경을 바꾼다</a><a class="toc-link" href="#slide-26"><span>26</span>PUSH 다음 DAMAGE와 그 반대는 같을까?</a><a class="toc-link" href="#slide-27"><span>27</span>뒤의 문법 오류는 앞의 효과도 실행하지 않게 한다</a><a class="toc-link" href="#slide-28"><span>28</span>유효한 명령의 작업이 막히는 것은 다른 문제</a><a class="toc-link" href="#slide-29"><span>29</span>AREA만 있어도 문법상 유효하다</a><a class="toc-link" href="#slide-30"><span>30</span>조합 변경의 편의에는 언어를 유지하는 비용이 따른다</a><a class="toc-link" href="#slide-31"><span>31</span>조합이 자주 달라지는 제한된 언어가 필요한가?</a><a class="toc-link" href="#slide-32"><span>32</span>핵심 질문에 현재 코드로 답하자</a></div></dialog><script>
     const slides = [...document.querySelectorAll('.slide')];
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
@@ -323,9 +273,7 @@ foreach (Unit target in Turns.GetUnitsInRange(center, radius, team))</code></pre
 
     const initialIndex = indexFromHash();
     showSlide(initialIndex);
-  </script>
-<noscript><style>
+  </script><noscript><style>
     html,body{height:auto;overflow:visible}.app,.stage,.deck{display:block;width:100%;height:auto;max-height:none;aspect-ratio:auto;overflow:visible;container-type:normal}
     .slide,.slide.is-active{position:relative;display:block;overflow:visible;animation:none;margin-bottom:20px}.controls,dialog{display:none}
-    </style></noscript></body>
-</html>
+    </style></noscript></body></html>
