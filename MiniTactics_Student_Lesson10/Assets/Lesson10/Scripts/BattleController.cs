@@ -1,6 +1,7 @@
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
 
 namespace MiniTactics.Lesson10
 {
@@ -9,199 +10,189 @@ namespace MiniTactics.Lesson10
         [SerializeField] private BoardView _board;
         [SerializeField] private Camera _camera;
         [SerializeField] private Transform _overlayRoot;
+        [SerializeField] private SpriteRenderer _overlayPrefab;
         [SerializeField] private LayerMask _unitLayerMask = ~0;
-        [SerializeField] private TurnManager _turnManager;
         [SerializeField] private ActionMenu _actionMenu;
+        public ActionMenu ActionMenu => _actionMenu;
 
         private RangeHighlighter _highlighter;
         private readonly CommandHistory _history = new CommandHistory();
-        private readonly InputStateMachine _stateMachine = new InputStateMachine();
+        private InputStateMachine _stateMachine;
 
         public Unit SelectedUnit { get; private set; }
-        internal ActionMenu ActionMenu => _actionMenu;
-        public InputStateMachine StateMachine
-        {
-            get
-            {
-                if (_stateMachine.Current == null)
-                {
-                    _stateMachine.ChangeState(new IdleState(_stateMachine, this));
-                }
-
-                return _stateMachine;
-            }
-        }
-        public MovementRangeResult LastMovementRange { get; private set; } =
-            MovementRangeResult.Empty(Vector2Int.zero);
 
         private void Awake()
         {
-            if (_camera == null) _camera = Camera.main;
-            _ = StateMachine;
-        }
-
-        private void Update()
-        {
-            if (!CanAcceptInput()) return;
-            if (Keyboard.current.enterKey.wasPressedThisFrame)
-            {
-                EndTurn();
-                return;
-            }
-
-            if (Mouse.current == null || !Mouse.current.leftButton.wasPressedThisFrame) return;
-            if (EventSystem.current.IsPointerOverGameObject()) return;
-            if (_board == null || _camera == null)
-            {
-                Debug.LogError("BattleController requires a BoardView and Camera.", this);
-                return;
-            }
-
-            Vector2 screenPosition = Mouse.current.position.ReadValue();
-            Vector3 worldPosition = _camera.ScreenToWorldPoint(screenPosition);
-            Collider2D hit = Physics2D.OverlapPoint(worldPosition, _unitLayerMask);
-            Unit clickedUnit = hit != null ? hit.GetComponentInParent<Unit>() : null;
-            StateMachine.HandleBoardClick(clickedUnit, _board.WorldToCell(worldPosition));
+            _highlighter = new RangeHighlighter(_overlayRoot, _overlayPrefab, _board);
+            _stateMachine = new InputStateMachine();
+            _stateMachine.ChangeState(new IdleState(this));
         }
 
         public void Select(Unit unit)
         {
-            if (unit != null && CanAct(unit))
-            {
-                StateMachine.ChangeState(new UnitSelectedState(StateMachine, this, unit));
-                return;
-            }
-
-            StateMachine.ChangeState(new IdleState(StateMachine, this));
+            _stateMachine.ChangeState(CanSelect(unit)
+                ? new UnitSelectedState(this, unit)
+                : new IdleState(this));
         }
 
-        public bool TryMoveSelectedUnit(Vector2Int targetCell)
-        {
-            if (!ExecuteMove(SelectedUnit, targetCell)) return false;
-            StateMachine.ChangeState(new IdleState(StateMachine, this));
-            return true;
-        }
+        internal bool IsCurrentState(InputState state) => _stateMachine.Current == state;
 
-        public void OnUndoClicked()
-        {
-            if (CanAcceptInput())
-            {
-                StateMachine.HandleUndo();
-            }
-        }
-
-        public bool CanAct(Unit unit)
-        {
-            return _turnManager.CanAct(unit);
-        }
+        internal bool CanSelect(Unit unit) => GameManager.Instance.Turns.CanAct(unit);
 
         internal void ShowSelection(Unit unit)
         {
             SelectedUnit = unit;
-            if (_board == null || _overlayRoot == null)
-            {
-                Debug.LogError("BattleController requires a BoardView and MovementOverlayRoot.", this);
-                return;
-            }
-
-            LastMovementRange = _board.GetMovementRange(unit);
-            GetHighlighter().Show(LastMovementRange, unit);
+            _highlighter.Show(_board.CalculateMovementRange(unit), unit);
         }
 
         internal void ClearSelection()
         {
             SelectedUnit = null;
-            _highlighter?.Hide();
+            _highlighter.Hide();
         }
 
         internal bool ExecuteMove(Unit unit, Vector2Int targetCell)
         {
-            if (unit == null || _board == null || !_board.CanMoveTo(unit, targetCell)) return false;
+            if (!CanSelect(unit) || !_board.CanMoveTo(unit, targetCell))
+            {
+                return false;
+            }
+
             _history.Execute(new MoveUnitCommand(unit, _board, targetCell));
             return true;
         }
 
-        internal bool HasAttackTargets(Unit attacker)
+        internal bool UndoLast() => _history.UndoLast();
+
+        public void OnUndoClicked()
         {
-            return _turnManager.GetAttackTargets(attacker).Count > 0;
+            if (!CanAcceptInput()) return;
+            _stateMachine.HandleUndo();
         }
 
-        internal bool HasSkillTargets(Unit user)
+        internal bool CanAcceptInput() => GameManager.Instance.IsPlaying &&
+            GameManager.Instance.Turns.Phase == BattlePhase.Player;
+
+        public void OnEndTurnClicked()
         {
-            Skill skill = user.UnitClass.Skill;
-            return skill != null && skill.GetTargets(user, _turnManager).Count > 0;
+            if (!CanAcceptInput()) return;
+            Select(null);
+            _history.Clear();
+            GameManager.Instance.Turns.EndPlayerPhase();
         }
 
-        internal void ShowAttackTargets(Unit attacker)
+        internal void RequestAttack(Unit unit)
         {
-            GetHighlighter().ShowTargets(_turnManager.GetAttackTargets(attacker));
+            if (!CanAcceptInput()) return;
+            _stateMachine.ChangeState(new AttackState(this, unit));
         }
 
-        internal void ShowSkillTargets(Unit user)
+        internal void RequestAction(Unit unit, bool afterMove)
         {
-            GetHighlighter().ShowTargets(user.UnitClass.Skill.GetTargets(user, _turnManager));
+            if (!CanAcceptInput()) return;
+            if (HasAttackTargets(unit) || HasSkillTargets(unit))
+            {
+                _stateMachine.ChangeState(new ActionMenuState(this, unit));
+                return;
+            }
+            if (afterMove)
+            {
+                Select(null);
+                CompleteAction(unit);
+            }
         }
 
-        internal bool CanAttack(Unit attacker, Unit defender)
+        internal bool HasAttackTargets(Unit unit) =>
+            GameManager.Instance.Turns.GetAttackTargets(unit).Count > 0;
+
+        internal void ShowAttackTargets(Unit unit)
         {
-            return _turnManager.GetAttackTargets(attacker).Contains(defender);
+            if (!CanAcceptInput()) return;
+            SelectedUnit = unit;
+            _highlighter.ShowTargets(GameManager.Instance.Turns.GetAttackTargets(unit));
         }
 
-        internal bool CanUseSkill(Unit user, Unit target)
-        {
-            return user.UnitClass.Skill.GetTargets(user, _turnManager).Contains(target);
-        }
+        internal bool CanAttack(Unit attacker, Unit defender) => CanAcceptInput() &&
+            attacker.IsAlive && attacker.Team == Team.Player && attacker.CanMove &&
+            GameManager.Instance.Turns.CanAttack(attacker, defender);
 
         internal void Attack(Unit attacker, Unit defender)
         {
-            _turnManager.Attack(attacker, defender);
-            _history.Clear();
+            if (CanAttack(attacker, defender)) GameManager.Instance.Turns.Attack(attacker, defender);
         }
+
+        internal bool HasSkillTargets(Unit unit) => unit.IsAlive && unit.UnitClass.Skill != null &&
+            unit.UnitClass.Skill.GetTargets(unit, GameManager.Instance.Turns).Count > 0;
+
+        internal string SkillName(Unit unit) =>
+            unit.UnitClass.Skill != null ? unit.UnitClass.Skill.DisplayName : "스킬";
+
+        internal void ShowSkillTargets(Unit unit)
+        {
+            if (!CanAcceptInput()) return;
+            SelectedUnit = unit;
+            _highlighter.ShowTargets(unit.UnitClass.Skill.GetTargets(unit, GameManager.Instance.Turns));
+        }
+
+        internal bool CanUseSkill(Unit user, Unit target) => CanAcceptInput() && user.IsAlive &&
+            user.Team == Team.Player && user.CanMove && user.UnitClass.Skill != null &&
+            user.UnitClass.Skill.GetTargets(user, GameManager.Instance.Turns).Contains(target);
 
         internal void UseSkill(Unit user, Unit target)
         {
-            user.UnitClass.Skill.Use(user, target, _turnManager);
-            user.GetComponent<UnitAnimator>().PlaySkill(target);
+            if (!CanUseSkill(user, target)) return;
+            Vector3 position = target.transform.position;
+            user.UnitClass.Skill.Use(user, target, GameManager.Instance.Turns);
+            user.GetComponent<UnitAnimator>().PlaySkill(position);
             _history.Clear();
         }
 
-        internal string SkillName(Unit unit)
+        internal void RequestSkill(Unit unit)
         {
-            Skill skill = unit.UnitClass.Skill;
-            return skill == null ? "Skill" : skill.DisplayName;
+            if (!CanAcceptInput()) return;
+            _stateMachine.ChangeState(new SkillState(this, unit));
         }
 
         internal void CompleteAction(Unit unit)
         {
             unit.HasMoved = true;
-            if (!GameManager.Instance.IsPlaying)
+            _history.Clear();
+            if (!GameManager.Instance.IsPlaying) return;
+            if (GameManager.Instance.Turns.AreAllPlayersMoved()) OnEndTurnClicked();
+        }
+
+        private bool IsPointerOverUI(Vector2 screenPosition)
+        {
+            PointerEventData pointer = new PointerEventData(EventSystem.current);
+            pointer.position = screenPosition;
+            List<RaycastResult> hits = new List<RaycastResult>();
+            EventSystem.current.RaycastAll(pointer, hits);
+            return hits.Count > 0;
+        }
+
+        private void Update()
+        {
+            if (!CanAcceptInput()) return;
+            if (Keyboard.current != null && Keyboard.current.enterKey.wasPressedThisFrame)
+            {
+                OnEndTurnClicked();
+                return;
+            }
+            if (Mouse.current == null || !Mouse.current.leftButton.wasPressedThisFrame)
             {
                 return;
             }
 
-            if (_turnManager.AreAllPlayersMoved())
+            Vector2 screenPosition = Mouse.current.position.ReadValue();
+            if (IsPointerOverUI(screenPosition))
             {
-                EndTurn();
+                return;
             }
-        }
 
-        internal void UndoLast() => _history.UndoLast();
-
-        private bool CanAcceptInput()
-        {
-            return GameManager.Instance.IsPlaying && _turnManager.Phase == BattlePhase.Player;
-        }
-
-        private void EndTurn()
-        {
-            StateMachine.ChangeState(new IdleState(StateMachine, this));
-            _history.Clear();
-            _turnManager.EndPlayerPhase();
-        }
-
-        private RangeHighlighter GetHighlighter()
-        {
-            return _highlighter ??= new RangeHighlighter(_overlayRoot, _board);
+            Vector3 worldPosition = _camera.ScreenToWorldPoint(screenPosition);
+            Collider2D hit = Physics2D.OverlapPoint(worldPosition, _unitLayerMask);
+            Unit clickedUnit = hit != null ? hit.GetComponentInParent<Unit>() : null;
+            _stateMachine.HandleBoardClick(clickedUnit, _board.WorldToCell(worldPosition));
         }
     }
 }

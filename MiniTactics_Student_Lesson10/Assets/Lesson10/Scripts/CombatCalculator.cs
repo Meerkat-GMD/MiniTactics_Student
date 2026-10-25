@@ -1,5 +1,4 @@
 using UnityEngine;
-
 namespace MiniTactics.Lesson10
 {
     public static class CombatCalculator

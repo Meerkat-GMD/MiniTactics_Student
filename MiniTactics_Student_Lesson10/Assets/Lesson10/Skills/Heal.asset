@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a297e385e95c45468a736c43507f5990, type: 3}
   m_Name: Heal
   m_EditorClassIdentifier: MiniTactics.Lesson10.Runtime::MiniTactics.Lesson10.HealSkill
-  _displayName: Heal
+  _displayName: "\uCE58\uC720"
   _range: 2
   _healAmount: 5
