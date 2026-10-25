@@ -1,10 +1,4 @@
-<!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>10차시 · Event Queue 패턴 | 미니 택틱스</title>
-  <style>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>미니 택틱스로 이해하는 Event Queue 패턴</title><style>
     :root {
       --bg:#040a13; --slide:#091526; --panel:#10233a; --panel2:#142b45;
       --text:#eef5ff; --muted:#afbed1; --teal:#55e4cf; --violet:#b8a4ff;
@@ -115,146 +109,115 @@
       h1,h2,h3,p,li,strong,.subtitle,.kicker,.accent,.violet,.amber,.red,.green,.source { color:#111; }
       .panel,.callout,pre,.node,.coord,.role,.stack-item,.question,.compare th,.compare td { background:#fff; color:#111; border-color:#777; }
     }
-  </style>
-<style id="layout-safety">
+  </style><style id="layout-safety">
     .slide > div,.two > div,.wide > div,.role,.node { min-width:0; }
     .compare { table-layout:fixed; overflow-wrap:anywhere; }
     .role b,.role span { overflow-wrap:anywhere; }
     @media (max-width:720px) { .state-board > .arrow { transform:rotate(90deg); justify-self:center; } .flow > .arrow { justify-self:center; } }
-    @media print { .deck { container-type:normal; aspect-ratio:auto; } .slide,.slide.is-active { height:auto; overflow:visible; break-inside:avoid; } }
-    </style>
-</head>
-<body>
-  <div class="app">
-    <main class="stage">
-      <div class="deck" id="deck">
-<section class="slide is-active" id="slide-1" data-slide="01 / 24" aria-labelledby="title-1"><div><p class="kicker">Mini Tactics · Lesson 10</p><h1 id="title-1">미니 택틱스로 이해하는<br><span class="accent">Event Queue 패턴</span></h1><p class="subtitle">발생한 일을 기록해 두고,<br>소비자가 정한 시점에 순서대로 처리한다.</p></div></section>
-
-<section class="slide" id="slide-2" data-slide="02 / 24" aria-labelledby="title-2"><div><p class="kicker">Starting point</p><h2 id="title-2">직접 호출은 지금 처리할 때 단순하다</h2><pre data-example-kind="design-comparison"><code>void Report(string message)
+    @media print { .deck { container-type:normal; aspect-ratio:auto; background:#fff; } .slide,.slide.is-active { height:auto; overflow:visible; break-inside:avoid; } }
+    @media print { .role span,.role b,.stack-item.top { color:#111; border-color:#777; } }</style></head><body><div class="app"><main class="stage"><div class="deck" id="deck"><section class="slide is-active" id="slide-1" data-slide="01 / 31" aria-labelledby="title-1"><div><p class="kicker">Mini Tactics · Lesson 10</p><h1 id="title-1">미니 택틱스로 이해하는<br><span class="accent">Event Queue 패턴</span></h1><p class="subtitle">규칙은 이미 결과를 바꿨다.<br>그 과정을 화면에서 차례대로 보여 주려면?</p><p class="quote">일어난 사실을 값으로 남기고<br>소비할 시간을 분리한다.</p></div></section>
+<section class="slide" id="slide-2" data-slide="02 / 31" aria-labelledby="title-2"><div><p class="kicker">A Small Success</p><h2 id="title-2">즉시 알림은 현재 상태를 빠르게 전달한다</h2><div class="two"><div class="panel teal"><h3>간단한 피드백</h3><p>값 하나가 바뀔 때 화면 하나를 즉시 갱신한다면 직접 호출이나 동기 알림으로 충분하다.</p></div><div class="panel violet"><h3>연속 변화</h3><p>같은 대상의 HP가 짧은 순간에 10 → 7 → 8로 바뀐다. 화면에서는 −3 다음 +1의 과정을 읽고 싶다.</p></div></div><div class="callout "><p>동기 알림은 호출 중에 처리한다는 뜻이다. 알림을 보냈다는 사실만으로 표현 시간이 따로 확보되지는 않는다.</p></div></div></section>
+<section class="slide" id="slide-3" data-slide="03 / 31" aria-labelledby="title-3"><div><p class="kicker">First Attempt</p><h2 id="title-3">값 변경 직후 화면을 직접 부르면?</h2><p class="source">설계 비교용 가상 코드 · 현재 Teacher에 없는 첫 시도</p><pre><code>hp = 7;
+ShowHp(hp);
+ShowNumber(-3);
+hp = 8;
+ShowHp(hp);
+ShowNumber(+1);</code></pre><div class="callout "><p>한 번만 바뀌면 단순하다. 연속 호출이면 뒤 갱신이 앞 표현을 덮거나 여러 표현이 겹칠 수 있다. 호출 순서만으로 <strong>각 표현이 기다릴 시간</strong>까지 정해지지는 않는다.</p></div></div></section>
+<section class="slide" id="slide-4" data-slide="04 / 31" aria-labelledby="title-4"><div><p class="kicker">A Limited Solution</p><h2 id="title-4">나중에 현재 HP만 읽는 것도 충분하지 않다</h2><p class="source">설계 비교용 가상 코드 · 현재 Teacher에 없는 첫 시도</p><pre><code>pendingUnit = unit;
+// 나중에 표현할 때
+ShowHp(pendingUnit.CurrentHp);</code></pre><div class="two"><div class="panel teal"><h3>남은 정보</h3><p>어느 Unit인지는 기억한다. 하지만 나중에 읽는 CurrentHp는 이미 8일 수 있다.</p></div><div class="panel violet"><h3>잃어버린 정보</h3><p>첫 변화의 10 → 7, 다음 변화의 7 → 8은 현재 값 하나로 복원할 수 없다.</p></div></div></div></section>
+<section class="slide" id="slide-5" data-slide="05 / 31" aria-labelledby="title-5"><div><p class="kicker">Responsibility Boundary</p><h2 id="title-5">변경 사실과 표현 작업의 시간을 나눈다</h2><div class="flow"><div class="node">생산자<br>규칙 즉시 변경</div><div class="arrow">→</div><div class="node">이벤트<br>당시 값 보관</div><div class="arrow">→</div><div class="node">FIFO 큐<br>순서 보관</div><div class="arrow">→</div><div class="node">소비자<br>하나씩 표현</div></div><div class="callout "><p>생산자(producer)는 기록을 넣는 쪽, 소비자(consumer)는 꺼내 처리하는 쪽이다. 규칙을 계산하는 책임과 화면의 재생 순서를 관리하는 책임이 달라진다.</p></div></div></section>
+<section class="slide" id="slide-6" data-slide="06 / 31" aria-labelledby="title-6"><div><p class="kicker">Event Queue</p><h2 id="title-6">Event Queue는 사실의 전달과 처리를 분리한다</h2><p class="quote">먼저 발생한 사실을 저장하고,<br>소비자가 나중에 순서대로 처리한다.</p><div class="two"><div class="panel teal"><h3>Event · 일어났다</h3><p>“HP가 10에서 7로 바뀌었다.” 표현에 필요한 당시 값을 가진 기록이다.</p></div><div class="panel violet"><h3>Queue · 보관 순서</h3><p>First In, First Out = FIFO. 먼저 넣은 기록을 먼저 꺼낸다. 이벤트 자체가 규칙을 다시 실행하지 않는다.</p></div></div></div></section>
+<section class="slide" id="slide-7" data-slide="07 / 31" aria-labelledby="title-7"><div><p class="kicker">Roles</p><h2 id="title-7">현재 클래스가 맡은 역할</h2><table class="compare"><thead><tr><th>역할</th><th>현재 이름</th><th>맡은 일</th></tr></thead><tbody><tr><td>생산자</td><td>Unit / 작업 호출부</td><td>모델을 바꾸고 PresentationEvent 생성</td></tr><tr><td>값 기록</td><td>PresentationEvent</td><td>종류·대상·위치·HP·표현 정보 보관</td></tr><tr><td>저장소</td><td>PresentationQueue의 _events</td><td>Queue&lt;PresentationEvent&gt;에 FIFO 보관</td></tr><tr><td>단일 소비자</td><td>ConsumeAsync → PlayAsync</td><td>하나씩 꺼내 정해진 대기와 표현 수행</td></tr></tbody></table><div class="callout "><p>PresentationQueue 안에 저장소와 소비자가 함께 있다. 역할을 구분한다고 반드시 클래스 수를 늘려야 하는 것은 아니다.</p></div></div></section>
+<section class="slide" id="slide-8" data-slide="08 / 31" aria-labelledby="title-8"><div><p class="kicker">Readonly Payload</p><h2 id="title-8">이벤트는 읽기 전용 값 타입이다</h2><pre><code data-source="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationEvent.cs" data-commit="2a50445cd0865351bac571ffcfa38f7077f2151b" data-lines="5-10">public readonly struct PresentationEvent
 {
-    display.Show(message);
-    history.Add(message);
-}</code></pre><p class="source code-caption">설계 비교용 가상 코드 · 호출한 순간 두 작업을 직접 처리한다고 가정한 첫 시도다.</p><div class="callout "><p>호출 흐름 안에서 표시와 기록을 끝낸다. 결과가 지금 필요하고 작업이 짧다면 읽기 쉬운 방식이다.</p></div></div></section>
-
-<section class="slide" id="slide-3" data-slide="03 / 24" aria-labelledby="title-3"><div><p class="kicker">New requirement</p><h2 id="title-3">발생 속도와 처리 속도를 나누고 싶다</h2><div class="question"><p class="big">짧은 순간에 여러 일이 발생했다.<br>각 사실을 잃지 않고,<br>처리하는 쪽이 순서와 시간을 관리할 수 있을까?</p></div><div class="callout "><p>무엇이 발생했는지 기록하는 일과, 그것을 지금 처리하는 일을 분리해야 한다.</p></div></div></section>
-
-<section class="slide" id="slide-4" data-slide="04 / 24" aria-labelledby="title-4"><div><p class="kicker">First attempt</p><h2 id="title-4">첫 시도는 발생한 곳에서 작업을 끝낸다</h2><pre data-example-kind="design-comparison"><code>void Changed(int before, int after)
-{
-    display.Show(after);
-    display.ShowDifference(after - before);
-}</code></pre><p class="source code-caption">설계 비교용 가상 코드 · 변경을 알린 호출 흐름에서 즉시 표시한다고 가정한 코드다.</p><div class="two"><div class="panel teal"><h3>장점</h3><p>어디서 어떤 처리가 일어나는지 따라가기 쉽다.</p></div><div class="panel amber"><h3>새 요구와 만나는 지점</h3><p>여러 변경을 시간을 두고 처리하려면 호출자도 표시 작업의 진행을 알아야 한다.</p></div></div></div></section>
-
-<section class="slide" id="slide-5" data-slide="05 / 24" aria-labelledby="title-5"><div><p class="kicker">Observe the limit</p><h2 id="title-5">즉시 통지도 처리 시점을 함께 묶을 수 있다</h2><div class="flow"><div class="node">상태 변경</div><div class="arrow">→</div><div class="node">알림 발생</div><div class="arrow">→</div><div class="node">수신자 처리</div><div class="arrow">→</div><div class="node">호출자 계속 진행</div></div><div class="two"><div class="panel teal"><h3>누가 받는가</h3><p>Observer는 구독자를 등록해 수신자를 나눌 수 있다.</p></div><div class="panel violet"><h3>언제 받는가</h3><p>일반적인 즉시 이벤트는 같은 호출 흐름에서 구독자의 코드를 실행한다.</p></div></div><div class="callout "><p>수신자를 몰라도 처리 시점은 묶여 있을 수 있다. 시간 분리에는 별도의 보관 지점이 필요하다.</p></div></div></section>
-
-<section class="slide" id="slide-6" data-slide="06 / 24" aria-labelledby="title-6"><div><p class="kicker">Find the boundary</p><h2 id="title-6">발생 기록과 처리 시점을 나눈다</h2><div class="two"><div class="panel teal"><h3>생산자의 책임</h3><p>무슨 일이 생겼는지 필요한 값을 기록해서 보낸다.</p><p>받는 쪽의 작업이 끝날 때까지 기다릴 필요가 줄어든다.</p></div><div class="panel violet"><h3>소비자의 책임</h3><p>기록을 꺼낼 시점과 처리 방법을 정한다.</p><p>처리 중에도 새 기록은 큐의 뒤에 쌓일 수 있다.</p></div></div><p class="quote">전송을 마쳤다는 사실과 처리를 마쳤다는 사실은 다르다.</p></div></section>
-
-<section class="slide" id="slide-7" data-slide="07 / 24" aria-labelledby="title-7"><div><p class="kicker">Event Queue</p><h2 id="title-7">큐가 아직 처리하지 않은 기록을 보관한다</h2><div class="role-map"><div class="role"><b>생산자 · Unit 등</b><span>발생 시점의 값을 기록하고 큐에 넣는다.</span></div><div class="role"><b>데이터 · PresentationEvent</b><span>종류·대상·위치·변경 전후 값을 보관한다.</span></div><div class="role"><b>큐 · Queue</b><span>아직 처리하지 않은 항목을 순서대로 보관한다.</span></div><div class="role"><b>소비자 · PresentationQueue</b><span>앞에서 하나씩 꺼내 처리를 끝낸다.</span></div></div><div class="callout "><p>역할은 네 개여도 class가 반드시 네 개여야 하는 것은 아니다. 이 구현에서는 큐의 보관과 소비를 한 컴포넌트가 맡는다.</p></div></div></section>
-
-<section class="slide" id="slide-8" data-slide="08 / 24" aria-labelledby="title-8"><div><p class="kicker">FIFO</p><h2 id="title-8">먼저 넣은 항목을 먼저 꺼낸다</h2><div class="stack"><div class="stack-item top">앞 · A가 먼저 들어왔다</div><div class="stack-item">B</div><div class="stack-item">뒤 · C가 나중에 들어왔다</div></div><pre data-source-file="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationQueue.cs" data-source-start="15" data-source-end="15" data-source-sha256="6d0d7871255dc262a42ae1946dcaab015300f6c2970b0d2404f0ecf1672a8144"><code>private readonly Queue&lt;PresentationEvent&gt; _events = new Queue&lt;PresentationEvent&gt;();</code></pre><p class="source code-caption">실제 코드 · PresentationQueue.cs 15–15행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>A, B, C 순서로 넣었다면 꺼내는 순서도 A, B, C다. 이것이 FIFO다. 최근 항목부터 꺼내는 Stack과 구분한다.</p></div></div></section>
-
-<section class="slide" id="slide-9" data-slide="09 / 24" aria-labelledby="title-9"><div><p class="kicker">Actual code · Event data</p><h2 id="title-9">나중에 사용할 값을 기록한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationEvent.cs" data-source-start="12" data-source-end="17" data-source-sha256="60427ce0b7ba331755e999ea8239dbfa585c3b9c09075812d3b376cc5967d1df"><code>public Vector3 From { get; }
+    public enum EventKind { Move, Attack, Skill, Health }
+    public EventKind Kind { get; }
+    public Unit Actor { get; }
+    public Unit Target { get; }</code></pre><p class="source">현재 실제 코드 발췌 · PresentationEvent.cs 5–10행 · 주변 코드와 바깥 괄호 생략</p><div class="callout "><p>EventKind는 이 타입 안에 정의된 Move / Attack / Skill / Health다. 읽기 전용 속성은 생성 뒤 기록의 재대입을 막는다. <strong>Actor와 Target이 가리키는 Unit 전체가 불변이 되는 것은 아니다.</strong></p></div></div></section>
+<section class="slide" id="slide-9" data-slide="09 / 31" aria-labelledby="title-9"><div><p class="kicker">Copied Values</p><h2 id="title-9">위치와 HP는 값으로 보관한다</h2><pre><code data-source="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationEvent.cs" data-commit="2a50445cd0865351bac571ffcfa38f7077f2151b" data-lines="11-16">public Vector3 From { get; }
 public Vector3 To { get; }
 public Vector3 TargetPosition { get; }
 public int BeforeHp { get; }
 public int AfterHp { get; }
-public int MaxHp { get; }</code></pre><p class="source code-caption">실제 코드 · PresentationEvent.cs 12–17행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>위치와 HP는 처리 시점에 이미 달라졌을 수 있다. 발생 당시의 값을 기록한 스냅샷을 사용한다. 스냅샷은 어떤 시점의 상태를 복사해 둔 데이터다.</p></div></div></section>
+public int MaxHp { get; }</code></pre><p class="source">현재 실제 코드 발췌 · PresentationEvent.cs 11–16행 · 주변 코드와 바깥 괄호 생략</p><div class="callout "><p>From / To / TargetPosition은 Vector3 값, BeforeHp / AfterHp / MaxHp는 정수다. 이후 Unit의 위치나 HP가 바뀌어도 이미 만들어진 이벤트의 이 값은 바뀌지 않는다. 이것이 이 자료에서 말하는 스냅샷이다.</p></div></div></section>
+<section class="slide" id="slide-10" data-slide="10 / 31" aria-labelledby="title-10"><div><p class="kicker">Shared Identity</p><h2 id="title-10">표현 에셋과 대상의 정체성은 공유한다</h2><pre><code data-source="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationEvent.cs" data-commit="2a50445cd0865351bac571ffcfa38f7077f2151b" data-lines="17-21">public UnitLook Look { get; }
+public Sprite[] DeathFrames { get; }
+public int SortingOrder { get; }
+public float Seconds { get; }
+public float DeathSeconds { get; }</code></pre><p class="source">현재 실제 코드 발췌 · PresentationEvent.cs 17–21행 · 주변 코드와 바깥 괄호 생략</p><table class="compare"><thead><tr><th>복사해 고정하는 값</th><th>참조를 공유하는 것</th></tr></thead><tbody><tr><td>위치, HP, 정렬 순서, 재생 시간</td><td>Actor / Target의 Unit 정체성</td></tr><tr><td>Seconds / DeathSeconds도 생성 당시 결정</td><td>Look / DeathFrames의 전투 중 불변 에셋</td></tr></tbody></table><div class="callout "><p>Sprite 배열 참조를 복사해도 배열 원소를 깊게 복제하지는 않는다. 현재 경로는 초기화된 프레임 에셋을 전투 중 바꾸지 않는 전제다.</p></div></div></section>
+<section class="slide" id="slide-11" data-slide="11 / 31" aria-labelledby="title-11"><div><p class="kicker">Capture Boundary</p><h2 id="title-11">생성자가 값과 에셋 참조를 함께 잡는다</h2><pre><code data-source="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationEvent.cs" data-commit="2a50445cd0865351bac571ffcfa38f7077f2151b" data-lines="27-33">Kind = kind; Actor = actor; Target = target;
+From = from; To = to; TargetPosition = targetPosition;
+BeforeHp = beforeHp; AfterHp = afterHp; MaxHp = maxHp;
+UnitAnimator animator = actor.GetComponent&lt;UnitAnimator&gt;();
+// Initialized Flyweight frame assets stay unchanged throughout a battle.
+Look = animator.Look; DeathFrames = animator.DeathFrames;
+SortingOrder = animator.SortingOrder;</code></pre><p class="source">현재 실제 코드 발췌 · PresentationEvent.cs 27–33행 · 주변 코드와 바깥 괄호 생략</p><div class="callout "><p>HP·위치 값은 인수에서 복사하고, Look과 DeathFrames는 해당 순간의 애니메이터에서 참조를 얻는다. 나중에 현재 Unit을 다시 조회해 과거 값을 추측하지 않도록 필요한 데이터를 모은다.</p></div></div></section>
+<section class="slide" id="slide-12" data-slide="12 / 31" aria-labelledby="title-12"><div><p class="kicker">Factories</p><h2 id="title-12">이동·행동 기록의 생성 지점</h2><pre><code data-source="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationEvent.cs" data-commit="2a50445cd0865351bac571ffcfa38f7077f2151b" data-lines="40-45">public static PresentationEvent Moved(Unit unit, Vector3 from, Vector3 to) =&gt;
+    new PresentationEvent(EventKind.Move, unit, from, to);
 
-<section class="slide" id="slide-10" data-slide="10 / 24" aria-labelledby="title-10"><div><p class="kicker">Actual code · Snapshot</p><h2 id="title-10">생성할 때 현재 값을 이벤트 데이터에 복사한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationEvent.cs" data-source-start="46" data-source-end="51" data-source-sha256="0faef9928cbbe1a221cf3bab2bd890d2eb7d322a6e5a9e044698fdd3ea794f81"><code>public static PresentationEvent HealthChanged(Unit unit, int before, int after)
-{
-    return new PresentationEvent(EventKind.Health, unit,
-        unit.transform.position, unit.transform.position,
-        beforeHp: before, afterHp: after, maxHp: unit.MaxHp);
-}</code></pre><p class="source code-caption">실제 코드 · PresentationEvent.cs 46–51행 · 해당 메서드 전체다.</p><div class="callout "><p>before와 after는 이번 변경의 전후 값이다. 위치와 최대 HP도 여기서 읽는다. 소비자가 나중에 현재 HP를 읽어서 과거 변화량을 다시 계산하지 않는다.</p></div></div></section>
-
-<section class="slide" id="slide-11" data-slide="11 / 24" aria-labelledby="title-11"><div><p class="kicker">Actual code · Producer</p><h2 id="title-11">규칙 값은 지금 바뀌고 기록은 큐로 간다</h2><pre data-source-file="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/Unit.cs" data-source-start="28" data-source-end="31" data-source-sha256="a37352784192d85bbe59e52d9bf8314cf8e8cf8a711aa7680f94d687c05ae49e"><code>int before = CurrentHp;
+public static PresentationEvent Acted(Unit actor, Unit target, bool skill) =&gt;
+    new PresentationEvent(skill ? EventKind.Skill : EventKind.Attack, actor,
+        actor.transform.position, actor.transform.position, target, target.transform.position);</code></pre><p class="source">현재 실제 코드 발췌 · PresentationEvent.cs 40–45행 · 주변 코드와 바깥 괄호 생략</p><div class="callout "><p>Moved는 전달된 출발·도착을 담는다. Acted는 생성 시점의 Actor와 Target 위치를 담는다. 공격 방향을 표현할 때도 나중에 움직인 대상의 현재 위치와 구분할 수 있다.</p></div></div></section>
+<section class="slide" id="slide-13" data-slide="13 / 31" aria-labelledby="title-13"><div><p class="kicker">Health Snapshot</p><h2 id="title-13">체력 변화는 before와 after를 함께 담는다</h2><pre><code data-source="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationEvent.cs" data-commit="2a50445cd0865351bac571ffcfa38f7077f2151b" data-lines="47-49">public static PresentationEvent HealthChanged(Unit unit, int before, int after) =&gt;
+    new PresentationEvent(EventKind.Health, unit, unit.transform.position,
+        unit.transform.position, beforeHp: before, afterHp: after, maxHp: unit.MaxHp);</code></pre><p class="source">현재 실제 코드 발췌 · PresentationEvent.cs 47–49행 · 주변 코드와 바깥 괄호 생략</p><div class="callout "><p>HealthChanged는 당시 위치와 최대 HP까지 기록한다. BeforeHp와 AfterHp를 함께 남기면 표시할 실제 변화량은 <strong>AfterHp − BeforeHp</strong>다. 요청한 회복량과 상한에 걸린 실제 회복량은 다를 수 있다.</p></div></div></section>
+<section class="slide" id="slide-14" data-slide="14 / 31" aria-labelledby="title-14"><div><p class="kicker">Producer</p><h2 id="title-14">모델은 먼저 바뀌고 이벤트가 만들어진다</h2><pre><code data-source="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/Unit.cs" data-commit="2a50445cd0865351bac571ffcfa38f7077f2151b" data-lines="56-59">int before = CurrentHp;
 CurrentHp = Mathf.Max(0, CurrentHp - damage);
-bool queued = before != CurrentHp &amp;&amp; TryPresent(PresentationEvent.HealthChanged(this, before, CurrentHp));
-HpChanged?.Invoke(this);</code></pre><p class="source code-caption">실제 코드 · Unit.cs 28–31행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>CurrentHp는 즉시 바뀐다. BeforeHp와 AfterHp를 가진 기록을 보낸 뒤 알림을 발행한다. 규칙 상태와 표시의 진행 상태를 별도로 다룬다.</p></div></div></section>
-
-<section class="slide" id="slide-12" data-slide="12 / 24" aria-labelledby="title-12"><div><p class="kicker">Actual code · Enqueue</p><h2 id="title-12">첫 전송이 소비자를 한 번 시작한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationQueue.cs" data-source-start="23" data-source-end="29" data-source-sha256="82dad3aee80b1ef8da7458ca564a063d4a20917df55e4f3a9cf5c1f5bfe5be1c"><code>_events.Enqueue(item);
-if (!IsBusy)
+Present(PresentationEvent.HealthChanged(this, before, CurrentHp));
+HpChanged?.Invoke(this);</code></pre><p class="source">현재 실제 코드 발췌 · Unit.cs 56–59행 · 주변 코드와 바깥 괄호 생략</p><div class="callout "><p>TakeDamage 내부 발췌다. CurrentHp 대입은 즉시 실행되고 HealthChanged는 그 전후 값을 받는다. 큐에 넣었다고 HP 계산이나 동기 알림, 결과 판정까지 나중으로 옮겨지는 것은 아니다.</p></div></div></section>
+<section class="slide" id="slide-15" data-slide="15 / 31" aria-labelledby="title-15"><div><p class="kicker">Position Snapshot</p><h2 id="title-15">논리 위치와 재생할 경로는 다르다</h2><pre><code data-source="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/Unit.cs" data-commit="2a50445cd0865351bac571ffcfa38f7077f2151b" data-lines="76-80">Vector3 from = transform.position;
+Vector3 to = board.CellToWorld(targetCell);
+transform.position = to;
+_animator.PreservePosition(to - from);
+Present(PresentationEvent.Moved(this, from, to));</code></pre><p class="source">현재 실제 코드 발췌 · Unit.cs 76–80행 · 주변 코드와 바깥 괄호 생략</p><div class="callout "><p>MoveTo 내부에서 루트 위치는 즉시 to가 된다. 이벤트에는 from과 to를 남기므로 화면은 그 뒤에도 원래 구간을 재생할 수 있다. 두 이동을 연속 요청해도 첫 출발 값이 두 번째 값으로 덮이지 않는다.</p></div></div></section>
+<section class="slide" id="slide-16" data-slide="16 / 31" aria-labelledby="title-16"><div><p class="kicker">FIFO Storage</p><h2 id="title-16">Enqueue는 뒤에, Dequeue는 앞에서</h2><pre><code data-source="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationQueue.cs" data-commit="2a50445cd0865351bac571ffcfa38f7077f2151b" data-lines="14-14">private readonly Queue&lt;PresentationEvent&gt; _events = new Queue&lt;PresentationEvent&gt;();</code></pre><p class="source">현재 실제 코드 발췌 · PresentationQueue.cs 14–14행 · 주변 코드와 바깥 괄호 생략</p><table class="compare"><thead><tr><th>순서</th><th>현재 재생</th><th>큐 앞 → 뒤</th></tr></thead><tbody><tr><td>A, B, C를 넣음</td><td>아직 없음</td><td>A, B, C</td></tr><tr><td>A를 Dequeue</td><td>A</td><td>B, C</td></tr><tr><td>A의 정해진 대기 종료 → B를 Dequeue</td><td>B</td><td>C</td></tr><tr><td>B 대기 종료 → C를 Dequeue</td><td>C</td><td>비어 있음</td></tr></tbody></table><div class="callout "><p>A/B/C는 설명용 이름이다. Count는 내부 큐의 대기 항목 수다. 현재 재생 중인 항목은 이미 큐에서 빠졌다.</p></div></div></section>
+<section class="slide" id="slide-17" data-slide="17 / 31" aria-labelledby="title-17"><div><p class="kicker">Acceptance</p><h2 id="title-17">큐가 켜져 있을 때 기록을 받는다</h2><pre><code data-source="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationQueue.cs" data-commit="2a50445cd0865351bac571ffcfa38f7077f2151b" data-lines="85-88">public bool TryEnqueue(PresentationEvent item)
+{
+    if (!isActiveAndEnabled) return false;
+    _events.Enqueue(item);</code></pre><p class="source">현재 실제 코드 발췌 · PresentationQueue.cs 85–88행 · 주변 코드와 바깥 괄호 생략</p><div class="callout "><p>비활성 컴포넌트면 false, 활성 상태면 저장한다. 이 검사는 임의의 payload를 모두 검증하는 장치가 아니다. 현재 생산자는 유효한 이벤트를 만든다는 계약을 전제로 한다.</p></div></div></section>
+<section class="slide" id="slide-18" data-slide="18 / 31" aria-labelledby="title-18"><div><p class="kicker">One Consumer</p><h2 id="title-18">바쁘지 않을 때만 소비자를 시작한다</h2><pre><code data-source="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationQueue.cs" data-commit="2a50445cd0865351bac571ffcfa38f7077f2151b" data-lines="89-93">if (!IsBusy)
 {
     IsBusy = true;
     _cancellation = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
-    ConsumeAsync(_cancellation.Token).Forget();
-}</code></pre><p class="source code-caption">실제 코드 · PresentationQueue.cs 23–29행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>처리 중이면 뒤에 넣기만 한다. 아직 처리 중이 아니면 IsBusy를 먼저 true로 바꾸고 소비를 시작한다. 같은 큐를 동시에 여러 소비자가 처리하지 않게 하는 경계다.</p></div></div></section>
-
-<section class="slide" id="slide-13" data-slide="13 / 24" aria-labelledby="title-13"><div><p class="kicker">Actual code · Dequeue</p><h2 id="title-13">현재 항목이 끝난 뒤 다음 항목을 꺼낸다</h2><pre data-source-file="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationQueue.cs" data-source-start="37" data-source-end="43" data-source-sha256="1a1f0d2ec29063fb19b8efabb51d6f810880dbb8309af6a828228b1bde08421c"><code>await UniTask.Yield(token);
-while (_events.Count &gt; 0)
-    await PlayAsync(_events.Dequeue(), token);
+    ConsumeAsync(_cancellation.Token).Forget();</code></pre><p class="source">현재 실제 코드 발췌 · PresentationQueue.cs 89–93행 · 주변 코드와 바깥 괄호 생략</p><div class="callout "><p>이미 IsBusy라면 새 이벤트를 넣어도 다른 소비자를 만들지 않는다. 한 소비자가 앞선 항목의 재생과 대기를 마친 뒤 다음 항목으로 간다. 이때 IsBusy는 큐 Count와 다른 상태다.</p></div></div></section>
+<section class="slide" id="slide-19" data-slide="19 / 31" aria-labelledby="title-19"><div><p class="kicker">Consumer Loop</p><h2 id="title-19">꺼낸 하나의 처리를 기다리고 다음으로 간다</h2><pre><code data-source="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationQueue.cs" data-commit="2a50445cd0865351bac571ffcfa38f7077f2151b" data-lines="72-77">await UniTask.Yield(token);
+while (_events.Count &gt; 0) await PlayAsync(_events.Dequeue(), token);
 ResetUnits();
-IsBusy = false;
 _cancellation.Dispose();
-_cancellation = null;</code></pre><p class="source code-caption">실제 코드 · PresentationQueue.cs 37–43행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>while은 대기 중인 항목이 있는 동안 반복한다. PlayAsync가 끝날 때까지 다음 항목을 꺼내지 않는다. 큐가 처리 스레드를 자동으로 만드는 것은 아니다.</p></div></div></section>
-
-<section class="slide" id="slide-14" data-slide="14 / 24" aria-labelledby="title-14"><div><p class="kicker">Pending and running</p><h2 id="title-14">대기열이 비어도 처리는 끝나지 않았을 수 있다</h2><table class="compare"><thead><tr><th>상태</th><th>큐 안의 항목</th><th>IsBusy</th></tr></thead><tbody><tr><td>처음</td><td>A</td><td>true</td></tr><tr><td>A를 꺼내 처리 중</td><td>없음</td><td>true</td></tr><tr><td>A의 처리까지 완료</td><td>없음</td><td>false</td></tr></tbody></table><div class="callout "><p>Dequeue는 항목을 목록에서 꺼낸다. 그 항목을 처리하는 시간은 그 뒤에 남아 있다. Count가 0이라는 사실만으로 전체 완료를 판단하면 이 시간을 놓친다.</p></div></div></section>
-
-<section class="slide" id="slide-15" data-slide="15 / 24" aria-labelledby="title-15"><div><p class="kicker">Trace · FIFO</p><h2 id="title-15">전송과 처리를 번갈아 따라간다</h2><table class="compare"><thead><tr><th>순서</th><th>작업</th><th>큐의 앞에서 뒤</th><th>처리한 항목</th></tr></thead><tbody><tr><td>0</td><td>빈 큐로 시작</td><td>없음</td><td>없음</td></tr><tr><td>1</td><td>A 전송</td><td>A</td><td>없음</td></tr><tr><td>2</td><td>B 전송</td><td>A, B</td><td>없음</td></tr><tr><td>3</td><td>한 항목 처리</td><td>B</td><td>A</td></tr><tr><td>4</td><td>C 전송</td><td>B, C</td><td>A</td></tr><tr><td>5</td><td>한 항목 처리</td><td>C</td><td>A, B</td></tr></tbody></table><div class="callout "><p>이 표는 한 항목을 처리할 때마다 멈춰 본 상태다. 현재 구현은 앞 항목의 처리가 끝나면 남은 항목을 계속 소비한다.</p></div></div></section>
-
-<section class="slide" id="slide-16" data-slide="16 / 24" aria-labelledby="title-16"><div><p class="kicker">Trace · Values</p><h2 id="title-16">현재 값 하나로는 중간 변화가 사라진다</h2><p>출발 HP는 12다. 같은 호출 흐름에서 5 감소, 3 감소, 5 증가가 차례로 발생했다고 가정한다.</p><table class="compare"><thead><tr><th>발생한 변경</th><th>기록한 Before / After</th><th>나중에 표시할 값</th></tr></thead><tbody><tr><td>12에서 5 감소</td><td>12 / 7</td><td>HP 7, 변화 −5</td></tr><tr><td>7에서 3 감소</td><td>7 / 4</td><td>HP 4, 변화 −3</td></tr><tr><td>4에서 5 증가</td><td>4 / 9</td><td>HP 9, 변화 +5</td></tr></tbody></table><div class="callout "><p>규칙 HP는 이미 9여도 첫 기록은 7을 표시해야 한다. 모든 기록에서 현재 HP 9를 읽으면 중간 값 7과 4를 잃는다.</p></div></div></section>
-
-<section class="slide" id="slide-17" data-slide="17 / 24" aria-labelledby="title-17"><div><p class="kicker">Actual code · Consumer</p><h2 id="title-17">소비자는 기록된 전후 값으로 계산한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationQueue.cs" data-source-start="75" data-source-end="76" data-source-sha256="d3d0c0f97e6994782121736dbf1d093fb49b183110902093f37b97189ec3de59"><code>item.Actor.GetComponentInChildren&lt;UnitHealthBar&gt;(true).Show(item.AfterHp, item.MaxHp);
-int change = item.AfterHp - item.BeforeHp;</code></pre><p class="source code-caption">실제 코드 · PresentationQueue.cs 75–76행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>item.AfterHp가 표시할 값이고 AfterHp − BeforeHp가 실제 변화량이다. 최대 HP에서 회복이 잘렸다면 잘린 뒤의 실제 차이를 표시한다.</p></div></div></section>
-
-<section class="slide" id="slide-18" data-slide="18 / 24" aria-labelledby="title-18"><div><p class="kicker">Values and references</p><h2 id="title-18">복사한 값과 보관한 참조를 구분한다</h2><div class="two"><div class="panel teal"><h3>값을 복사한 기록</h3><p>BeforeHp, AfterHp, From, To는 그 시점의 값이다. 원래 객체가 나중에 달라져도 기록의 값은 변하지 않는다.</p></div><div class="panel violet"><h3>객체를 찾는 참조</h3><p>Actor는 표시할 객체를 찾는 참조다. readonly 기록 안에 있어도 대상 객체 자체가 불변이 되는 것은 아니다.</p></div></div><div class="callout "><p>참조 대상이 먼저 사라지면 늦은 처리가 실패할 수 있다. 기록의 내용과 대상 객체의 수명을 함께 설계한다.</p></div></div></section>
-
-<section class="slide" id="slide-19" data-slide="19 / 24" aria-labelledby="title-19"><div><p class="kicker">Actual code · Cancellation</p><h2 id="title-19">취소는 남은 처리를 버리는 결정이다</h2><pre data-source-file="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationQueue.cs" data-source-start="89" data-source-end="93" data-source-sha256="4ca1abadf676aea3a668c659d67610bb4d7a883655152bea31be9eae440ecd23"><code>_cancellation?.Cancel();
+_cancellation = null;
+IsBusy = false;</code></pre><p class="source">현재 실제 코드 발췌 · PresentationQueue.cs 72–77행 · 주변 코드와 바깥 괄호 생략</p><div class="callout "><p>Yield 후 반복을 시작한다. Dequeue는 즉시 앞 항목을 제거하지만 await PlayAsync는 그 항목의 정해진 대기를 기다린다. 마지막 항목 처리와 ResetUnits까지 끝난 뒤 IsBusy를 false로 바꾼다.</p></div></div></section>
+<section class="slide" id="slide-20" data-slide="20 / 31" aria-labelledby="title-20"><div><p class="kicker">Playback</p><h2 id="title-20">저장된 종류와 위치로 표현을 고른다</h2><pre><code data-source="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationQueue.cs" data-commit="2a50445cd0865351bac571ffcfa38f7077f2151b" data-lines="58-63">switch (item.Kind)
+{
+    case PresentationEvent.EventKind.Move: animator.PlayMove(item.From, item.To); break;
+    case PresentationEvent.EventKind.Attack: animator.PlayAttack(item.From, item.TargetPosition); break;
+    case PresentationEvent.EventKind.Skill: animator.PlaySkill(item.From, item.TargetPosition); break;
+    default: await PlayHealthAsync(item, animator, token); return;</code></pre><p class="source">현재 실제 코드 발췌 · PresentationQueue.cs 58–63행 · 주변 코드와 바깥 괄호 생략</p><div class="callout "><p>Move / Attack / Skill은 저장된 좌표를 사용한다. 그 뒤의 대기는 item.Seconds다. 기본 분기는 Health를 처리하는 현재 생산자 계약이다. 알 수 없는 종류를 자동 검증·거절하는 switch라고 해석하지 않는다.</p></div></div></section>
+<section class="slide" id="slide-21" data-slide="21 / 31" aria-labelledby="title-21"><div><p class="kicker">Health Playback</p><h2 id="title-21">저장된 HP와 실제 차이를 보여 준다</h2><pre><code data-source="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationQueue.cs" data-commit="2a50445cd0865351bac571ffcfa38f7077f2151b" data-lines="42-47">item.Actor.GetComponentInChildren&lt;UnitHealthBar&gt;(true).Show(item.AfterHp, item.MaxHp);
+int change = item.AfterHp - item.BeforeHp;
+if (change &lt; 0) animator.PlayHit(item.To);
+DamageNumber number = Instantiate(_numberPrefab, _effectsRoot);
+number.Show(Mathf.Abs(change), change &gt; 0, item.To);
+await UniTask.Delay(TimeSpan.FromSeconds(item.Seconds), cancellationToken: token);</code></pre><p class="source">현재 실제 코드 발췌 · PresentationQueue.cs 42–47행 · 주변 코드와 바깥 괄호 생략</p><div class="callout "><p>HP 바는 item.AfterHp / item.MaxHp를 사용한다. 변화량이 음수면 피격 표현, 양수면 회복 숫자다. 입력 인수가 아닌 실제 차이의 절댓값을 표시한다. 생산자에서 변화 없는 회복은 생략한다.</p></div></div></section>
+<section class="slide" id="slide-22" data-slide="22 / 31" aria-labelledby="title-22"><div><p class="kicker">Worked Trace</p><h2 id="title-22">HP 10 → 7 → 8을 두 기록으로 남긴다</h2><table class="compare"><thead><tr><th>단계</th><th>모델 HP</th><th>이벤트 값</th></tr></thead><tbody><tr><td>시작 · 최대 10</td><td>10</td><td>없음</td></tr><tr><td>3 피해 적용</td><td>7</td><td>A: BeforeHp 10 / AfterHp 7</td></tr><tr><td>즉시 1 회복 적용</td><td>8</td><td>B: BeforeHp 7 / AfterHp 8</td></tr><tr><td>A 재생</td><td>이미 8</td><td>바 7 / 숫자 −3</td></tr><tr><td>B 재생</td><td>8</td><td>바 8 / 숫자 +1</td></tr></tbody></table><div class="callout "><p>설명용 수치 추적이다. 소비자는 Unit.CurrentHp를 읽어 두 번 모두 8을 보여 주지 않는다. A와 B가 보관한 값으로 중간 상태를 재생한다.</p></div></div></section>
+<section class="slide" id="slide-23" data-slide="23 / 31" aria-labelledby="title-23"><div><p class="kicker">Actual Delta</p><h2 id="title-23">상한에 걸린 회복은 요청량과 다르다</h2><div class="two"><div class="panel teal"><h3>출발 조건</h3><p>최대 HP 10, 현재 HP 9에서 회복량 4를 요청한다. 실제 모델은 10으로 제한된다.</p></div><div class="panel violet"><h3>답과 계산</h3><p>BeforeHp 9, AfterHp 10이므로 변화량은 +1이다. 이미 10이면 생산자가 기록을 만들지 않아 +0도 생략한다.</p></div></div><div class="callout "><p>Queue가 모든 0 변화 항목을 필터링하는 것은 아니다. Heal의 동등값 반환과 TakeDamage의 유효 입력 조건처럼 <strong>생산자 경계</strong>가 함께 계약을 만든다.</p></div></div></section>
+<section class="slide" id="slide-24" data-slide="24 / 31" aria-labelledby="title-24"><div><p class="kicker">Busy and Count</p><h2 id="title-24">대기 0개여도 마지막 항목은 재생 중일 수 있다</h2><table class="compare"><thead><tr><th>상태</th><th>내부 Count</th><th>IsBusy</th></tr></thead><tbody><tr><td>한 항목을 받아 소비자 시작</td><td>1</td><td>true</td></tr><tr><td>마지막 항목을 꺼내 재생·대기 중</td><td>0</td><td>true</td></tr><tr><td>반복 종료와 표현 정리 완료</td><td>0</td><td>false</td></tr></tbody></table><div class="callout "><p><strong>질문 → 답:</strong> Count == 0이면 바로 다음 외부 행동을 허용할까? 아니다. 현재 항목의 대기까지 포함하는 IsBusy가 필요하다. Count는 공개 Queue API가 아닌 내부 저장소 상태다.</p></div></div></section>
+<section class="slide" id="slide-25" data-slide="25 / 31" aria-labelledby="title-25"><div><p class="kicker">Two Clocks</p><h2 id="title-25">모델의 결과와 표현이 끝나는 시점</h2><div class="two"><div class="panel teal"><h3>모델 시간</h3><p>HP·논리 위치·승패 값은 규칙 실행 중 바뀐다. 이벤트 소비자가 같은 피해나 회복을 다시 적용하지 않는다.</p></div><div class="panel violet"><h3>표현 시간</h3><p>화면은 기록 순서대로 갱신된다. 결과 표시도 모델 결과와 큐의 바쁨을 함께 보아 기다릴 수 있다.</p></div></div><div class="callout "><p>모델에서 이미 끝난 결과를 화면에 늦게 드러내는 것이다. enqueue 자체가 규칙 실행을 비동기로 만들거나 트랜잭션·되돌리기를 제공하지는 않는다.</p></div></div></section>
+<section class="slide" id="slide-26" data-slide="26 / 31" aria-labelledby="title-26"><div><p class="kicker">Wait and Lifetime</p><h2 id="title-26">FIFO의 대기 종료와 모든 숫자의 소멸은 다르다</h2><table class="compare"><thead><tr><th>현재 시간값</th><th>의미</th></tr></thead><tbody><tr><td>Health의 Seconds = 0.35초</td><td>다음 항목으로 넘어가기 위한 기본 대기</td></tr><tr><td>DamageNumber의 독립 수명 = 0.7초</td><td>자기 Update로 떠오르고 사라짐</td></tr><tr><td>AfterHp가 0 이하인 Health</td><td>추가로 DeathSeconds만큼 사망 프레임 대기</td></tr></tbody></table><div class="callout "><p>따라서 이전 숫자와 다음 숫자가 겹칠 수 있고, IsBusy가 false여도 마지막 숫자가 남을 수 있다. FIFO는 <strong>규정된 재생·대기의 순서</strong>이며 모든 효과 객체의 소멸을 기다린다는 약속은 아니다.</p></div></div></section>
+<section class="slide" id="slide-27" data-slide="27 / 31" aria-labelledby="title-27"><div><p class="kicker">Cancellation</p><h2 id="title-27">취소는 대기·큐·임시 표현을 정리한다</h2><pre><code data-source="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationQueue.cs" data-commit="2a50445cd0865351bac571ffcfa38f7077f2151b" data-lines="28-32">_cancellation?.Cancel();
 _cancellation?.Dispose();
 _cancellation = null;
 _events.Clear();
-ResetUnits();</code></pre><p class="source code-caption">실제 코드 · PresentationQueue.cs 89–93행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>진행 중인 처리를 취소하고 대기 항목을 비운다. ResetUnits는 표시를 현재 규칙 상태와 맞춘다. 이전 HP나 위치로 되돌리는 Undo가 아니다.</p></div></div></section>
-
-<section class="slide" id="slide-20" data-slide="20 / 24" aria-labelledby="title-20"><div><p class="kicker">Observer and queue</p><h2 id="title-20">수신자 분리와 시간 분리를 비교한다</h2><table class="compare"><thead><tr><th>방식</th><th>누가 처리하는가</th><th>언제 처리하는가</th></tr></thead><tbody><tr><td>직접 호출</td><td>호출자가 참조한 대상</td><td>호출 흐름 안</td></tr><tr><td>즉시 Observer</td><td>등록한 구독자</td><td>일반적으로 알림을 발행한 흐름 안</td></tr><tr><td>Event Queue</td><td>큐의 소비자</td><td>소비자가 꺼내는 시점</td></tr></tbody></table><div class="callout "><p>세 방식은 함께 사용할 수 있다. 현재 규칙의 즉시 알림과 나중에 처리할 기록은 맡은 시간이 다르다.</p></div></div></section>
-
-<section class="slide" id="slide-21" data-slide="21 / 24" aria-labelledby="title-21"><div><p class="kicker">Event and command</p><h2 id="title-21">같은 큐에도 데이터의 의미는 다를 수 있다</h2><div class="two"><div class="panel teal"><h3>이벤트 기록</h3><p>이미 생긴 변경이나 처리할 알림을 전달한다. 여기서는 규칙이 바뀐 결과를 화면에 표현한다.</p></div><div class="panel violet"><h3>명령 요청</h3><p>무언가를 실행하라고 요청한다. 실행을 거부하거나 실패했을 때의 의미를 따로 정해야 한다.</p></div></div><div class="callout "><p>둘 다 큐에 넣을 수 있지만 큐라는 자료구조만으로 기록의 의미가 정해지지는 않는다.</p></div></div></section>
-
-<section class="slide" id="slide-22" data-slide="22 / 24" aria-labelledby="title-22"><div><p class="kicker">Costs</p><h2 id="title-22">지연과 적체, 수명 관리가 비용이다</h2><table class="compare"><thead><tr><th>비용</th><th>생기는 이유</th></tr></thead><tbody><tr><td>처리 지연</td><td>전송 뒤에 기다리는 시간이 있다.</td></tr><tr><td>큐 적체</td><td>생산량이 처리량보다 많으면 항목이 쌓인다.</td></tr><tr><td>데이터 수명</td><td>참조 대상과 값이 처리할 때 달라질 수 있다.</td></tr><tr><td>추적의 어려움</td><td>발생 위치와 처리 위치·시간이 나뉜다.</td></tr></tbody></table><div class="callout warning"><p>순서를 지켰다고 충분하지 않다. 얼마나 늦어져도 괜찮은지, 언제 비울지까지 정해야 한다.</p></div></div></section>
-
-<section class="slide" id="slide-23" data-slide="23 / 24" aria-labelledby="title-23"><div><p class="kicker">Judgment · Check</p><h2 id="title-23">지금 결과가 필요한 호출인지 먼저 판단한다</h2><div class="two"><div class="panel amber"><h3>질문</h3><p>지금 행동 가능한지 bool을 받아 바로 분기해야 한다. 큐가 단순해질까?</p><p><strong>답:</strong> 보통 직접 반환이 더 단순하다. 큐를 쓰면 답을 기다리는 흐름까지 만들어야 한다.</p></div><div class="panel teal"><h3>반대로 이득인 경우</h3><p>발생한 여러 일을 순서대로, 소비자의 처리 시간에 맞춰 전달해야 한다. 생산자는 처리 완료를 즉시 알 필요가 없다.</p></div></div></div></section>
-
-<section class="slide" id="slide-24" data-slide="24 / 24" aria-labelledby="title-24"><div><p class="kicker">Takeaway</p><h2 id="title-24">기록할 사실과 처리할 시간을 함께 정한다</h2><ol><li>생산자는 필요한 발생 당시 값을 기록한다.</li><li>큐는 대기 항목을 FIFO로 보관한다.</li><li>소비자는 현재 처리를 끝낸 뒤 다음 항목을 꺼낸다.</li><li>지연·적체·참조 수명·취소의 의미를 정한다.</li></ol><p class="quote">시간을 나누었을 때에도 기록의 뜻이 유지되어야 한다.</p><p class="source">더 읽기: <a href="https://gameprogrammingpatterns.com/event-queue.html">Game Programming Patterns · Event Queue</a></p></div></section>
-</div>
-    </main>
-
-    <nav class="controls" aria-label="슬라이드 탐색">
-      <button class="control-btn" id="prevBtn" type="button" aria-label="이전 슬라이드">←</button>
-      <button class="control-btn" id="tocBtn" type="button">목차</button>
-      <span id="slideCounter" aria-live="polite">1 / 24</span>
-      <button class="control-btn" id="nextBtn" type="button" aria-label="다음 슬라이드">→</button>
-    </nav>
-  </div>
-
-  <dialog id="tocDialog" aria-labelledby="tocTitle">
-    <div class="toc-head"><h2 id="tocTitle">전체 목차</h2><button class="control-btn" id="tocCloseBtn" type="button">닫기</button></div>
-    <div class="toc-grid">
-<a class="toc-link" href="#slide-1"><span>01</span>미니 택틱스로 이해하는 Event Queue 패턴</a>
-<a class="toc-link" href="#slide-2"><span>02</span>직접 호출은 지금 처리할 때 단순하다</a>
-<a class="toc-link" href="#slide-3"><span>03</span>발생 속도와 처리 속도를 나누고 싶다</a>
-<a class="toc-link" href="#slide-4"><span>04</span>첫 시도는 발생한 곳에서 작업을 끝낸다</a>
-<a class="toc-link" href="#slide-5"><span>05</span>즉시 통지도 처리 시점을 함께 묶을 수 있다</a>
-<a class="toc-link" href="#slide-6"><span>06</span>발생 기록과 처리 시점을 나눈다</a>
-<a class="toc-link" href="#slide-7"><span>07</span>큐가 아직 처리하지 않은 기록을 보관한다</a>
-<a class="toc-link" href="#slide-8"><span>08</span>먼저 넣은 항목을 먼저 꺼낸다</a>
-<a class="toc-link" href="#slide-9"><span>09</span>나중에 사용할 값을 기록한다</a>
-<a class="toc-link" href="#slide-10"><span>10</span>생성할 때 현재 값을 이벤트 데이터에 복사한다</a>
-<a class="toc-link" href="#slide-11"><span>11</span>규칙 값은 지금 바뀌고 기록은 큐로 간다</a>
-<a class="toc-link" href="#slide-12"><span>12</span>첫 전송이 소비자를 한 번 시작한다</a>
-<a class="toc-link" href="#slide-13"><span>13</span>현재 항목이 끝난 뒤 다음 항목을 꺼낸다</a>
-<a class="toc-link" href="#slide-14"><span>14</span>대기열이 비어도 처리는 끝나지 않았을 수 있다</a>
-<a class="toc-link" href="#slide-15"><span>15</span>전송과 처리를 번갈아 따라간다</a>
-<a class="toc-link" href="#slide-16"><span>16</span>현재 값 하나로는 중간 변화가 사라진다</a>
-<a class="toc-link" href="#slide-17"><span>17</span>소비자는 기록된 전후 값으로 계산한다</a>
-<a class="toc-link" href="#slide-18"><span>18</span>복사한 값과 보관한 참조를 구분한다</a>
-<a class="toc-link" href="#slide-19"><span>19</span>취소는 남은 처리를 버리는 결정이다</a>
-<a class="toc-link" href="#slide-20"><span>20</span>수신자 분리와 시간 분리를 비교한다</a>
-<a class="toc-link" href="#slide-21"><span>21</span>같은 큐에도 데이터의 의미는 다를 수 있다</a>
-<a class="toc-link" href="#slide-22"><span>22</span>지연과 적체, 수명 관리가 비용이다</a>
-<a class="toc-link" href="#slide-23"><span>23</span>지금 결과가 필요한 호출인지 먼저 판단한다</a>
-<a class="toc-link" href="#slide-24"><span>24</span>기록할 사실과 처리할 시간을 함께 정한다</a>
-</div>
-  </dialog>
-
-  <script>
+ResetUnits();</code></pre><p class="source">현재 실제 코드 발췌 · PresentationQueue.cs 28–32행 · 주변 코드와 바깥 괄호 생략</p><div class="callout "><p>Cancel은 토큰을 취소하고 대기 항목을 비운 뒤 자동 표현을 복구한다. 남은 효과도 소유 루트에서 제거하고 IsBusy를 false로 만든다. 이미 바뀐 모델 HP나 위치를 과거로 되돌리는 작업은 아니다.</p></div></div></section>
+<section class="slide" id="slide-28" data-slide="28 / 31" aria-labelledby="title-28"><div><p class="kicker">Lifecycle Ownership</p><h2 id="title-28">이전 소비자가 새 소비자를 완료시키면 안 된다</h2><pre><code data-source="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationQueue.cs" data-commit="2a50445cd0865351bac571ffcfa38f7077f2151b" data-lines="79-81">catch (OperationCanceledException) when (token.IsCancellationRequested)
+{
+    // Cancel owns cleanup. An old consumer must not finish a new one.</code></pre><p class="source">현재 실제 코드 발췌 · PresentationQueue.cs 79–81행 · 주변 코드와 바깥 괄호 생략</p><pre><code data-source="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/PresentationQueue.cs" data-commit="2a50445cd0865351bac571ffcfa38f7077f2151b" data-lines="38-38">private void OnDisable() =&gt; Cancel();</code></pre><p class="source">현재 실제 코드 발췌 · PresentationQueue.cs 38–38행 · 주변 코드와 바깥 괄호 생략</p><div class="callout "><p>취소된 예전 소비자는 catch에서 정상 완료 정리를 다시 하지 않는다. Cancel이 정리를 소유하므로 뒤에 시작된 소비자의 바쁨 상태를 예전 작업이 지우지 않는다. 대상·큐 수명은 함께 설계해야 한다.</p></div></div></section>
+<section class="slide" id="slide-29" data-slide="29 / 31" aria-labelledby="title-29"><div><p class="kicker">Required Queue</p><h2 id="title-29">필수 큐의 거절은 구성 오류다</h2><pre><code data-source="MiniTactics_Teacher_Lesson10/Assets/Lesson10/Scripts/Unit.cs" data-commit="2a50445cd0865351bac571ffcfa38f7077f2151b" data-lines="40-43">if (!_presentation.TryEnqueue(item))
+    throw new InvalidOperationException(&quot;Unit requires an enabled PresentationQueue in this scene.&quot;);
+_animator.SetAutomaticPlayback(false);
+GetComponentInChildren&lt;UnitHealthBar&gt;(true).SetAutomaticRefresh(false);</code></pre><p class="source">현재 실제 코드 발췌 · Unit.cs 40–43행 · 주변 코드와 바깥 괄호 생략</p><div class="callout "><p>Unit.Present 내부다. 큐가 받지 못하면 명확히 예외를 내며, 성공 뒤 자동 표현을 끈다. 비활성 큐를 만나면 즉시 표현으로 우회하는 지원 모드가 아니다. 큐는 연결되고 활성화되어 있어야 한다.</p></div></div></section>
+<section class="slide" id="slide-30" data-slide="30 / 31" aria-labelledby="title-30"><div><p class="kicker">Judgment</p><h2 id="title-30">시간을 분리할 이유와 그 비용</h2><div class="two"><div class="panel teal"><h3>유용할 때</h3><p>연속 상태 변화의 중간 과정을 읽어야 하거나, 여러 생산자의 표현 순서를 한곳에서 제어해야 한다.</p></div><div class="panel violet"><h3>유지할 비용</h3><p>기록 데이터, 대기 지연, 큐 적체, 대상 수명, 취소와 단일 소비자 소유권을 관리한다. 단순한 즉시 갱신은 직접 호출로 충분할 수 있다.</p></div></div><div class="callout "><p>현재 구현은 숫자를 생성하고 토큰·저장 공간도 사용한다. 무할당이나 FPS 향상은 보장하지 않는다. 네트워크 전달·영구 이벤트 저장·전체 상태 재구성도 이 큐의 기능이 아니다.</p></div></div></section>
+<section class="slide" id="slide-31" data-slide="31 / 31" aria-labelledby="title-31"><div><p class="kicker">Visible Review Answers</p><h2 id="title-31">코드에서 확인한 Event Queue의 경계</h2><table class="compare"><thead><tr><th>질문</th><th>답과 이유</th></tr></thead><tbody><tr><td>과거 HP는 어디에 남는가?</td><td>BeforeHp / AfterHp 값에 복사</td></tr><tr><td>readonly Actor면 Unit도 고정되는가?</td><td>아님 · Unit 정체성을 공유하는 참조</td></tr><tr><td>왜 소비자는 하나인가?</td><td>IsBusy일 때 추가 시작하지 않음</td></tr><tr><td>Count 0이면 처리 종료인가?</td><td>아님 · 현재 꺼낸 항목을 기다릴 수 있음</td></tr><tr><td>큐에 넣으면 규칙도 지연되는가?</td><td>아님 · 모델은 생산 단계에서 즉시 변경</td></tr><tr><td>취소는 모델 되감기인가?</td><td>아님 · 대기와 표현의 수명 정리</td></tr></tbody></table></div></section></div></main><nav class="controls" aria-label="슬라이드 탐색"><button class="control-btn" id="prevBtn" type="button" aria-label="이전 슬라이드">←</button><button class="control-btn" id="tocBtn" type="button">목차</button><span id="slideCounter" aria-live="polite">1 / 31</span><button class="control-btn" id="nextBtn" type="button" aria-label="다음 슬라이드">→</button></nav></div><dialog id="tocDialog" aria-labelledby="tocTitle"><div class="toc-head"><h2 id="tocTitle">전체 목차</h2><button class="control-btn" id="tocCloseBtn" type="button">닫기</button></div><div class="toc-grid"><a class="toc-link" href="#slide-1"><span>01</span>Event Queue 패턴</a><a class="toc-link" href="#slide-2"><span>02</span>즉시 알림은 현재 상태를 빠르게 전달한다</a><a class="toc-link" href="#slide-3"><span>03</span>값 변경 직후 화면을 직접 부르면?</a><a class="toc-link" href="#slide-4"><span>04</span>나중에 현재 HP만 읽는 것도 충분하지 않다</a><a class="toc-link" href="#slide-5"><span>05</span>변경 사실과 표현 작업의 시간을 나눈다</a><a class="toc-link" href="#slide-6"><span>06</span>Event Queue는 사실의 전달과 처리를 분리한다</a><a class="toc-link" href="#slide-7"><span>07</span>현재 클래스가 맡은 역할</a><a class="toc-link" href="#slide-8"><span>08</span>이벤트는 읽기 전용 값 타입이다</a><a class="toc-link" href="#slide-9"><span>09</span>위치와 HP는 값으로 보관한다</a><a class="toc-link" href="#slide-10"><span>10</span>표현 에셋과 대상의 정체성은 공유한다</a><a class="toc-link" href="#slide-11"><span>11</span>생성자가 값과 에셋 참조를 함께 잡는다</a><a class="toc-link" href="#slide-12"><span>12</span>이동·행동 기록의 생성 지점</a><a class="toc-link" href="#slide-13"><span>13</span>체력 변화는 before와 after를 함께 담는다</a><a class="toc-link" href="#slide-14"><span>14</span>모델은 먼저 바뀌고 이벤트가 만들어진다</a><a class="toc-link" href="#slide-15"><span>15</span>논리 위치와 재생할 경로는 다르다</a><a class="toc-link" href="#slide-16"><span>16</span>Enqueue는 뒤에, Dequeue는 앞에서</a><a class="toc-link" href="#slide-17"><span>17</span>큐가 켜져 있을 때 기록을 받는다</a><a class="toc-link" href="#slide-18"><span>18</span>바쁘지 않을 때만 소비자를 시작한다</a><a class="toc-link" href="#slide-19"><span>19</span>꺼낸 하나의 처리를 기다리고 다음으로 간다</a><a class="toc-link" href="#slide-20"><span>20</span>저장된 종류와 위치로 표현을 고른다</a><a class="toc-link" href="#slide-21"><span>21</span>저장된 HP와 실제 차이를 보여 준다</a><a class="toc-link" href="#slide-22"><span>22</span>HP 10 → 7 → 8을 두 기록으로 남긴다</a><a class="toc-link" href="#slide-23"><span>23</span>상한에 걸린 회복은 요청량과 다르다</a><a class="toc-link" href="#slide-24"><span>24</span>대기 0개여도 마지막 항목은 재생 중일 수 있다</a><a class="toc-link" href="#slide-25"><span>25</span>모델의 결과와 표현이 끝나는 시점</a><a class="toc-link" href="#slide-26"><span>26</span>FIFO의 대기 종료와 모든 숫자의 소멸은 다르다</a><a class="toc-link" href="#slide-27"><span>27</span>취소는 대기·큐·임시 표현을 정리한다</a><a class="toc-link" href="#slide-28"><span>28</span>이전 소비자가 새 소비자를 완료시키면 안 된다</a><a class="toc-link" href="#slide-29"><span>29</span>필수 큐의 거절은 구성 오류다</a><a class="toc-link" href="#slide-30"><span>30</span>시간을 분리할 이유와 그 비용</a><a class="toc-link" href="#slide-31"><span>31</span>코드에서 확인한 Event Queue의 경계</a></div></dialog><script>
     const slides = [...document.querySelectorAll('.slide')];
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
@@ -309,9 +272,7 @@ ResetUnits();</code></pre><p class="source code-caption">실제 코드 · Presen
 
     const initialIndex = indexFromHash();
     showSlide(initialIndex);
-  </script>
-<noscript><style>
+  </script><noscript><style>
     html,body{height:auto;overflow:visible}.app,.stage,.deck{display:block;width:100%;height:auto;max-height:none;aspect-ratio:auto;overflow:visible;container-type:normal}
     .slide,.slide.is-active{position:relative;display:block;overflow:visible;animation:none;margin-bottom:20px}.controls,dialog{display:none}
-    </style></noscript></body>
-</html>
+    </style></noscript></body></html>
