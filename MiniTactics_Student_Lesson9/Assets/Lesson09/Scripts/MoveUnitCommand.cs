@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 namespace MiniTactics.Lesson09
@@ -9,13 +8,15 @@ namespace MiniTactics.Lesson09
         private readonly BoardView _board;
         private readonly Vector2Int _fromCell;
         private readonly Vector2Int _toCell;
+        private readonly bool _wasMoved;
 
         public MoveUnitCommand(Unit unit, BoardView board, Vector2Int toCell)
         {
-            _unit = unit != null ? unit : throw new ArgumentNullException(nameof(unit));
-            _board = board != null ? board : throw new ArgumentNullException(nameof(board));
+            _unit = unit;
+            _board = board;
             _fromCell = board.WorldToCell(unit.transform.position);
             _toCell = toCell;
+            _wasMoved = unit.HasMoved;
         }
 
         public void Execute()
@@ -27,7 +28,7 @@ namespace MiniTactics.Lesson09
         public void Undo()
         {
             _unit.MoveTo(_board, _fromCell);
-            _unit.HasMoved = false;
+            _unit.HasMoved = _wasMoved;
         }
     }
 }

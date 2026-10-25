@@ -6,56 +6,51 @@ namespace MiniTactics.Lesson09
     public sealed class Unit : MonoBehaviour
     {
         [SerializeField] private bool _canMove = true;
-
-        public event Action<Unit> HpChanged;
-        public event Action<Unit> Died;
+        [SerializeField] private UnitAnimator _animator;
 
         public UnitClass UnitClass { get; private set; }
-        public int MoveBudget => UnitClass.MoveBudget;
-        public bool CanMove => _canMove;
+        public Team Team { get; private set; }
+        public bool HasMoved { get; set; }
+        public int CurrentHp { get; private set; }
         public int MaxHp => UnitClass.MaxHp;
         public int AttackPower => UnitClass.AttackPower;
         public int Defense => UnitClass.Defense;
-        public int AttackRange => UnitClass.AttackRange;
-        public int CurrentHp { get; private set; }
         public bool IsAlive => CurrentHp > 0;
-        public Team Team { get; private set; }
-        public bool HasMoved { get; set; }
+        public int MoveBudget => UnitClass.MoveBudget;
+        public int AttackRange => UnitClass.AttackRange;
+        public bool CanMove => _canMove;
+        public event Action<Unit> HpChanged;
+        public event Action<Unit> Died;
+
+        public void Initialize(Team team, UnitClass unitClass)
+        {
+            UnitClass = unitClass;
+            Team = team;
+            HasMoved = false;
+            _animator.SetLook(team == Team.Player ? unitClass.PlayerLook : unitClass.EnemyLook);
+            CurrentHp = MaxHp;
+            HpChanged?.Invoke(this);
+        }
 
         public void TakeDamage(int damage)
         {
+            if (!IsAlive || damage <= 0) return;
             CurrentHp = Mathf.Max(0, CurrentHp - damage);
             HpChanged?.Invoke(this);
-
-            if (!IsAlive)
-            {
-                Died?.Invoke(this);
-                gameObject.SetActive(false);
-            }
+            if (IsAlive) return;
+            Died?.Invoke(this);
+            gameObject.SetActive(false);
         }
 
         public void Heal(int amount)
         {
+            if (!IsAlive || amount <= 0) return;
             CurrentHp = Mathf.Min(MaxHp, CurrentHp + amount);
             HpChanged?.Invoke(this);
         }
 
-        public void Initialize(Team team, UnitClass unitClass)
-        {
-            Team = team;
-            UnitClass = unitClass;
-            CurrentHp = unitClass.MaxHp;
-            UnitLook look = team == Team.Player ? unitClass.PlayerLook : unitClass.EnemyLook;
-            GetComponent<UnitAnimator>().SetLook(look);
-        }
-
         public void MoveTo(BoardView board, Vector2Int targetCell)
         {
-            if (board == null)
-            {
-                return;
-            }
-
             transform.position = board.CellToWorld(targetCell);
         }
     }

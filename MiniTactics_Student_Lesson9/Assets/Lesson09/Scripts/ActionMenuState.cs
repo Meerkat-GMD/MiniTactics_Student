@@ -4,13 +4,11 @@ namespace MiniTactics.Lesson09
 {
     public sealed class ActionMenuState : InputState
     {
-        private readonly InputStateMachine _machine;
         private readonly BattleController _controller;
         private readonly Unit _unit;
 
-        public ActionMenuState(InputStateMachine machine, BattleController controller, Unit unit)
+        public ActionMenuState(BattleController controller, Unit unit)
         {
-            _machine = machine;
             _controller = controller;
             _unit = unit;
         }
@@ -20,10 +18,8 @@ namespace MiniTactics.Lesson09
             _controller.ActionMenu.AttackClicked += OnAttackClicked;
             _controller.ActionMenu.SkillClicked += OnSkillClicked;
             _controller.ActionMenu.WaitClicked += OnWaitClicked;
-            _controller.ActionMenu.Show(
-                _controller.HasAttackTargets(_unit),
-                _controller.HasSkillTargets(_unit),
-                _controller.SkillName(_unit));
+            _controller.ActionMenu.Show(_controller.HasAttackTargets(_unit),
+                _controller.HasSkillTargets(_unit), _controller.SkillName(_unit));
         }
 
         public override void Exit()
@@ -34,33 +30,32 @@ namespace MiniTactics.Lesson09
             _controller.ActionMenu.Hide();
         }
 
-        public override void HandleBoardClick(Unit clickedUnit, Vector2Int cell)
-        {
-        }
+        public override void HandleBoardClick(Unit clickedUnit, Vector2Int cell) { }
+
+        private bool CanRespond() => _controller.CanAcceptInput() &&
+            _controller.IsCurrentState(this) && _unit.IsAlive;
 
         public override void HandleUndo()
         {
-            if (_unit.HasMoved)
-            {
-                _controller.UndoLast();
-            }
-
-            _machine.ChangeState(new IdleState(_machine, _controller));
+            if (!CanRespond()) return;
+            if (_unit.HasMoved) _controller.UndoLast();
+            _controller.Select(null);
         }
 
         private void OnAttackClicked()
         {
-            _machine.ChangeState(new AttackState(_machine, _controller, _unit));
+            if (CanRespond() && _controller.HasAttackTargets(_unit)) _controller.RequestAttack(_unit);
         }
 
         private void OnSkillClicked()
         {
-            _machine.ChangeState(new SkillState(_machine, _controller, _unit));
+            if (CanRespond() && _controller.HasSkillTargets(_unit)) _controller.RequestSkill(_unit);
         }
 
         private void OnWaitClicked()
         {
-            _machine.ChangeState(new IdleState(_machine, _controller));
+            if (!CanRespond()) return;
+            _controller.Select(null);
             _controller.CompleteAction(_unit);
         }
     }

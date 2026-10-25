@@ -9,25 +9,24 @@ namespace MiniTactics.Lesson09
         [SerializeField] private BoardView _board;
         [SerializeField] private UnitPlacement[] _playerUnits;
         [SerializeField] private UnitPlacement[] _enemyUnits;
-
-        public List<Unit> Units { get; } = new List<Unit>();
+        private readonly List<Unit> _units = new List<Unit>();
+        public IReadOnlyList<Unit> Units => _units;
 
         private void Awake()
         {
-            Spawn(_playerUnits, Team.Player, "Player");
-            Spawn(_enemyUnits, Team.Enemy, "Enemy");
+            Spawn(_playerUnits, Team.Player);
+            Spawn(_enemyUnits, Team.Enemy);
         }
 
-        private void Spawn(UnitPlacement[] placements, Team team, string label)
+        private void Spawn(UnitPlacement[] placements, Team team)
         {
-            for (int index = 0; index < placements.Length; index++)
+            for (int i = 0; i < placements.Length; i++)
             {
-                UnitPlacement placement = placements[index];
-                Unit unit = Instantiate(_unitPrefab, transform);
-                unit.name = $"{label} {placement.UnitClass.DisplayName} {index + 1}";
-                unit.transform.position = _board.CellToWorld(placement.Cell);
+                UnitPlacement placement = placements[i];
+                Unit unit = Instantiate(_unitPrefab, _board.CellToWorld(placement.Cell), Quaternion.identity, transform);
+                unit.name = team + " " + placement.UnitClass.DisplayName;
                 unit.Initialize(team, placement.UnitClass);
-                Units.Add(unit);
+                _units.Add(unit);
             }
         }
     }

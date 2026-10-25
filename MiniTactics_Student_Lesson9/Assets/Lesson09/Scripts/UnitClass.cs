@@ -13,8 +13,10 @@ namespace MiniTactics.Lesson09
         [SerializeField, Min(1)] private int _attackRange = 1;
         [SerializeField] private UnitLook _playerLook;
         [SerializeField] private UnitLook _enemyLook;
+
         [SerializeField] private Skill _skill;
 
+        public Skill Skill => _skill;
         public string DisplayName => _displayName;
         public int MaxHp => _maxHp;
         public int AttackPower => _attackPower;
@@ -23,6 +25,5 @@ namespace MiniTactics.Lesson09
         public int AttackRange => _attackRange;
         public UnitLook PlayerLook => _playerLook;
         public UnitLook EnemyLook => _enemyLook;
-        public Skill Skill => _skill;
     }
 }

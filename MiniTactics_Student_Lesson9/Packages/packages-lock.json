@@ -1,12 +1,5 @@
 {
   "dependencies": {
-    "com.cysharp.unitask": {
-      "version": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask#2.5.11",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "2e993ff18f28c931602a07292df0b0804eebef99"
-    },
     "com.unity.2d.animation": {
       "version": "15.1.0",
       "depth": 0,
@@ -562,6 +555,13 @@
         "com.unity.modules.jsonserialize": "1.0.0",
         "com.unity.modules.subsystems": "1.0.0"
       }
+    },
+    "com.cysharp.unitask": {
+      "version": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask#2.5.11",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "2e993ff18f28c931602a07292df0b0804eebef99"
     }
   }
 }
