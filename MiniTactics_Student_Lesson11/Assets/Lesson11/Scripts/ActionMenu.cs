@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace MiniTactics.Lesson11
 {
@@ -10,7 +11,7 @@ namespace MiniTactics.Lesson11
         [SerializeField] private Button _attackButton;
         [SerializeField] private Button _skillButton;
         [SerializeField] private Button _waitButton;
-        [SerializeField] private Text _skillLabel;
+        [SerializeField] private TMP_Text _skillLabel;
 
         public event Action AttackClicked;
         public event Action SkillClicked;

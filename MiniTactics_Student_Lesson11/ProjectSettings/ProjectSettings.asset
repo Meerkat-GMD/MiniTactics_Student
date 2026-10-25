@@ -12,8 +12,8 @@ PlayerSettings:
   targetDevice: 2
   useOnDemandResources: 0
   accelerometerFrequency: 60
-  companyName: DefaultCompany
-  productName: Mini Tactics Lesson 11 Student
+  companyName: MiniTacticsCourse
+  productName: "\uBBF8\uB2C8 \uD0DD\uD2F1\uC2A4 \uC131\uCC44 \uD0C8\uD658"
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -148,7 +148,7 @@ PlayerSettings:
   loadStoreDebugModeEnabled: 0
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
-  bundleVersion: 1.0
+  bundleVersion: 1.0.0
   preloadedAssets: []
   metroInputSource: 0
   wsaTransparentSwapchain: 0

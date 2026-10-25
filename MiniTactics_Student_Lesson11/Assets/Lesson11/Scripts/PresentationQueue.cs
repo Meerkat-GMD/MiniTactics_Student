@@ -11,77 +11,16 @@ namespace MiniTactics.Lesson11
         [SerializeField] private UnitSpawner _spawner;
         [SerializeField] private DamageNumber _numberPrefab;
         [SerializeField] private Transform _effectsRoot;
-
         private readonly Queue<PresentationEvent> _events = new Queue<PresentationEvent>();
         private CancellationTokenSource _cancellation;
-
         public bool IsBusy { get; private set; }
 
-        public bool TryEnqueue(PresentationEvent item)
+        private void ResetUnits()
         {
-            if (!isActiveAndEnabled) return false;
-            _events.Enqueue(item);
-            if (!IsBusy)
-            {
-                IsBusy = true;
-                _cancellation = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
-                ConsumeAsync(_cancellation.Token).Forget();
-            }
-            return true;
-        }
-
-        private async UniTask ConsumeAsync(CancellationToken token)
-        {
-            try
-            {
-                await UniTask.Yield(token);
-                while (_events.Count > 0)
-                    await PlayAsync(_events.Dequeue(), token);
-                ResetUnits();
-                IsBusy = false;
-                _cancellation.Dispose();
-                _cancellation = null;
-            }
-            catch (OperationCanceledException)
-            {
-                // Cancel owns cleanup; an old consumer must not change a new one's state.
-            }
-        }
-
-        private async UniTask PlayAsync(PresentationEvent item, CancellationToken token)
-        {
-            UnitAnimator animator = item.Actor.GetComponent<UnitAnimator>();
-            float seconds;
-            switch (item.Kind)
-            {
-                case PresentationEvent.EventKind.Move:
-                    seconds = animator.PlayMove(item.From, item.To);
-                    break;
-                case PresentationEvent.EventKind.Attack:
-                    seconds = animator.PlayAttack(item.From, item.TargetPosition);
-                    break;
-                case PresentationEvent.EventKind.Skill:
-                    seconds = animator.PlaySkill(item.From, item.TargetPosition);
-                    break;
-                default:
-                    await PlayHealthAsync(item, animator, token);
-                    return;
-            }
-            await UniTask.Delay(TimeSpan.FromSeconds(seconds), cancellationToken: token);
-        }
-
-        private async UniTask PlayHealthAsync(PresentationEvent item, UnitAnimator animator, CancellationToken token)
-        {
-            item.Actor.GetComponentInChildren<UnitHealthBar>(true).Show(item.AfterHp, item.MaxHp);
-            int change = item.AfterHp - item.BeforeHp;
-            if (change < 0) animator.PlayHit(item.To);
-            DamageNumber number = Instantiate(_numberPrefab, _effectsRoot);
-            number.Show(Mathf.Abs(change), change > 0, item.To);
-            await UniTask.Delay(350, cancellationToken: token);
-            if (item.AfterHp > 0) return;
-            FrameEffect.SpawnOwned(animator.DeathFrames, item.To, animator.SortingOrder, _effectsRoot);
-            item.Actor.gameObject.SetActive(false);
-            await UniTask.Delay(TimeSpan.FromSeconds(animator.DeathFrames.Length / 10f), cancellationToken: token);
+            // OnDisable can run after other scene objects have been destroyed.
+            if (_spawner == null) return;
+            foreach (Unit unit in _spawner.Units)
+                if (unit != null) unit.ResetPresentation();
         }
 
         public void Cancel()
@@ -96,14 +35,64 @@ namespace MiniTactics.Lesson11
             IsBusy = false;
         }
 
-        private void ResetUnits()
+        private void OnDisable() => Cancel();
+
+        private async UniTask PlayHealthAsync(PresentationEvent item, UnitAnimator animator, CancellationToken token)
         {
-            // Unity may already have destroyed part of this scene during OnDisable.
-            if (_spawner == null) return;
-            foreach (Unit unit in _spawner.Units)
-                if (unit != null) unit.ResetPresentation();
+            item.Actor.GetComponentInChildren<UnitHealthBar>(true).Show(item.AfterHp, item.MaxHp);
+            int change = item.AfterHp - item.BeforeHp;
+            if (change < 0) animator.PlayHit(item.To);
+            DamageNumber number = Instantiate(_numberPrefab, _effectsRoot);
+            number.Show(Mathf.Abs(change), change > 0, item.To);
+            await UniTask.Delay(TimeSpan.FromSeconds(item.Seconds), cancellationToken: token);
+            if (item.AfterHp > 0) return;
+            FrameEffect.SpawnOwned(item.DeathFrames, item.To, item.SortingOrder, _effectsRoot);
+            item.Actor.gameObject.SetActive(false);
+            await UniTask.Delay(TimeSpan.FromSeconds(item.DeathSeconds), cancellationToken: token);
         }
 
-        private void OnDisable() => Cancel();
+        private async UniTask PlayAsync(PresentationEvent item, CancellationToken token)
+        {
+            UnitAnimator animator = item.Actor.GetComponent<UnitAnimator>();
+            animator.SetLook(item.Look);
+            switch (item.Kind)
+            {
+                case PresentationEvent.EventKind.Move: animator.PlayMove(item.From, item.To); break;
+                case PresentationEvent.EventKind.Attack: animator.PlayAttack(item.From, item.TargetPosition); break;
+                case PresentationEvent.EventKind.Skill: animator.PlaySkill(item.From, item.TargetPosition); break;
+                default: await PlayHealthAsync(item, animator, token); return;
+            }
+            await UniTask.Delay(TimeSpan.FromSeconds(item.Seconds), cancellationToken: token);
+        }
+
+        private async UniTask ConsumeAsync(CancellationToken token)
+        {
+            try
+            {
+                await UniTask.Yield(token);
+                while (_events.Count > 0) await PlayAsync(_events.Dequeue(), token);
+                ResetUnits();
+                _cancellation.Dispose();
+                _cancellation = null;
+                IsBusy = false;
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested)
+            {
+                // Cancel owns cleanup. An old consumer must not finish a new one.
+            }
+        }
+
+        public bool TryEnqueue(PresentationEvent item)
+        {
+            if (!isActiveAndEnabled) return false;
+            _events.Enqueue(item);
+            if (!IsBusy)
+            {
+                IsBusy = true;
+                _cancellation = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
+                ConsumeAsync(_cancellation.Token).Forget();
+            }
+            return true;
+        }
     }
 }

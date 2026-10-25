@@ -6,82 +6,78 @@ namespace MiniTactics.Lesson11
     public sealed class Unit : MonoBehaviour
     {
         [SerializeField] private bool _canMove = true;
+        [SerializeField] private UnitAnimator _animator;
+
         private PresentationQueue _presentation;
 
-        public event Action<Unit> HpChanged;
-        public event Action<Unit> Died;
-
         public UnitClass UnitClass { get; private set; }
-        public int MoveBudget => UnitClass.MoveBudget;
-        public bool CanMove => _canMove;
+        public Team Team { get; private set; }
+        public bool HasMoved { get; set; }
+        public int CurrentHp { get; private set; }
         public int MaxHp => UnitClass.MaxHp;
         public int AttackPower => UnitClass.AttackPower;
         public int Defense => UnitClass.Defense;
-        public int AttackRange => UnitClass.AttackRange;
-        public int CurrentHp { get; private set; }
         public bool IsAlive => CurrentHp > 0;
-        public Team Team { get; private set; }
-        public bool HasMoved { get; set; }
+        public int MoveBudget => UnitClass.MoveBudget;
+        public int AttackRange => UnitClass.AttackRange;
+        public bool CanMove => _canMove;
+        public event Action<Unit> HpChanged;
+        public event Action<Unit> Died;
 
-        public void TakeDamage(int damage)
-        {
-            int before = CurrentHp;
-            CurrentHp = Mathf.Max(0, CurrentHp - damage);
-            bool queued = before != CurrentHp && TryPresent(PresentationEvent.HealthChanged(this, before, CurrentHp));
-            HpChanged?.Invoke(this);
-
-            if (!IsAlive)
-            {
-                Died?.Invoke(this);
-                if (!queued) gameObject.SetActive(false);
-            }
-        }
-
-        public void Heal(int amount)
-        {
-            int before = CurrentHp;
-            CurrentHp = Mathf.Min(MaxHp, CurrentHp + amount);
-            if (before != CurrentHp) TryPresent(PresentationEvent.HealthChanged(this, before, CurrentHp));
-            HpChanged?.Invoke(this);
-        }
-
-        public void Initialize(Team team, UnitClass unitClass, PresentationQueue presentation = null)
+        public void Initialize(Team team, UnitClass unitClass, PresentationQueue presentation)
         {
             _presentation = presentation;
-            Team = team;
             UnitClass = unitClass;
-            CurrentHp = unitClass.MaxHp;
-            UnitLook look = team == Team.Player ? unitClass.PlayerLook : unitClass.EnemyLook;
-            GetComponent<UnitAnimator>().SetLook(look);
+            Team = team;
+            HasMoved = false;
+            _animator.SetLook(team == Team.Player ? unitClass.PlayerLook : unitClass.EnemyLook);
+            CurrentHp = MaxHp;
+            HpChanged?.Invoke(this);
         }
 
-        internal bool TryPresent(PresentationEvent item)
+        internal void Present(PresentationEvent item)
         {
-            if (_presentation == null || !_presentation.TryEnqueue(item)) return false;
-            GetComponent<UnitAnimator>().SetAutomaticPlayback(false);
+            if (!_presentation.TryEnqueue(item))
+                throw new InvalidOperationException("Unit requires an enabled PresentationQueue in this scene.");
+            _animator.SetAutomaticPlayback(false);
             GetComponentInChildren<UnitHealthBar>(true).SetAutomaticRefresh(false);
-            return true;
         }
 
         internal void ResetPresentation()
         {
-            GetComponent<UnitAnimator>().SetAutomaticPlayback(true);
+            _animator.SetAutomaticPlayback(true);
             GetComponentInChildren<UnitHealthBar>(true).SetAutomaticRefresh(true);
             if (!IsAlive) gameObject.SetActive(false);
         }
 
+        public void TakeDamage(int damage)
+        {
+            if (!IsAlive || damage <= 0) return;
+            int before = CurrentHp;
+            CurrentHp = Mathf.Max(0, CurrentHp - damage);
+            Present(PresentationEvent.HealthChanged(this, before, CurrentHp));
+            HpChanged?.Invoke(this);
+            if (IsAlive) return;
+            Died?.Invoke(this);
+        }
+
+        public void Heal(int amount)
+        {
+            if (!IsAlive || amount <= 0) return;
+            int before = CurrentHp;
+            CurrentHp = Mathf.Min(MaxHp, CurrentHp + amount);
+            if (CurrentHp == before) return;
+            Present(PresentationEvent.HealthChanged(this, before, CurrentHp));
+            HpChanged?.Invoke(this);
+        }
+
         public void MoveTo(BoardView board, Vector2Int targetCell)
         {
-            if (board == null)
-            {
-                return;
-            }
-
             Vector3 from = transform.position;
             Vector3 to = board.CellToWorld(targetCell);
-            bool queued = from != to && TryPresent(PresentationEvent.Moved(this, from, to));
             transform.position = to;
-            if (queued) GetComponent<UnitAnimator>().PreservePosition(to - from);
+            _animator.PreservePosition(to - from);
+            Present(PresentationEvent.Moved(this, from, to));
         }
     }
 }

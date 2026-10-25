@@ -1,9 +1,4 @@
 namespace MiniTactics.Lesson11
 {
-    public enum BattleResult
-    {
-        Playing,
-        PlayerWon,
-        PlayerLost
-    }
+    public enum BattleResult { Playing, PlayerWon, PlayerLost }
 }
