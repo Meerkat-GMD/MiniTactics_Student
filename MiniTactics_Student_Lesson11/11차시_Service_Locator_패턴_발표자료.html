@@ -1,10 +1,4 @@
-<!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>11차시 · Service Locator 패턴 | 미니 택틱스</title>
-  <style>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>11차시 | Service Locator 패턴</title><style>
     :root {
       --bg:#040a13; --slide:#091526; --panel:#10233a; --panel2:#142b45;
       --text:#eef5ff; --muted:#afbed1; --teal:#55e4cf; --violet:#b8a4ff;
@@ -115,148 +109,72 @@
       h1,h2,h3,p,li,strong,.subtitle,.kicker,.accent,.violet,.amber,.red,.green,.source { color:#111; }
       .panel,.callout,pre,.node,.coord,.role,.stack-item,.question,.compare th,.compare td { background:#fff; color:#111; border-color:#777; }
     }
-  </style>
-<style id="layout-safety">
+  </style><style id="layout-safety">
     .slide > div,.two > div,.wide > div,.role,.node { min-width:0; }
     .compare { table-layout:fixed; overflow-wrap:anywhere; }
     .role b,.role span { overflow-wrap:anywhere; }
     @media (max-width:720px) { .state-board > .arrow { transform:rotate(90deg); justify-self:center; } .flow > .arrow { justify-self:center; } }
-    @media print { .deck { container-type:normal; aspect-ratio:auto; } .slide,.slide.is-active { height:auto; overflow:visible; break-inside:avoid; } }
-    </style>
-</head>
-<body>
-  <div class="app">
-    <main class="stage">
-      <div class="deck" id="deck">
-<section class="slide is-active" id="slide-1" data-slide="01 / 24" aria-labelledby="title-1"><div><p class="kicker">Mini Tactics · Lesson 11</p><h1 id="title-1">미니 택틱스로 이해하는<br><span class="accent">Service Locator 패턴</span></h1><p class="subtitle">서비스를 사용하는 코드와<br>그 서비스를 제공할 객체를 고르는 코드를 나눈다.</p></div></section>
-
-<section class="slide" id="slide-2" data-slide="02 / 24" aria-labelledby="title-2"><div><p class="kicker">Starting point</p><h2 id="title-2">직접 참조는 필요한 대상을 드러낸다</h2><pre data-example-kind="design-comparison"><code>class Notice
-{
-    private ConcreteAudio audio;
-
-    public void Report()
-    {
-        audio.Play();
-    }
-}</code></pre><p class="source code-caption">설계 비교용 가상 코드 · 구체적인 소리 제공자를 직접 참조하는 첫 설계다.</p><div class="callout "><p>필드의 형식을 보면 어떤 객체가 필요한지 알 수 있다. 제공자가 고정되고 참조를 전달하기 쉽다면 충분히 단순하다.</p></div></div></section>
-
-<section class="slide" id="slide-3" data-slide="03 / 24" aria-labelledby="title-3"><div><p class="kicker">New requirement</p><h2 id="title-3">같은 요청을 다른 제공자에게 보내고 싶다</h2><div class="question"><p class="big">호출하는 코드는 그대로 두고,<br>실제로 처리하는 객체만 바꿀 수 있을까?</p></div><div class="callout "><p>예를 들어 실제 소리를 내는 제공자와 아무 소리도 내지 않는 제공자가 같은 요청을 받을 수 있다.</p></div></div></section>
-
-<section class="slide" id="slide-4" data-slide="04 / 24" aria-labelledby="title-4"><div><p class="kicker">First attempt</p><h2 id="title-4">호출하는 곳마다 제공자를 선택한다</h2><pre data-example-kind="design-comparison"><code>if (silent)
-    silentAudio.Play();
-else
-    realAudio.Play();</code></pre><p class="source code-caption">설계 비교용 가상 코드 · 같은 선택 분기가 여러 소비자에 들어간다고 가정한다.</p><div class="two"><div class="panel teal"><h3>작은 범위의 장점</h3><p>선택 조건과 실행 결과를 한곳에서 읽을 수 있다.</p></div><div class="panel amber"><h3>요청하는 곳이 늘어나면</h3><p>모든 소비자가 제공자의 종류와 선택 조건을 알아야 한다.</p></div></div></div></section>
-
-<section class="slide" id="slide-5" data-slide="05 / 24" aria-labelledby="title-5"><div><p class="kicker">Observe the limit</p><h2 id="title-5">선택 규칙이 여러 곳에서 반복된다</h2><table class="compare"><thead><tr><th>바뀌는 요구</th><th>각 호출부가 선택하는 구조</th></tr></thead><tbody><tr><td>제공자를 하나 추가</td><td>여러 분기를 찾아 바꾼다.</td></tr><tr><td>선택 조건을 수정</td><td>모든 소비자가 같은 기준을 사용하게 맞춘다.</td></tr><tr><td>한 호출부를 빠뜨림</td><td>같은 요청이 서로 다른 정책으로 처리될 수 있다.</td></tr></tbody></table><div class="callout "><p>사용자는 무엇을 요청할지 알면 된다. 어떤 구현을 쓸지 고르는 책임까지 각 사용자에게 둘 필요가 있는지 살펴본다.</p></div></div></section>
-
-<section class="slide" id="slide-6" data-slide="06 / 24" aria-labelledby="title-6"><div><p class="kicker">Find the boundary</p><h2 id="title-6">사용하는 책임과 선택하는 책임을 나눈다</h2><div class="two"><div class="panel teal"><h3>소비자</h3><p>서비스에 어떤 일을 요청할지 안다.</p><p>요청을 수행할 구체적인 class는 선택하지 않는다.</p></div><div class="panel violet"><h3>초기화 코드</h3><p>현재 사용할 제공자를 고른다.</p><p>소비자가 요청하기 전에 접근 지점에 등록한다.</p></div></div><p class="quote">계약은 요청의 모양을 정하고,<br>제공자는 그 요청을 수행한다.</p></div></section>
-
-<section class="slide" id="slide-7" data-slide="07 / 24" aria-labelledby="title-7"><div><p class="kicker">Service Locator</p><h2 id="title-7">현재 제공자를 찾는 접근 지점을 둔다</h2><div class="role-map"><div class="role"><b>계약 · IAudioService</b><span>요청할 수 있는 메서드를 선언한다.</span></div><div class="role"><b>제공자</b><span>ClipAudioService와 NullAudioService가 계약을 구현한다.</span></div><div class="role"><b>Locator · Services</b><span>현재 등록된 계약 형식의 참조를 보관한다.</span></div><div class="role"><b>소비자</b><span>Services.Audio에서 얻은 서비스에 요청한다.</span></div></div><div class="callout "><p>Locator는 의존을 없애지 않는다. 소비자는 서비스 계약과 접근 지점을 알아야 한다.</p></div></div></section>
-
-<section class="slide" id="slide-8" data-slide="08 / 24" aria-labelledby="title-8"><div><p class="kicker">Actual code · Contract</p><h2 id="title-8">인터페이스가 요청의 모양을 정한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/IAudioService.cs" data-source-start="3" data-source-end="6" data-source-sha256="9a63d755ae5a4131de7962d72a5c270ccb3df1e04b66665cee83c3aea3d55df4"><code>public interface IAudioService
+    @media print { .deck { container-type:normal; aspect-ratio:auto; background:#fff; } .slide,.slide.is-active { height:auto; overflow:visible; break-inside:avoid; } }
+    @media print { .role span,.role b,.stack-item.top { color:#111; border-color:#777; } }</style></head><body><div class="app"><main class="stage"><div class="deck"><section class="slide is-active" id="slide-1" data-slide="01 / 24" aria-labelledby="title-1"><div><p class="kicker">Mini Tactics · Lesson 11</p><span class="sr-only" id="title-1">Service Locator 패턴</span><h1>Service Locator<br><span class="accent">요청은 같게, 제공자는 교체</span></h1><p class="subtitle">직접 호출의 작은 성공에서 출발해<br>계약 · 제공자 · 공통 접근점의 책임을 나눈다.</p><div class="callout"><p>같은 소리 요청이 실제 재생과 의도적인 무음 중 어디로 가는지 코드로 따라간다.</p></div></div></section>
+<section class="slide" id="slide-2" data-slide="02 / 24" aria-labelledby="title-2"><div><p class="kicker">A Small Success</p><h2 id="title-2">직접 호출은 작은 시작에 충분하다</h2><div class="two"><div class="panel teal"><h3>하나의 호출부</h3><p>선택할 때 같은 소리 하나를 재생한다. 호출하는 곳이 적고 재생 방식이 고정이면 직접 연결이 읽기 쉽다.</p></div><div class="panel violet"><h3>직접 의존</h3><p>호출부가 재생 객체와 클립을 안다. “소리를 요청한다”와 “어떻게 재생한다”가 함께 놓인다.</p></div></div><div class="callout"><p>요구가 단순할 때 직접 호출 자체가 잘못된 설계는 아니다.</p></div></div></section>
+<section class="slide" id="slide-3" data-slide="03 / 24" aria-labelledby="title-3"><div><p class="kicker">A Concrete Change</p><h2 id="title-3">무음으로 바꾸어도 요청은 유지하고 싶다</h2><div class="question"><p class="big">선택 소리를 내던 호출부를 고치지 않고<br>다음 요청부터 무음으로 바꿀 수 있을까?</p></div><p>요청의 뜻은 그대로다. 달라지는 것은 요청을 받아 실제로 수행하는 쪽이다.</p><div class="callout"><p>여기서 제공자(provider)는 계약에 적힌 일을 실제로 수행하는 객체다.</p></div></div></section>
+<section class="slide" id="slide-4" data-slide="04 / 24" aria-labelledby="title-4"><div><p class="kicker">Limited First Attempt</p><h2 id="title-4">호출부마다 무음 조건을 넣어 본다</h2><p class="source">설계 비교용 가상 코드 · 현재 Teacher 구현의 결함을 인용한 코드가 아니다.</p><pre><code>if (!muted)
+    audioSource.PlayOneShot(selectionClip);</code></pre><div class="two"><div class="panel teal"><h3>한 곳에서는 충분</h3><p>조건 하나를 확인하고 재생하면 된다. 분기와 효과를 함께 읽을 수 있다.</p></div><div class="panel violet"><h3>여러 곳으로 늘어나면</h3><p>모든 호출부가 muted와 재생 객체를 알아야 한다. 제공자 선택 규칙이 반복된다.</p></div></div></div></section>
+<section class="slide" id="slide-5" data-slide="05 / 24" aria-labelledby="title-5"><div><p class="kicker">Observe the Cost</p><h2 id="title-5">반복되는 것은 소리가 아니라 선택 책임이다</h2><table class="compare"><thead><tr><th>변경 요구</th><th>각 호출부가 고르는 방식</th></tr></thead><tbody><tr><td>무음 정책 변경</td><td>선택 조건을 여러 곳에서 수정</td></tr><tr><td>다른 재생 제공자로 교체</td><td>재생 방식에 의존한 호출부 수정</td></tr><tr><td>호출부 하나 누락</td><td>일부 요청만 다른 정책 적용</td></tr></tbody></table><div class="callout"><p>요청하는 책임과 제공자를 선택·등록하는 책임을 나누면 변경 지점이 모인다.</p></div></div></section>
+<section class="slide" id="slide-6" data-slide="06 / 24" aria-labelledby="title-6"><div><p class="kicker">Responsibility Boundary</p><h2 id="title-6">세 가지 경계를 먼저 세운다</h2><div class="role-map"><div class="role"><b>계약</b><span>어떤 요청을 받을 수 있는가</span></div><div class="role"><b>제공자</b><span>그 요청을 어떻게 수행하는가</span></div><div class="role"><b>접근점</b><span>현재 제공자를 어디서 얻는가</span></div><div class="role"><b>소비자</b><span>언제 무엇을 요청하는가</span></div></div><div class="callout"><p>제공자를 선택하는 초기화 주체는 소비자의 호출 전에 실제 객체를 등록한다.</p></div></div></section>
+<section class="slide" id="slide-7" data-slide="07 / 24" aria-labelledby="title-7"><div><p class="kicker">Name the Pattern</p><h2 id="title-7">Service Locator는 현재 서비스를 찾는 공통 접근점이다</h2><p class="quote">소비자는 공통 접근점에서<br>계약 타입의 현재 제공자를 얻는다.</p><p>Locator는 위치를 찾는 역할이다. 소비자가 구체 제공자를 매번 생성하거나 선택하지 않게 한다.</p><div class="callout"><p>의존성이 사라진 것은 아니다. 소비자는 계약과 전역 접근점에 의존하고, 실행은 현재 등록 상태에도 의존한다.</p></div></div></section>
+<section class="slide" id="slide-8" data-slide="08 / 24" aria-labelledby="title-8"><div><p class="kicker">Actual Roles</p><h2 id="title-8">실제 이름과 역할을 대응한다</h2><table class="compare"><thead><tr><th>역할</th><th>현재 Teacher11</th></tr></thead><tbody><tr><td>오디오 계약 / 저장 계약</td><td>IAudioService / ISaveService</td></tr><tr><td>실제 제공자</td><td>ClipAudioService / PlayerPrefsSaveService</td></tr><tr><td>의도적인 Null 제공자</td><td>NullAudioService / NullSaveService</td></tr><tr><td>공통 접근점</td><td>Services.Audio / Services.Save</td></tr><tr><td>등록 주체 / 소비자 예</td><td>CampaignController / BattleController</td></tr></tbody></table><p>인터페이스는 호출 약속이고, 클래스는 그 약속을 수행하는 구현이다.</p></div></section>
+<section class="slide" id="slide-9" data-slide="09 / 24" aria-labelledby="title-9"><div><p class="kicker">Interface Contract</p><h2 id="title-9">계약은 요청의 모양을 약속한다</h2><pre><code data-source="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/IAudioService.cs" data-lines="3-6" data-sha256="2a6b8c9d3242f942b5cc521c21b087eb2c465ce1b6f3f1a090f3266657739aff" data-commit="f5923c830ad5f56aefdccea2dcb3905f1d898c81">public interface IAudioService
 {
     void Play(SoundCue cue);
-}</code></pre><p class="source code-caption">실제 코드 · IAudioService.cs 3–6행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>IAudioService는 Play 요청을 받을 수 있다는 계약이다. 어떤 장치를 사용하고 어떤 소리를 낼지는 이 선언에 들어 있지 않다.</p></div></div></section>
-
-<section class="slide" id="slide-9" data-slide="09 / 24" aria-labelledby="title-9"><div><p class="kicker">Actual code · Provider</p><h2 id="title-9">실제 제공자가 계약을 구현한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/ClipAudioService.cs" data-source-start="5" data-source-end="8" data-source-sha256="5cc6ca74478400f4ee1b4fd6499ac21d48eb5f7f1b42f7b47906c3c56fa5c5f3"><code>public sealed class ClipAudioService : IAudioService
-{
-    private readonly AudioSource _source;
-    private readonly AudioClip[] _clips;</code></pre><p class="source code-caption">실제 코드 · ClipAudioService.cs 5–8행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><pre data-source-file="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/ClipAudioService.cs" data-source-start="16" data-source-end="16" data-source-sha256="2e36087f5d049dd29df51b963ccc084950209aaf2dbfa1ae3b1a36b61b6a396f"><code>public void Play(SoundCue cue) =&gt; _source.PlayOneShot(_clips[(int)cue]);</code></pre><p class="source code-caption">실제 코드 · ClipAudioService.cs 16–16행 · 해당 메서드 전체다.</p><div class="callout "><p>콜론 뒤 IAudioService는 계약을 구현한다는 뜻이다. 소비자는 이 내부 자료형과 처리 방법까지 알 필요가 없다.</p></div></div></section>
-
-<section class="slide" id="slide-10" data-slide="10 / 24" aria-labelledby="title-10"><div><p class="kicker">Actual code · Locator</p><h2 id="title-10">Services는 현재 제공자의 참조를 보관한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/Services.cs" data-source-start="7" data-source-end="8" data-source-sha256="3e5194b755dcb0cc9cb85f378119bd733385b50984dbbb1deb5c500c82cf7557"><code>public static IAudioService Audio { get; set; } = new NullAudioService();
-public static ISaveService Save { get; set; } = new NullSaveService();</code></pre><p class="source code-caption">실제 코드 · Services.cs 7–8행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>속성의 형식은 구체적인 제공자가 아니라 계약이다. 다른 구현도 같은 계약을 지키면 등록할 수 있다. 기본값은 아무 작업도 하지 않는 제공자다.</p></div></div></section>
-
-<section class="slide" id="slide-11" data-slide="11 / 24" aria-labelledby="title-11"><div><p class="kicker">Actual code · Registration</p><h2 id="title-11">초기화 코드가 제공자를 만들고 등록한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/CampaignController.cs" data-source-start="31" data-source-end="34" data-source-sha256="de0d080ce622650222b6c33c10324739826c38fd9f4676b02092222fb31c148a"><code>Services.Save = new PlayerPrefsSaveService();
-_state = Services.Save.Load();
-_sound = new ClipAudioService(_source, _clips);
-Services.Audio = _state.Muted ? new NullAudioService() : _sound;</code></pre><p class="source code-caption">실제 코드 · CampaignController.cs 31–34행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>저장 계약으로 상태를 읽고 실제 소리 제공자를 준비한다. 선택 조건은 이 등록 코드에 모인다. 소비자는 Play를 요청할 때 같은 조건을 반복하지 않는다.</p></div></div></section>
-
-<section class="slide" id="slide-12" data-slide="12 / 24" aria-labelledby="title-12"><div><p class="kicker">Actual code · Consumer</p><h2 id="title-12">소비자는 조회한 계약에 요청한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/CampaignController.cs" data-source-start="69" data-source-end="69" data-source-sha256="b44ed2274886107d9f3df503049e11ed927eecc7723fdbe4a71f8bcf9587f0a6"><code>Services.Audio.Play(SoundCue.Result);</code></pre><p class="source code-caption">실제 코드 · CampaignController.cs 69–69행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="flow"><div class="node">소비자</div><div class="arrow">→</div><div class="node">Services.Audio 조회</div><div class="arrow">→</div><div class="node">IAudioService 참조</div><div class="arrow">→</div><div class="node">등록된 구현의 Play</div></div><div class="callout "><p>현재 등록된 객체의 메서드가 실행된다. 전역 접근이 편해져도 소비자의 서비스 의존성은 남아 있다.</p></div></div></section>
-
-<section class="slide" id="slide-13" data-slide="13 / 24" aria-labelledby="title-13"><div><p class="kicker">Actual code · Null Object</p><h2 id="title-13">아무 일도 하지 않는 제공자도 계약을 지킨다</h2><pre data-source-file="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/NullAudioService.cs" data-source-start="3" data-source-end="6" data-source-sha256="6d372ff5802ec07dc47450cd3a7e5b2d162fd97de7c4bc28a7c8320a5f774815"><code>public sealed class NullAudioService : IAudioService
-{
-    public void Play(SoundCue cue) { }
-}</code></pre><p class="source code-caption">실제 코드 · NullAudioService.cs 3–6행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>null 참조와 다르다. 호출할 수 있는 객체가 존재하고, 그 객체가 의도적으로 빈 작업을 수행한다. 소비자는 매번 켜짐 여부를 분기하지 않아도 된다.</p></div></div></section>
-
-<section class="slide" id="slide-14" data-slide="14 / 24" aria-labelledby="title-14"><div><p class="kicker">Trace · Replace</p><h2 id="title-14">교체 뒤의 조회는 새 제공자를 얻는다</h2><table class="compare"><thead><tr><th>순서</th><th>현재 등록된 제공자</th><th>같은 Play 요청의 결과</th></tr></thead><tbody><tr><td>1. 실제 제공자 등록</td><td>ClipAudioService</td><td>아직 요청하지 않음</td></tr><tr><td>2. Play 두 번</td><td>ClipAudioService</td><td>실제 제공자에게 두 번 전달</td></tr><tr><td>3. Null 제공자로 교체</td><td>NullAudioService</td><td>이후 조회부터 새 제공자를 얻음</td></tr><tr><td>4. Play 한 번</td><td>NullAudioService</td><td>의도적으로 아무 작업도 하지 않음</td></tr></tbody></table><div class="callout "><p>이 추적은 각 요청 때 Services.Audio를 다시 읽는 소비자를 전제로 한다. 이미 다른 변수에 보관한 이전 제공자 참조까지 자동으로 바뀌지는 않는다.</p></div></div></section>
-
-<section class="slide" id="slide-15" data-slide="15 / 24" aria-labelledby="title-15"><div><p class="kicker">Actual code · Select</p><h2 id="title-15">호출부를 고치지 않고 제공자를 바꾼다</h2><pre data-source-file="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/CampaignController.cs" data-source-start="119" data-source-end="119" data-source-sha256="cd9d7c7e07b7bb773d3ae729552f6157f5689469fdc5246b1551b2898ebe2ed4"><code>Services.Audio = muted ? new NullAudioService() : _sound;</code></pre><p class="source code-caption">실제 코드 · CampaignController.cs 119–119행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="two"><div class="panel teal"><h3>muted가 true</h3><p>NullAudioService가 다음 요청을 받는다. Play의 본문이 비어 있다.</p></div><div class="panel violet"><h3>muted가 false</h3><p>준비한 _sound가 다음 요청을 받는다. 실제 제공자의 Play가 실행된다.</p></div></div></div></section>
-
-<section class="slide" id="slide-16" data-slide="16 / 24" aria-labelledby="title-16"><div><p class="kicker">Initialization</p><h2 id="title-16">등록과 첫 호출 사이의 순서가 필요하다</h2><div class="flow"><div class="node">기본 Null 제공자</div><div class="arrow">→</div><div class="node">실제 제공자 준비</div><div class="arrow">→</div><div class="node">Services에 등록</div><div class="arrow">→</div><div class="node">소비자 요청</div></div><div class="callout warning"><p>기본 Null 제공자는 초기 참조를 안전하게 만들지만 등록을 올바르게 끝냈다는 증거가 아니다. 필수 기능이 조용히 빠지지 않았는지 초기화 경계를 확인해야 한다.</p></div></div></section>
-
-<section class="slide" id="slide-17" data-slide="17 / 24" aria-labelledby="title-17"><div><p class="kicker">Actual code · Reset</p><h2 id="title-17">전역 참조의 수명도 정해야 한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/Services.cs" data-source-start="11" data-source-end="15" data-source-sha256="ed273a4e3386b93ccab4ec19c7aea19c4387e531bf72c5aac0b682061790b531"><code>private static void Reset()
-{
-    Audio = new NullAudioService();
-    Save = new NullSaveService();
-}</code></pre><p class="source code-caption">실제 코드 · Services.cs 11–15행 · 해당 메서드 전체다.</p><div class="callout "><p>이 구현은 실행 초기화 시 제공자 참조를 기본값으로 돌린다. 이전 실행에서 등록한 객체가 다음 실행에도 남는 문제를 피하려는 경계다. 이후 초기화 코드가 사용할 제공자를 다시 등록한다.</p></div></div></section>
-
-<section class="slide" id="slide-18" data-slide="18 / 24" aria-labelledby="title-18"><div><p class="kicker">Another contract</p><h2 id="title-18">서비스마다 필요한 계약을 작게 둔다</h2><pre data-source-file="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/ISaveService.cs" data-source-start="3" data-source-end="7" data-source-sha256="3327fe4e45c6d86b133ec2d7546da4086d5af9b24d2daadfa3e3ed86431cdbce"><code>public interface ISaveService
+}</code></pre><p class="source">실제 코드 발췌 · IAudioService.cs 3–6행 · 주변 코드 생략 · SHA-256 2a6b8c9d3242</p><pre><code data-source="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/ISaveService.cs" data-lines="3-7" data-sha256="88bb1e2c84566b417a41d85376afd40b3f36e1cc03a6ed1a01febb42936ead81" data-commit="f5923c830ad5f56aefdccea2dcb3905f1d898c81">public interface ISaveService
 {
     CampaignSave Load();
     void Save(CampaignSave state);
-}</code></pre><p class="source code-caption">실제 코드 · ISaveService.cs 3–7행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>저장은 Load와 Save라는 별도 계약을 가진다. 한 거대한 서비스 인터페이스에 모든 기능을 모으기보다 소비자가 요구하는 기능을 구분한다.</p></div></div></section>
-
-<section class="slide" id="slide-19" data-slide="19 / 24" aria-labelledby="title-19"><div><p class="kicker">Singleton and locator</p><h2 id="title-19">전역 접근이 같아도 맡은 책임은 다르다</h2><table class="compare"><thead><tr><th>비교</th><th>Singleton</th><th>Service Locator</th></tr></thead><tbody><tr><td>핵심 책임</td><td>특정 종류의 인스턴스와 접근 관리</td><td>서비스 계약과 현재 제공자 연결</td></tr><tr><td>주요 질문</td><td>그 인스턴스를 어디서 얻는가?</td><td>이 계약을 지금 누가 제공하는가?</td></tr><tr><td>제공자 교체</td><td>이름만으로 보장되지 않음</td><td>계약을 지키는 구현을 등록</td></tr><tr><td>공통 비용</td><td>전역 상태와 수명</td><td>전역 상태와 숨은 의존</td></tr></tbody></table><div class="callout "><p>static class를 썼다는 사실만으로 Service Locator가 되는 것은 아니다. 계약과 제공자를 연결하는 책임을 본다.</p></div></div></section>
-
-<section class="slide" id="slide-20" data-slide="20 / 24" aria-labelledby="title-20"><div><p class="kicker">Alternative · Direct injection</p><h2 id="title-20">직접 전달하면 의존이 선언에 드러난다</h2><pre data-example-kind="design-comparison"><code>class Notice
+}</code></pre><p class="source">실제 코드 발췌 · ISaveService.cs 3–7행 · 주변 코드 생략 · SHA-256 88bb1e2c8456</p><div class="callout"><p>Play는 SoundCue를 받는다. Load는 CampaignSave를 돌려주고 Save는 그것을 받는다. 이 선언만으로 실제 제공자가 선택되지는 않는다.</p></div></div></section>
+<section class="slide" id="slide-10" data-slide="10 / 24" aria-labelledby="title-10"><div><p class="kicker">Locator</p><h2 id="title-10">Services는 두 제공자의 현재 참조를 보관한다</h2><pre><code data-source="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/Services.cs" data-lines="7-8" data-sha256="5486b0c3314a067d44e27a95cb5eefc5870ea7065bf77917782102fb66ea30de" data-commit="f5923c830ad5f56aefdccea2dcb3905f1d898c81">public static IAudioService Audio { get; set; } = new NullAudioService();
+public static ISaveService Save { get; set; } = new NullSaveService();</code></pre><p class="source">실제 코드 발췌 · Services.cs 7–8행 · 주변 코드 생략 · SHA-256 5486b0c3314a</p><div class="two"><div class="panel teal"><h3>get</h3><p>소비자가 현재 등록된 참조를 읽는다. 타입은 인터페이스이므로 같은 계약의 제공자를 받을 수 있다.</p></div><div class="panel violet"><h3>set</h3><p>등록 주체가 제공자를 교체한다. 이 구현은 두 속성을 가진 작은 전역 접근점이다.</p></div></div><div class="callout"><p>기본값은 null 참조가 아니라 실제 Null Object다. 그렇다고 필수 등록이 불필요해지지는 않는다.</p></div></div></section>
+<section class="slide" id="slide-11" data-slide="11 / 24" aria-labelledby="title-11"><div><p class="kicker">Concrete Audio Provider</p><h2 id="title-11">실제 재생은 구체 제공자가 맡는다</h2><pre><code data-source="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/ClipAudioService.cs" data-lines="10-14" data-sha256="58c7a6437535074a49aa0216b2f8fcef259a2e08065bebc517d1879e22bad8b0" data-commit="f5923c830ad5f56aefdccea2dcb3905f1d898c81">public ClipAudioService(AudioSource source, AudioClip[] clips)
 {
-    private IAudioService audio;
-
-    public Notice(IAudioService audio)
-    {
-        this.audio = audio;
-    }
-}</code></pre><p class="source code-caption">설계 비교용 가상 코드 · 같은 계약을 생성자로 직접 받는 대안이다.</p><div class="callout "><p>객체를 만드는 코드가 필요한 참조를 전달한다. 사용 범위가 좁고 전달하기 쉽다면 이 방식이 의존을 찾기 더 쉽다.</p></div></div></section>
-
-<section class="slide" id="slide-21" data-slide="21 / 24" aria-labelledby="title-21"><div><p class="kicker">Costs</p><h2 id="title-21">숨은 의존과 등록 순서가 비용이다</h2><table class="compare"><thead><tr><th>비용</th><th>읽고 확인할 곳</th></tr></thead><tbody><tr><td>겉에서 보이지 않는 의존</td><td>소비자의 본문에서 Services 조회를 찾는다.</td></tr><tr><td>전역 상태</td><td>누가 등록·교체·정리하는지 확인한다.</td></tr><tr><td>초기화 순서</td><td>첫 호출보다 등록이 먼저인지 확인한다.</td></tr><tr><td>조용한 누락</td><td>Null 제공자가 필수 기능 실수를 감추지 않는지 확인한다.</td></tr></tbody></table><div class="callout warning"><p>매개변수가 줄었다는 이유만으로 구조가 단순해졌다고 판단하지 않는다.</p></div></div></section>
-
-<section class="slide" id="slide-22" data-slide="22 / 24" aria-labelledby="title-22"><div><p class="kicker">Judgment</p><h2 id="title-22">참조 전달과 제공자 선택의 범위를 비교한다</h2><div class="two"><div class="panel teal"><h3>적용할 이득이 있는 경우</h3><p>여러 소비자가 작은 공통 계약을 사용하고, 사용할 제공자를 중앙에서 선택할 이유가 있다.</p></div><div class="panel violet"><h3>직접 전달이 단순한 경우</h3><p>소비자가 적고 의존 관계를 선언에 드러내기 쉽다. 제공자를 고르는 위치도 이미 명확하다.</p></div></div><div class="callout "><p>중앙에서 제공자를 선택하는 이득과, 소비자의 의존을 찾는 비용을 함께 비교한다.</p></div></div></section>
-
-<section class="slide" id="slide-23" data-slide="23 / 24" aria-labelledby="title-23"><div><p class="kicker">Check</p><h2 id="title-23">교체되는 것과 남는 의존을 구분한다</h2><div class="two"><div class="panel amber"><h3>질문</h3><p>Services.Audio가 NullAudioService로 바뀌었다. 다음 Play에서 소비자의 조건문을 바꿔야 하는가?</p><p><strong>답:</strong> 아니다. 같은 계약의 Play를 호출하면 새 제공자가 받는다.</p></div><div class="panel teal"><h3>한 가지 더</h3><p>그러면 소비자는 아무것에도 의존하지 않는가?</p><p><strong>답:</strong> 아니다. IAudioService, 요청 데이터, Services 접근 지점에 의존한다.</p></div></div></div></section>
-
-<section class="slide" id="slide-24" data-slide="24 / 24" aria-labelledby="title-24"><div><p class="kicker">Takeaway</p><h2 id="title-24">제공자 선택을 모으고 의존의 비용을 관리한다</h2><ol><li>소비자가 요구하는 작은 계약을 정한다.</li><li>제공자는 같은 계약을 각자의 방식으로 구현한다.</li><li>등록 코드는 제공자를 고르고 소비자는 조회해 요청한다.</li><li>등록 순서·전역 수명·숨은 의존을 함께 살핀다.</li></ol><p class="quote">어디에서 요청하는가와<br>누가 그 요청을 수행하는가를 나눈다.</p><p class="source">더 읽기: <a href="https://gameprogrammingpatterns.com/service-locator.html">Game Programming Patterns · Service Locator</a></p></div></section>
-</div>
-    </main>
-
-    <nav class="controls" aria-label="슬라이드 탐색">
-      <button class="control-btn" id="prevBtn" type="button" aria-label="이전 슬라이드">←</button>
-      <button class="control-btn" id="tocBtn" type="button">목차</button>
-      <span id="slideCounter" aria-live="polite">1 / 24</span>
-      <button class="control-btn" id="nextBtn" type="button" aria-label="다음 슬라이드">→</button>
-    </nav>
-  </div>
-
-  <dialog id="tocDialog" aria-labelledby="tocTitle">
-    <div class="toc-head"><h2 id="tocTitle">전체 목차</h2><button class="control-btn" id="tocCloseBtn" type="button">닫기</button></div>
-    <div class="toc-grid">
-<a class="toc-link" href="#slide-1"><span>01</span>미니 택틱스로 이해하는 Service Locator 패턴</a>
-<a class="toc-link" href="#slide-2"><span>02</span>직접 참조는 필요한 대상을 드러낸다</a>
-<a class="toc-link" href="#slide-3"><span>03</span>같은 요청을 다른 제공자에게 보내고 싶다</a>
-<a class="toc-link" href="#slide-4"><span>04</span>호출하는 곳마다 제공자를 선택한다</a>
-<a class="toc-link" href="#slide-5"><span>05</span>선택 규칙이 여러 곳에서 반복된다</a>
-<a class="toc-link" href="#slide-6"><span>06</span>사용하는 책임과 선택하는 책임을 나눈다</a>
-<a class="toc-link" href="#slide-7"><span>07</span>현재 제공자를 찾는 접근 지점을 둔다</a>
-<a class="toc-link" href="#slide-8"><span>08</span>인터페이스가 요청의 모양을 정한다</a>
-<a class="toc-link" href="#slide-9"><span>09</span>실제 제공자가 계약을 구현한다</a>
-<a class="toc-link" href="#slide-10"><span>10</span>Services는 현재 제공자의 참조를 보관한다</a>
-<a class="toc-link" href="#slide-11"><span>11</span>초기화 코드가 제공자를 만들고 등록한다</a>
-<a class="toc-link" href="#slide-12"><span>12</span>소비자는 조회한 계약에 요청한다</a>
-<a class="toc-link" href="#slide-13"><span>13</span>아무 일도 하지 않는 제공자도 계약을 지킨다</a>
-<a class="toc-link" href="#slide-14"><span>14</span>교체 뒤의 조회는 새 제공자를 얻는다</a>
-<a class="toc-link" href="#slide-15"><span>15</span>호출부를 고치지 않고 제공자를 바꾼다</a>
-<a class="toc-link" href="#slide-16"><span>16</span>등록과 첫 호출 사이의 순서가 필요하다</a>
-<a class="toc-link" href="#slide-17"><span>17</span>전역 참조의 수명도 정해야 한다</a>
-<a class="toc-link" href="#slide-18"><span>18</span>서비스마다 필요한 계약을 작게 둔다</a>
-<a class="toc-link" href="#slide-19"><span>19</span>전역 접근이 같아도 맡은 책임은 다르다</a>
-<a class="toc-link" href="#slide-20"><span>20</span>직접 전달하면 의존이 선언에 드러난다</a>
-<a class="toc-link" href="#slide-21"><span>21</span>숨은 의존과 등록 순서가 비용이다</a>
-<a class="toc-link" href="#slide-22"><span>22</span>참조 전달과 제공자 선택의 범위를 비교한다</a>
-<a class="toc-link" href="#slide-23"><span>23</span>교체되는 것과 남는 의존을 구분한다</a>
-<a class="toc-link" href="#slide-24"><span>24</span>제공자 선택을 모으고 의존의 비용을 관리한다</a>
-</div>
-  </dialog>
-
-  <script>
+    _source = source;
+    _clips = clips;
+}</code></pre><p class="source">실제 코드 발췌 · ClipAudioService.cs 10–14행 · 주변 코드 생략 · SHA-256 58c7a6437535</p><pre><code data-source="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/ClipAudioService.cs" data-lines="16-16" data-sha256="58c7a6437535074a49aa0216b2f8fcef259a2e08065bebc517d1879e22bad8b0" data-commit="f5923c830ad5f56aefdccea2dcb3905f1d898c81">public void Play(SoundCue cue) =&gt; _source.PlayOneShot(_clips[(int)cue]);</code></pre><p class="source">실제 코드 발췌 · ClipAudioService.cs 16–16행 · 주변 코드 생략 · SHA-256 58c7a6437535</p><p>생성자는 AudioSource와 AudioClip 배열을 보관한다. Play는 SoundCue를 인덱스로 삼아 클립을 고르고 PlayOneShot에 전달한다.</p><div class="callout"><p>소비자는 클립 배열이나 재생 API를 알 필요가 없다. 필수 AudioSource와 클립은 등록 전에 준비되어 있어야 한다.</p></div></div></section>
+<section class="slide" id="slide-12" data-slide="12 / 24" aria-labelledby="title-12"><div><p class="kicker">Unchanged Consumer</p><h2 id="title-12">소비자는 선택할 때 계약으로 요청한다</h2><pre><code data-source="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/BattleController.cs" data-lines="33-34" data-sha256="3f09aa79ee8576ecf85f913994c31acd4c1029b1d70baa753b918c0d201b1550" data-commit="f5923c830ad5f56aefdccea2dcb3905f1d898c81">if (!CanAcceptInput()) return;
+if (CanSelect(unit)) Services.Audio.Play(SoundCue.Selection);</code></pre><p class="source">실제 코드 발췌 · BattleController.cs 33–34행 · 주변 코드 생략 · SHA-256 3f09aa79ee85</p><p>Select 내부의 실제 두 줄이다. 입력 가능 여부와 선택 가능 여부를 통과하면 Selection 요청을 보낸다.</p><div class="callout"><p>Services.Audio를 읽어 현재 제공자의 Play를 호출한다. 이 호출문에는 무음 조건이나 구체 재생 클래스 선택이 없다.</p></div></div></section>
+<section class="slide" id="slide-13" data-slide="13 / 24" aria-labelledby="title-13"><div><p class="kicker">Null Object</p><h2 id="title-13">NullAudio는 의도적으로 아무 일도 하지 않는다</h2><pre><code data-source="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/NullAudioService.cs" data-lines="3-6" data-sha256="e98e8f09edfc561ea577e5d2989b1b0c2ff00e2ad49e75f4b0e1642d25339f69" data-commit="f5923c830ad5f56aefdccea2dcb3905f1d898c81">public sealed class NullAudioService : IAudioService
+{
+    public void Play(SoundCue cue) { }
+}</code></pre><p class="source">실제 코드 발췌 · NullAudioService.cs 3–6행 · 주변 코드 생략 · SHA-256 e98e8f09edfc</p><div class="two"><div class="panel teal"><h3>null 참조</h3><p>호출할 객체가 없다. Play를 호출할 수 있는 제공자가 아니다.</p></div><div class="panel violet"><h3>NullAudioService 객체</h3><p>IAudioService를 구현한 실제 객체다. Play를 받아 영구적으로 아무 일도 하지 않는다.</p></div></div><div class="callout"><p>미완성 임시 스텁이 아니다. 무음이라는 의도된 동작을 가진 완성된 제공자다.</p></div></div></section>
+<section class="slide" id="slide-14" data-slide="14 / 24" aria-labelledby="title-14"><div><p class="kicker">Registration Before Use</p><h2 id="title-14">실제 제공자는 첫 사용 전에 등록한다</h2><pre><code data-source="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/CampaignController.cs" data-lines="31-34" data-sha256="cc8413de82b5af3131fb044016084b3e906afa5dc6a078a4d6ebd200dd8b18f3" data-commit="f5923c830ad5f56aefdccea2dcb3905f1d898c81">Services.Save = new PlayerPrefsSaveService();
+_state = Services.Save.Load();
+_sound = new ClipAudioService(_source, _clips);
+Services.Audio = _state.Muted ? new NullAudioService() : _sound;</code></pre><p class="source">실제 코드 발췌 · CampaignController.cs 31–34행 · 주변 코드 생략 · SHA-256 cc8413de82b5</p><p>초기화에서 실제 저장 제공자를 등록한 뒤 Load한다. 읽은 Muted에 따라 오디오 제공자를 고른다.</p><div class="callout"><p>인터페이스가 자동으로 제공자를 찾아 주지 않는다. NullSave 기본값이 있어도 필수 저장 제공자 등록을 빠뜨려도 된다는 뜻은 아니다.</p></div></div></section>
+<section class="slide" id="slide-15" data-slide="15 / 24" aria-labelledby="title-15"><div><p class="kicker">Provider Replacement</p><h2 id="title-15">음소거는 현재 오디오 참조를 교체한다</h2><pre><code data-source="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/CampaignController.cs" data-lines="117-122" data-sha256="cc8413de82b5af3131fb044016084b3e906afa5dc6a078a4d6ebd200dd8b18f3" data-commit="f5923c830ad5f56aefdccea2dcb3905f1d898c81">public void SetMuted(bool muted)
+{
+    _state.Muted = muted;
+    Services.Save.Save(_state);
+    Services.Audio = muted ? new NullAudioService() : _sound;
+    _view.SetMuted(muted);</code></pre><p class="source">실제 코드 발췌 · CampaignController.cs 117–122행 · 주변 코드 생략 · SHA-256 cc8413de82b5</p><p>SetMuted 내부 발췌다. Muted 값을 반영하고 저장 요청을 보낸 뒤, Audio에 NullAudioService 또는 기존 _sound를 등록한다.</p><div class="callout"><p>교체는 <strong>이후 Play 요청</strong>에 적용된다. 이미 PlayOneShot으로 재생 중인 소리를 멈추는 명령은 이 코드에 없다.</p></div></div></section>
+<section class="slide" id="slide-16" data-slide="16 / 24" aria-labelledby="title-16"><div><p class="kicker">Trace One Request</p><h2 id="title-16">같은 호출문이 다른 객체에 도착한다</h2><table class="compare"><thead><tr><th>시점 / 등록된 Audio</th><th>같은 Selection 요청의 결과</th></tr></thead><tbody><tr><td>① ClipAudioService</td><td>Play → PlayOneShot으로 클립 재생 요청</td></tr><tr><td>② NullAudioService로 교체</td><td>Play → 빈 본문, 새 재생 요청 없음</td></tr><tr><td>③ 기존 ClipAudioService로 교체</td><td>다음 Play → 다시 클립 재생 요청</td></tr></tbody></table><div class="callout"><p>BattleController의 호출문은 세 경우 모두 같다. 달라진 것은 Services.Audio가 가리키는 객체다.</p></div></div></section>
+<section class="slide" id="slide-17" data-slide="17 / 24" aria-labelledby="title-17"><div><p class="kicker">Save Contract</p><h2 id="title-17">저장도 같은 계약과 제공자의 경계다</h2><pre><code data-source="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/NullSaveService.cs" data-lines="3-7" data-sha256="d8930d8e20656c0b3e5d988265233ab99eefdfea63a1457deee97336e31266ee" data-commit="f5923c830ad5f56aefdccea2dcb3905f1d898c81">public sealed class NullSaveService : ISaveService
+{
+    public CampaignSave Load() =&gt; default;
+    public void Save(CampaignSave state) { }
+}</code></pre><p class="source">실제 코드 발췌 · NullSaveService.cs 3–7행 · 주변 코드 생략 · SHA-256 d8930d8e2065</p><p>NullSaveService는 저장하지 않는다. Save 뒤에 Load해도 default를 돌려준다. 메모리 저장 버퍼가 아니다.</p><div class="callout"><p>CampaignSave는 네 필드의 값 타입이다. default이면 HasProgress·Completed·Muted는 false, StartingStageIndex는 0이다.</p></div></div></section>
+<section class="slide" id="slide-18" data-slide="18 / 24" aria-labelledby="title-18"><div><p class="kicker">Concrete Save Provider</p><h2 id="title-18">실제 저장 제공자는 영속화 API에 요청한다</h2><pre><code data-source="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/PlayerPrefsSaveService.cs" data-lines="18-19" data-sha256="0bdb0251dadb1c39fb6fd116cb4fe2037948403c891f7e667821bdcc1f13616b" data-commit="f5923c830ad5f56aefdccea2dcb3905f1d898c81">public void Save(CampaignSave state)
+{</code></pre><p class="source">실제 코드 발췌 · PlayerPrefsSaveService.cs 18–19행 · 주변 코드 생략 · SHA-256 0bdb0251dadb</p><pre><code data-source="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/PlayerPrefsSaveService.cs" data-lines="24-25" data-sha256="0bdb0251dadb1c39fb6fd116cb4fe2037948403c891f7e667821bdcc1f13616b" data-commit="f5923c830ad5f56aefdccea2dcb3905f1d898c81">    PlayerPrefs.Save();
+}</code></pre><p class="source">실제 코드 발췌 · PlayerPrefsSaveService.cs 24–25행 · 주변 코드 생략 · SHA-256 0bdb0251dadb</p><p>같은 Save 계약을 실제로 수행하는 제공자는 PlayerPrefsSaveService다. 가운데 생략한 부분에서 네 필드 값을 PlayerPrefs에 기록하고 Save를 호출한다.</p><div class="callout"><p>이 발췌는 구현의 앞·뒤만 보여 준다. 저장 키·구현 순서 대신 “계약은 같아도 제공자에 따라 효과가 다르다”를 읽는다.</p></div></div></section>
+<section class="slide" id="slide-19" data-slide="19 / 24" aria-labelledby="title-19"><div><p class="kicker">Predict and Check</p><h2 id="title-19">NullSave에 저장하면 무엇이 남을까?</h2><div class="question"><p class="big">HasProgress가 true인 값을 NullSaveService에 저장한 뒤 Load하면?</p></div><div class="callout"><p><strong>답: HasProgress는 false다.</strong> Save는 값을 보관하지 않고 Load는 언제나 default를 반환한다. 재시작 여부와 무관하게 비저장이다.</p></div><p>실제 저장이 필요한 경로는 첫 사용 전에 실제 저장 제공자를 등록해야 한다.</p></div></section>
+<section class="slide" id="slide-20" data-slide="20 / 24" aria-labelledby="title-20"><div><p class="kicker">Lifetime and Reset</p><h2 id="title-20">전역 참조의 수명도 설계해야 한다</h2><pre><code data-source="MiniTactics_Teacher_Lesson11/Assets/Lesson11/Scripts/Services.cs" data-lines="10-15" data-sha256="5486b0c3314a067d44e27a95cb5eefc5870ea7065bf77917782102fb66ea30de" data-commit="f5923c830ad5f56aefdccea2dcb3905f1d898c81">[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+private static void Reset()
+{
+    Audio = new NullAudioService();
+    Save = new NullSaveService();
+}</code></pre><p class="source">실제 코드 발췌 · Services.cs 10–15행 · 주변 코드 생략 · SHA-256 5486b0c3314a</p><p>SubsystemRegistration 시 Reset이 Audio와 Save를 새 Null 제공자로 되돌린다. 이전 세션의 정적 제공자 참조를 그대로 두지 않는 경계다.</p><div class="callout"><p>Reset은 두 참조를 바꾼다. 모든 런타임 객체의 해제·씬 정리·오디오 중지를 대신하지 않는다.</p></div></div></section>
+<section class="slide" id="slide-21" data-slide="21 / 24" aria-labelledby="title-21"><div><p class="kicker">Global Mutable Dependency</p><h2 id="title-21">편리한 접근에는 숨은 의존성이 따른다</h2><div class="two"><div class="panel teal"><h3>얻는 것</h3><p>소비자 곳곳의 제공자 선택 분기를 줄이고, 같은 계약을 지키는 구현으로 교체하기 쉽다.</p></div><div class="panel violet"><h3>치르는 것</h3><p>함수 인수만 보면 서비스 의존성이 드러나지 않는다. 전역의 변경 가능한 등록 상태와 호출 순서에 영향을 받는다.</p></div></div><div class="callout"><p>검증에서 제공자를 바꾸었다면 다음 검증 전에 복원·초기화해야 한다. 테스트 격리는 Locator가 자동으로 보장하지 않는다.</p></div></div></section>
+<section class="slide" id="slide-22" data-slide="22 / 24" aria-labelledby="title-22"><div><p class="kicker">Application Criteria</p><h2 id="title-22">지역 의존성은 명시적으로 전달할 수도 있다</h2><table class="compare"><thead><tr><th>상황</th><th>판단</th></tr></thead><tbody><tr><td>한 객체만 쓰는 협력자</td><td>생성자나 메서드 인수로 전달하면 의존성이 드러난다.</td></tr><tr><td>넓게 공유하며 교체할 소수 서비스</td><td>등록 책임과 수명을 정하고 Locator를 검토한다.</td></tr><tr><td>호출마다 다른 제공자가 필요</td><td>전역 교체가 다른 호출에도 영향을 줄 수 있다.</td></tr><tr><td>필수 연결이 빠짐</td><td>Null 기본값으로 누락을 숨기지 말고 초기화 경로를 확인한다.</td></tr></tbody></table><p>전역 접근이 편리하다는 이유만으로 모든 객체를 Services에 넣지는 않는다.</p></div></section>
+<section class="slide" id="slide-23" data-slide="23 / 24" aria-labelledby="title-23"><div><p class="kicker">Contract and Limits</p><h2 id="title-23">교체 가능한 범위는 계약이 정한다</h2><div class="two"><div class="panel teal"><h3>가능한 교체</h3><p>IAudioService.Play를 지키는 제공자라면 소비자의 같은 요청을 받을 수 있다. ISaveService도 Load와 Save를 지켜야 한다.</p></div><div class="panel violet"><h3>자동으로 해결되지 않는 것</h3><p>제공자의 올바른 초기화, 데이터의 의미, 필수 참조의 준비와 해제, 이미 시작한 작업의 중지는 별도 책임이다.</p></div></div><div class="callout"><p>이 예시는 두 속성의 Locator다. 별도 등록 프레임워크 없이도 역할과 비용을 설명할 수 있다.</p></div></div></section>
+<section class="slide" id="slide-24" data-slide="24 / 24" aria-labelledby="title-24"><div><p class="kicker">Visible Review Answers</p><h2 id="title-24">핵심 질문에 현재 코드로 답한다</h2><table class="compare"><thead><tr><th>질문</th><th>답과 이유</th></tr></thead><tbody><tr><td>인터페이스가 실제 제공자를 선택하나?</td><td>아니다. 등록 주체가 Services 속성에 객체를 대입한다.</td></tr><tr><td>무음은 null인가?</td><td>아니다. Play가 아무 일도 하지 않는 객체다.</td></tr><tr><td>음소거가 재생 중인 소리를 끄나?</td><td>아니다. 교체 뒤의 요청이 새 제공자로 간다.</td></tr><tr><td>NullSave는 잠깐 값을 기억하나?</td><td>아니다. Load는 언제나 default다.</td></tr><tr><td>Locator로 의존성이 없어졌나?</td><td>아니다. 전역 접근과 등록 상태에 의존한다.</td></tr></tbody></table></div></section></div></main><nav class="controls" aria-label="슬라이드 탐색"><button class="control-btn" id="prevBtn" type="button" aria-label="이전 슬라이드">←</button><button class="control-btn" id="tocBtn" type="button">목차</button><span id="slideCounter" aria-live="polite">1 / 24</span><button class="control-btn" id="nextBtn" type="button" aria-label="다음 슬라이드">→</button></nav></div><dialog id="tocDialog" aria-labelledby="tocTitle"><div class="toc-head"><h2 id="tocTitle">전체 목차</h2><button class="control-btn" id="tocCloseBtn" type="button">닫기</button></div><div class="toc-grid"><a class="toc-link" href="#slide-1"><span>01</span>Service Locator 패턴</a><a class="toc-link" href="#slide-2"><span>02</span>직접 호출은 작은 시작에 충분하다</a><a class="toc-link" href="#slide-3"><span>03</span>무음으로 바꾸어도 요청은 유지하고 싶다</a><a class="toc-link" href="#slide-4"><span>04</span>호출부마다 무음 조건을 넣어 본다</a><a class="toc-link" href="#slide-5"><span>05</span>반복되는 것은 소리가 아니라 선택 책임이다</a><a class="toc-link" href="#slide-6"><span>06</span>세 가지 경계를 먼저 세운다</a><a class="toc-link" href="#slide-7"><span>07</span>Service Locator는 현재 서비스를 찾는 공통 접근점이다</a><a class="toc-link" href="#slide-8"><span>08</span>실제 이름과 역할을 대응한다</a><a class="toc-link" href="#slide-9"><span>09</span>계약은 요청의 모양을 약속한다</a><a class="toc-link" href="#slide-10"><span>10</span>Services는 두 제공자의 현재 참조를 보관한다</a><a class="toc-link" href="#slide-11"><span>11</span>실제 재생은 구체 제공자가 맡는다</a><a class="toc-link" href="#slide-12"><span>12</span>소비자는 선택할 때 계약으로 요청한다</a><a class="toc-link" href="#slide-13"><span>13</span>NullAudio는 의도적으로 아무 일도 하지 않는다</a><a class="toc-link" href="#slide-14"><span>14</span>실제 제공자는 첫 사용 전에 등록한다</a><a class="toc-link" href="#slide-15"><span>15</span>음소거는 현재 오디오 참조를 교체한다</a><a class="toc-link" href="#slide-16"><span>16</span>같은 호출문이 다른 객체에 도착한다</a><a class="toc-link" href="#slide-17"><span>17</span>저장도 같은 계약과 제공자의 경계다</a><a class="toc-link" href="#slide-18"><span>18</span>실제 저장 제공자는 영속화 API에 요청한다</a><a class="toc-link" href="#slide-19"><span>19</span>NullSave에 저장하면 무엇이 남을까?</a><a class="toc-link" href="#slide-20"><span>20</span>전역 참조의 수명도 설계해야 한다</a><a class="toc-link" href="#slide-21"><span>21</span>편리한 접근에는 숨은 의존성이 따른다</a><a class="toc-link" href="#slide-22"><span>22</span>지역 의존성은 명시적으로 전달할 수도 있다</a><a class="toc-link" href="#slide-23"><span>23</span>교체 가능한 범위는 계약이 정한다</a><a class="toc-link" href="#slide-24"><span>24</span>핵심 질문에 현재 코드로 답한다</a></div></dialog><script>
     const slides = [...document.querySelectorAll('.slide')];
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
@@ -311,9 +229,7 @@ Services.Audio = _state.Muted ? new NullAudioService() : _sound;</code></pre><p 
 
     const initialIndex = indexFromHash();
     showSlide(initialIndex);
-  </script>
-<noscript><style>
+  </script><noscript><style>
     html,body{height:auto;overflow:visible}.app,.stage,.deck{display:block;width:100%;height:auto;max-height:none;aspect-ratio:auto;overflow:visible;container-type:normal}
     .slide,.slide.is-active{position:relative;display:block;overflow:visible;animation:none;margin-bottom:20px}.controls,dialog{display:none}
-    </style></noscript></body>
-</html>
+    </style></noscript></body></html>
