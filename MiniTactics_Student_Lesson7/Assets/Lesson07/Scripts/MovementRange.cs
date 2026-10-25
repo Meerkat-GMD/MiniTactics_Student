@@ -10,7 +10,7 @@ namespace MiniTactics.Lesson07
         private readonly Dictionary<Vector2Int, int> _costs;
         private readonly Dictionary<Vector2Int, Vector2Int> _previous;
 
-        internal MovementRangeResult(
+        public MovementRangeResult(
             Vector2Int start,
             Dictionary<Vector2Int, int> costs,
             Dictionary<Vector2Int, Vector2Int> previous)
@@ -20,7 +20,6 @@ namespace MiniTactics.Lesson07
             _previous = previous;
         }
 
-        public IReadOnlyDictionary<Vector2Int, int> Costs => _costs;
         public IReadOnlyCollection<Vector2Int> ReachableCells => _costs.Keys;
 
         public static MovementRangeResult Empty(Vector2Int start)
@@ -75,7 +74,7 @@ namespace MiniTactics.Lesson07
             Board board,
             Vector2Int start,
             int budget,
-            HashSet<Vector2Int> blockedCells)
+            ISet<Vector2Int> blockedCells)
         {
             if (board == null)
             {
@@ -91,7 +90,7 @@ namespace MiniTactics.Lesson07
             Dictionary<Vector2Int, Vector2Int> previous =
                 new Dictionary<Vector2Int, Vector2Int>();
 
-            if (!board.Contains(start) || !board.GetTerrain(start).IsWalkable)
+            if (!board.Contains(start) || !board.GetTile(start).IsWalkable)
             {
                 return new MovementRangeResult(start, costs, previous);
             }
@@ -107,18 +106,13 @@ namespace MiniTactics.Lesson07
                 foreach (Vector2Int direction in CardinalDirections)
                 {
                     Vector2Int next = current + direction;
-                    if (!board.Contains(next))
+                    if (!board.Contains(next) || blockedCells.Contains(next))
                     {
                         continue;
                     }
 
-                    TerrainType terrain = board.GetTerrain(next);
+                    TileData terrain = board.GetTile(next);
                     if (!terrain.IsWalkable)
-                    {
-                        continue;
-                    }
-
-                    if (blockedCells.Contains(next))
                     {
                         continue;
                     }

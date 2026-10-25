@@ -33,8 +33,3 @@ MonoBehaviour:
   - {fileID: 900679174315756369, guid: 26c5c162bfc8c0d48f18cf478e65dbbf, type: 3}
   - {fileID: 705714857849513789, guid: 26c5c162bfc8c0d48f18cf478e65dbbf, type: 3}
   - {fileID: 667108676299039132, guid: 26c5c162bfc8c0d48f18cf478e65dbbf, type: 3}
-  _skill:
-  - {fileID: 914658020112915558, guid: b9dd66b4ae106aaf0f54b6fd6e9da870, type: 3}
-  - {fileID: 1129014126866115054, guid: b9dd66b4ae106aaf0f54b6fd6e9da870, type: 3}
-  - {fileID: 597455240293498277, guid: b9dd66b4ae106aaf0f54b6fd6e9da870, type: 3}
-  - {fileID: 806035116547884948, guid: b9dd66b4ae106aaf0f54b6fd6e9da870, type: 3}

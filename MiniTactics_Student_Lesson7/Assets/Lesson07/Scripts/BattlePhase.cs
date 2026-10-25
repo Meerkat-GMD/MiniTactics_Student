@@ -1,8 +1,5 @@
+
 namespace MiniTactics.Lesson07
 {
-    public enum BattlePhase
-    {
-        Player,
-        Enemy
-    }
+    public enum BattlePhase { Player, Enemy }
 }

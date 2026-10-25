@@ -9,24 +9,23 @@ namespace MiniTactics.Lesson07
         [SerializeField] private BoardView _board;
         [SerializeField] private Vector2Int[] _spawnCells;
         [SerializeField] private Vector2Int[] _enemyCells;
-
-        public List<Unit> Units { get; } = new List<Unit>();
+        private readonly List<Unit> _units = new List<Unit>();
+        public IReadOnlyList<Unit> Units => _units;
 
         private void Awake()
         {
-            Spawn(_spawnCells, Team.Player, "Player");
-            Spawn(_enemyCells, Team.Enemy, "Enemy");
+            Spawn(_spawnCells, Team.Player);
+            Spawn(_enemyCells, Team.Enemy);
         }
 
-        private void Spawn(Vector2Int[] cells, Team team, string label)
+        private void Spawn(Vector2Int[] cells, Team team)
         {
-            for (int index = 0; index < cells.Length; index++)
+            for (int i = 0; i < cells.Length; i++)
             {
-                Unit unit = Instantiate(_unitPrefab, transform);
-                unit.name = $"{label} {index + 1}";
-                unit.transform.position = _board.CellToWorld(cells[index]);
+                Unit unit = Instantiate(_unitPrefab, _board.CellToWorld(cells[i]), Quaternion.identity, transform);
+                unit.name = team + " " + (i + 1);
                 unit.Initialize(team);
-                Units.Add(unit);
+                _units.Add(unit);
             }
         }
     }

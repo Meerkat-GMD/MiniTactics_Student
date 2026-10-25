@@ -36,7 +36,3 @@ MonoBehaviour:
   - {fileID: 51810638830668300, guid: f8766e2f491cb392cacbd77eee6d89b9, type: 3}
   - {fileID: 717746084513141980, guid: f8766e2f491cb392cacbd77eee6d89b9, type: 3}
   - {fileID: 101350112699037858, guid: f8766e2f491cb392cacbd77eee6d89b9, type: 3}
-  _skill:
-  - {fileID: 51810638830668300, guid: f8766e2f491cb392cacbd77eee6d89b9, type: 3}
-  - {fileID: 717746084513141980, guid: f8766e2f491cb392cacbd77eee6d89b9, type: 3}
-  - {fileID: 101350112699037858, guid: f8766e2f491cb392cacbd77eee6d89b9, type: 3}
