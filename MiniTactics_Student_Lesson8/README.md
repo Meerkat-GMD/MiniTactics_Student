@@ -8,7 +8,7 @@ HP 14·9·7·16, 병종별 이동 범위와 사거리(궁수 2, 나머지 1), �
 
 `Skill`(빈 abstract ScriptableObject), `PowerStrikeSkill`·`HealSkill`(빈 ScriptableObject), `SkillState`·`ActionMenuState`(빈 class)의 본문은 수업에서 입력합니다.
 두 스킬의 `: Skill`, 두 상태의 `: InputState`, `[CreateAssetMenu]`도 수업에서 씁니다.
-`Unit`, `TurnManager`, `UnitClass`, `BattleController`, `AttackState`는 7차시 상태 그대로이며 수업에서 Subclass Sandbox에 맞게 줄을 추가합니다.
+`Unit`, `TurnManager`, `UnitClass`, `BattleController`, `AttackState`는 7차시 상태 그대로이며 수업에서 줄을 추가하고 Sandbox 변경 다섯 줄(`AttackState` 첫 줄 둘, `RequestAction`의 조건과 메뉴 전환, `TurnManager`의 `+ bonusDamage`)을 고칩니다.
 
 제공 코드: 새 `ActionMenu`(행동 메뉴 패널과 버튼 이벤트), 갱신된 `UnitAnimator`(`PlaySkill`)·`UnitLook`(스킬 프레임). 나머지 제공 코드(`CombatCalculator`, `FrameEffect`, `HealthBarView`, `MovementOverlayPool`, `PhaseHudView`)는 7차시와 같고 고치지 않습니다.
 `UnitLooks` 여덟 에셋에 스킬 프레임이, 한글 글꼴에 메뉴 글자가 준비되어 있습니다. 씬의 `Lesson UI/Action Menu`(켜짐)와 자식 `Action Panel`(꺼짐)에 공격·스킬·대기 버튼이 있습니다.
