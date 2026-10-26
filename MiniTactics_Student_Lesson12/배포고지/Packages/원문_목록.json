@@ -1,0 +1,313 @@
+{
+  "scope": "Installed package top-level license and third-party notice originals, conservatively preserved for project and generated runtime distribution; inclusion does not assert every package ships executable code. Unity engine terms remain separate.",
+  "records": [
+    {
+      "package": "com.unity.2d.animation",
+      "version": "15.1.0",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.2d.animation@6d5a363ae647\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.2d.animation/LICENSE.md",
+      "sha256": "8fed8a73314ce7cbdb7e29f62c15aa59a423b338b1538d69f6c118b59cad30c7"
+    },
+    {
+      "package": "com.unity.2d.animation",
+      "version": "15.1.0",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.2d.animation@6d5a363ae647\\Third Party Notices.md",
+      "path": "배포고지/Packages/com.unity.2d.animation/Third Party Notices.md",
+      "sha256": "6f02e6f1b16df2a0b1290b2631c1e9c242c351308d23f79449ffd836db86a2e5"
+    },
+    {
+      "package": "com.unity.2d.aseprite",
+      "version": "5.0.3",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.2d.aseprite@d13865913efa\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.2d.aseprite/LICENSE.md",
+      "sha256": "02a646bb6dcba776e95465c0f7853de929a4e8e315aaf3bcffbc6a093a36e7d4"
+    },
+    {
+      "package": "com.unity.2d.common",
+      "version": "14.0.1",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.2d.common@73badf92ba8b\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.2d.common/LICENSE.md",
+      "sha256": "675c5d9491e347cbbab1397047911590df8011babbe3827b8e284947a2ee8b32"
+    },
+    {
+      "package": "com.unity.2d.common",
+      "version": "14.0.1",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.2d.common@73badf92ba8b\\Third Party Notices.md",
+      "path": "배포고지/Packages/com.unity.2d.common/Third Party Notices.md",
+      "sha256": "58a289404145a3b30c8c3bbc8f4807d3cbe495a72a5bc50896258e21f5506a4e"
+    },
+    {
+      "package": "com.unity.2d.psdimporter",
+      "version": "14.0.3",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.2d.psdimporter@5d82044f9e43\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.2d.psdimporter/LICENSE.md",
+      "sha256": "fc89d9c56bb3be0816ad0d04b80d1fca6723f01413f6dbb42759b825564dc282"
+    },
+    {
+      "package": "com.unity.2d.psdimporter",
+      "version": "14.0.3",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.2d.psdimporter@5d82044f9e43\\Third Party Notices.md",
+      "path": "배포고지/Packages/com.unity.2d.psdimporter/Third Party Notices.md",
+      "sha256": "382bcee01f8c41d58a0f7c8d11800f9d42c03b44a1f3509e762049effe658e37"
+    },
+    {
+      "package": "com.unity.2d.sprite",
+      "version": "1.0.0",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.2d.sprite@053a968eab56\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.2d.sprite/LICENSE.md",
+      "sha256": "0a17bbd475505efe813bf30e6a613fa5dbc9935edcdcf4ce7c37d521382a839d"
+    },
+    {
+      "package": "com.unity.2d.spriteshape",
+      "version": "15.0.3",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.2d.spriteshape@fcb7ec61a58b\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.2d.spriteshape/LICENSE.md",
+      "sha256": "a0098cf18acbd76b7de2dd4f5fe1aaacae9619577f1d998b48f11742ee2e8802"
+    },
+    {
+      "package": "com.unity.2d.spriteshape",
+      "version": "15.0.3",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.2d.spriteshape@fcb7ec61a58b\\Third Party Notices.md",
+      "path": "배포고지/Packages/com.unity.2d.spriteshape/Third Party Notices.md",
+      "sha256": "5505b95620a9b8ec1e3311f750b123ad3546af19d71a54a646a4ea64cc38832f"
+    },
+    {
+      "package": "com.unity.2d.tilemap.extras",
+      "version": "8.0.3",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.2d.tilemap.extras@a80140457adc\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.2d.tilemap.extras/LICENSE.md",
+      "sha256": "51cbc11999e5f1b3ec83090660c69fa8c35e95fcf9ca807edd649c51ff0a16a5"
+    },
+    {
+      "package": "com.unity.2d.tilemap.extras",
+      "version": "8.0.3",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.2d.tilemap.extras@a80140457adc\\Third Party Notices.md",
+      "path": "배포고지/Packages/com.unity.2d.tilemap.extras/Third Party Notices.md",
+      "sha256": "d4de5998983f32c55c1ababdac898ce665cc67eab5cc5fdf3b2312898b597c15"
+    },
+    {
+      "package": "com.unity.2d.tilemap",
+      "version": "1.0.0",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.2d.tilemap@592c6ccaefe1\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.2d.tilemap/LICENSE.md",
+      "sha256": "0f99a50b84c772f37f24c792bd12fe9c756a3a8d38063c8a21f9ab08bb0758a6"
+    },
+    {
+      "package": "com.unity.2d.tilemap",
+      "version": "1.0.0",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.2d.tilemap@592c6ccaefe1\\Third Party Notices.md",
+      "path": "배포고지/Packages/com.unity.2d.tilemap/Third Party Notices.md",
+      "sha256": "f3f681fca1749b3a37fa9fde7a96e068af0f8035c05b090952542d5f38846699"
+    },
+    {
+      "package": "com.unity.2d.tooling",
+      "version": "3.0.1",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.2d.tooling@6f06ffb033c0\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.2d.tooling/LICENSE.md",
+      "sha256": "fa43a7043f17c9b5d805d1714cb9690199861114b1ea065b3cd0ce661c8a2337"
+    },
+    {
+      "package": "com.unity.burst",
+      "version": "1.8.29",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.burst@6bb9aca3ef38\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.burst/LICENSE.md",
+      "sha256": "9bd567d6de754ab7396a8e3022758c617b78d7115bf1585bdb29ae0de464d059"
+    },
+    {
+      "package": "com.unity.burst",
+      "version": "1.8.29",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.burst@6bb9aca3ef38\\Third Party Notices.md",
+      "path": "배포고지/Packages/com.unity.burst/Third Party Notices.md",
+      "sha256": "01b366462da89d104fc7db01309b69de07cee05400ec429e2ea9e4c23fa5f085"
+    },
+    {
+      "package": "com.unity.collab-proxy",
+      "version": "2.12.4",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.collab-proxy@0b1559bcd34e\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.collab-proxy/LICENSE.md",
+      "sha256": "5df34c3570740990614c70db227189636bafdd43d5486e49e5fc5f0482fd07fa"
+    },
+    {
+      "package": "com.unity.collab-proxy",
+      "version": "2.12.4",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.collab-proxy@0b1559bcd34e\\Third Party Notices.md",
+      "path": "배포고지/Packages/com.unity.collab-proxy/Third Party Notices.md",
+      "sha256": "8e044f986eb0fb51b93452c5c350b41677c4e132dfeb9b0b278a4b9b9615a895"
+    },
+    {
+      "package": "com.unity.collections",
+      "version": "6.5.0",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.collections@a43cabe808ca\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.collections/LICENSE.md",
+      "sha256": "4947f647c031b0fec440237f8136386a606dd998089bb1df67316ee693f568f5"
+    },
+    {
+      "package": "com.unity.ext.nunit",
+      "version": "2.1.0",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.ext.nunit@44f7d31723bd\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.ext.nunit/LICENSE.md",
+      "sha256": "3622d79bb4de21087d36ba91bcc84816e6fc2ace098e17eb431b9e1dfb6dde32"
+    },
+    {
+      "package": "com.unity.ext.nunit",
+      "version": "2.1.0",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.ext.nunit@44f7d31723bd\\Third Party Notices.md",
+      "path": "배포고지/Packages/com.unity.ext.nunit/Third Party Notices.md",
+      "sha256": "ef37b1ccbae5e9b641482cbd77a74ee96193a39d232cc8d856b9044f37db9244"
+    },
+    {
+      "package": "com.unity.ide.rider",
+      "version": "3.0.38",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.ide.rider@1f60b3138684\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.ide.rider/LICENSE.md",
+      "sha256": "49d8e39c5ba9fa2e7b8403d994162ffc49dc7a366b0691fdfa4c06bbaadc4d81"
+    },
+    {
+      "package": "com.unity.ide.visualstudio",
+      "version": "2.0.26",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.ide.visualstudio@a99d56dec63f\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.ide.visualstudio/LICENSE.md",
+      "sha256": "af294e2812515c3569252d3ca7e2cb2519d82572df764529ac45ca72359e4995"
+    },
+    {
+      "package": "com.unity.inputsystem",
+      "version": "1.19.0",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.inputsystem@21a28c3a6c83\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.inputsystem/LICENSE.md",
+      "sha256": "419718e59cd6c1f9c3ed80bd004394504bed368c23ad8665cce1792a33c8a02c"
+    },
+    {
+      "package": "com.unity.mathematics",
+      "version": "1.4.0",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.mathematics@981956d94fb6\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.mathematics/LICENSE.md",
+      "sha256": "5b1a26ff2ca6e6e7d9fd2b6df151e1a43c671fdf49c05dcee1227f20dcf25fde"
+    },
+    {
+      "package": "com.unity.multiplayer.center",
+      "version": "1.0.1",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.multiplayer.center@b860850997d0\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.multiplayer.center/LICENSE.md",
+      "sha256": "e6522fc3e87017b4950060c58fac8478ecc96ba84ce48f4678b73dc1289d6c03"
+    },
+    {
+      "package": "com.unity.multiplayer.center",
+      "version": "1.0.1",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.multiplayer.center@b860850997d0\\Third Party Notices.md",
+      "path": "배포고지/Packages/com.unity.multiplayer.center/Third Party Notices.md",
+      "sha256": "85105d078ca8cdcd75fbb5e7ddb75d5b569f0e20270d3b9f387f37c30130b720"
+    },
+    {
+      "package": "com.unity.nuget.mono-cecil",
+      "version": "1.11.6",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.nuget.mono-cecil@ecb9724e46ff\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.nuget.mono-cecil/LICENSE.md",
+      "sha256": "76101254034fbea9afc4169e98ce15382b0f130e3bf15e7da1ca599d940e1cda"
+    },
+    {
+      "package": "com.unity.nuget.mono-cecil",
+      "version": "1.11.6",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.nuget.mono-cecil@ecb9724e46ff\\Third Party Notices.md",
+      "path": "배포고지/Packages/com.unity.nuget.mono-cecil/Third Party Notices.md",
+      "sha256": "99966d24b32096a2a1963d9ccec993cf1c729fafd359179ee727762b2dd2b4ba"
+    },
+    {
+      "package": "com.unity.render-pipelines.core",
+      "version": "17.5.0",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.render-pipelines.core@0733e3164aa3\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.render-pipelines.core/LICENSE.md",
+      "sha256": "39691adc5fdaf614d951f53637e22501baf46fcc535a69ab8a21ebaa8b9e9cb4"
+    },
+    {
+      "package": "com.unity.render-pipelines.core",
+      "version": "17.5.0",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.render-pipelines.core@0733e3164aa3\\THIRD PARTY NOTICES.md",
+      "path": "배포고지/Packages/com.unity.render-pipelines.core/THIRD PARTY NOTICES.md",
+      "sha256": "fdfacc9a242bda05b26eace324033b467b7d70e83a2761cd03337b612affc339"
+    },
+    {
+      "package": "com.unity.render-pipelines.universal-config",
+      "version": "17.5.0",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.render-pipelines.universal-config@fdda01c80fe3\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.render-pipelines.universal-config/LICENSE.md",
+      "sha256": "fa2dcbc8ff967f49342c6c61854909ba4bbcc70b27f07d25538b8eaf7be5be3c"
+    },
+    {
+      "package": "com.unity.render-pipelines.universal",
+      "version": "17.5.0",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.render-pipelines.universal@276396f56b3f\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.render-pipelines.universal/LICENSE.md",
+      "sha256": "4be520a425e06c8de56fa8aee1ce957cfe610406456278172a2d18b7c388c2cf"
+    },
+    {
+      "package": "com.unity.render-pipelines.universal",
+      "version": "17.5.0",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.render-pipelines.universal@276396f56b3f\\Third Party Notices.md",
+      "path": "배포고지/Packages/com.unity.render-pipelines.universal/Third Party Notices.md",
+      "sha256": "0652509dfc81a1a3d9e037e59bd047b305155fc5c4abeef69e2fc078488035fd"
+    },
+    {
+      "package": "com.unity.searcher",
+      "version": "4.9.4",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.searcher@d45a78918735\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.searcher/LICENSE.md",
+      "sha256": "9086cf20ede8c45e5c1fec53884c852459e55681f3bb88ada7c8850a975d6854"
+    },
+    {
+      "package": "com.unity.shadergraph",
+      "version": "17.5.0",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.shadergraph@8aa9acb51790\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.shadergraph/LICENSE.md",
+      "sha256": "364b0c08b7fe15b70c4777dccb26fc21d02ae831c2f707dbe29879ac15ece353"
+    },
+    {
+      "package": "com.unity.test-framework.performance",
+      "version": "3.5.0",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.test-framework.performance@8b56083ec0f0\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.test-framework.performance/LICENSE.md",
+      "sha256": "202adffac8b9d21d3b148a294d241894f3bcef85724c01b6a0bd52269a3798c8"
+    },
+    {
+      "package": "com.unity.test-framework.performance",
+      "version": "3.5.0",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.test-framework.performance@8b56083ec0f0\\Third Party Notices.md",
+      "path": "배포고지/Packages/com.unity.test-framework.performance/Third Party Notices.md",
+      "sha256": "361cdb83b8f7c4868ad5c61d8014ab423d9229919219f77bae1eb36084e0227a"
+    },
+    {
+      "package": "com.unity.test-framework",
+      "version": "1.7.0",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.test-framework@1405238725ab\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.test-framework/LICENSE.md",
+      "sha256": "d3b09e9683afbc8d468a83000308f18e7133eaf7879af870747000a66e3c0693"
+    },
+    {
+      "package": "com.unity.timeline",
+      "version": "1.8.12",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.timeline@8cd8509afae5\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.timeline/LICENSE.md",
+      "sha256": "73111ef76bd8a502c29b167865620de787af612b5f0ba6b3a517ade3b9519853"
+    },
+    {
+      "package": "com.unity.ugui",
+      "version": "2.5.0",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.ugui@377fd60ad87b\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.ugui/LICENSE.md",
+      "sha256": "a8e0cae87b2edb8c205ae6c308f20b89a09f32d62bd4a3ff0343bb4724a4201e"
+    },
+    {
+      "package": "com.unity.visualscripting",
+      "version": "1.9.11",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.visualscripting@8bed5ad90189\\LICENSE.md",
+      "path": "배포고지/Packages/com.unity.visualscripting/LICENSE.md",
+      "sha256": "38110f8f09a9b7828467d10ba992c3ffb8e3819feb23bd37d8bd342cc78a478f"
+    },
+    {
+      "package": "com.unity.visualscripting",
+      "version": "1.9.11",
+      "originalSource": "D:\\UnityProjects\\_tmp_verify\\p12rel\\Library\\PackageCache\\com.unity.visualscripting@8bed5ad90189\\Third Party Notices.md",
+      "path": "배포고지/Packages/com.unity.visualscripting/Third Party Notices.md",
+      "sha256": "76dadc7d5862b0c6a3a8741658c2667a535877a73dcf76db2ab03a9915adfc7d"
+    }
+  ]
+}
