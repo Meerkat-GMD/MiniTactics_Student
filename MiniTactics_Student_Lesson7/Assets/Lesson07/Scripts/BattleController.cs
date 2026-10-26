@@ -53,7 +53,8 @@ namespace MiniTactics.Lesson07
                 return false;
             }
 
-            _history.Execute(new MoveUnitCommand(unit, _board, targetCell));
+            MoveUnitCommand command = new MoveUnitCommand(unit, _board, targetCell);
+            _history.Execute(command);
             return true;
         }
 
@@ -90,11 +91,7 @@ namespace MiniTactics.Lesson07
                 RequestAttack(unit);
                 return;
             }
-            if (afterMove)
-            {
-                Select(null);
-                CompleteAction(unit);
-            }
+            if (afterMove) CompleteAction(unit);
         }
 
         internal bool HasAttackTargets(Unit unit) =>
