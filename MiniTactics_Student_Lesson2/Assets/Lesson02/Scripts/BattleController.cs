@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -11,33 +10,25 @@ namespace MiniTactics.Lesson02
         [SerializeField] private Transform _overlayRoot;
         [SerializeField] private SpriteRenderer _overlayPrefab;
         [SerializeField] private LayerMask _unitLayerMask = ~0;
-        private MovementOverlayPool _overlayPool;
+        private RangeHighlighter _highlighter;
 
         public Unit SelectedUnit { get; private set; }
 
         private void Awake()
         {
-            _overlayPool = new MovementOverlayPool(_overlayRoot, _overlayPrefab);
+            _highlighter = new RangeHighlighter(_overlayRoot, _overlayPrefab, _board);
         }
 
         public void Select(Unit unit)
         {
             SelectedUnit = unit != null && unit.CanMove ? unit : null;
-            _overlayPool.Hide();
+            _highlighter.Hide();
             if (SelectedUnit == null)
             {
                 return;
             }
 
-            List<Vector3> positions = new List<Vector3>();
-            List<bool> occupied = new List<bool>();
-            foreach (MovementCell cell in _board.GetMovementRange(SelectedUnit))
-            {
-                positions.Add(_board.CellToWorld(cell.Cell));
-                occupied.Add(cell.IsOccupied);
-            }
-
-            _overlayPool.Show(positions, occupied);
+            _highlighter.Show(_board.CalculateMovementRange(SelectedUnit), SelectedUnit);
         }
 
         public bool TryMoveSelectedUnit(Vector2Int targetCell)
@@ -49,7 +40,7 @@ namespace MiniTactics.Lesson02
 
             SelectedUnit.MoveTo(_board, targetCell);
             SelectedUnit = null;
-            _overlayPool.Hide();
+            _highlighter.Hide();
             return true;
         }
 
