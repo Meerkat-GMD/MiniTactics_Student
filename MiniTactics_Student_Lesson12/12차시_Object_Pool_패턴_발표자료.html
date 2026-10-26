@@ -1,10 +1,4 @@
-<!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>12차시 · Object Pool 패턴 | 미니 택틱스</title>
-  <style>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>12차시 | Object Pool 패턴</title><style>
     :root {
       --bg:#040a13; --slide:#091526; --panel:#10233a; --panel2:#142b45;
       --text:#eef5ff; --muted:#afbed1; --teal:#55e4cf; --violet:#b8a4ff;
@@ -115,150 +109,102 @@
       h1,h2,h3,p,li,strong,.subtitle,.kicker,.accent,.violet,.amber,.red,.green,.source { color:#111; }
       .panel,.callout,pre,.node,.coord,.role,.stack-item,.question,.compare th,.compare td { background:#fff; color:#111; border-color:#777; }
     }
-  </style>
-<style id="layout-safety">
+  </style><style id="layout-safety">
     .slide > div,.two > div,.wide > div,.role,.node { min-width:0; }
     .compare { table-layout:fixed; overflow-wrap:anywhere; }
     .role b,.role span { overflow-wrap:anywhere; }
     @media (max-width:720px) { .state-board > .arrow { transform:rotate(90deg); justify-self:center; } .flow > .arrow { justify-self:center; } }
-    @media print { .deck { container-type:normal; aspect-ratio:auto; } .slide,.slide.is-active { height:auto; overflow:visible; break-inside:avoid; } }
-    </style>
-</head>
-<body>
-  <div class="app">
-    <main class="stage">
-      <div class="deck" id="deck">
-<section class="slide is-active" id="slide-1" data-slide="01 / 24" aria-labelledby="title-1"><div><p class="kicker">Mini Tactics · Lesson 12</p><h1 id="title-1">미니 택틱스로 이해하는<br><span class="accent">Object Pool 패턴</span></h1><p class="subtitle">사용이 끝난 객체를 보관하고 다시 빌린다.<br>재사용에는 초기화와 반납의 책임이 따른다.</p></div></section>
-
-<section class="slide" id="slide-2" data-slide="02 / 24" aria-labelledby="title-2"><div><p class="kicker">Starting point</p><h2 id="title-2">필요할 때 만들고 끝나면 파괴한다</h2><pre data-example-kind="design-comparison"><code>GameObject marker = Instantiate(markerPrefab);
-marker.transform.position = position;
-
-// 사용이 끝난다.
-Destroy(marker);</code></pre><p class="source code-caption">설계 비교용 가상 코드 · 필요할 때 만들고 사용이 끝나면 파괴하는 첫 시도다.</p><div class="callout "><p>사용이 끝나면 객체도 사라진다. 드물게 쓰는 객체라면 소유와 정리가 분명하고 이해하기 쉽다.</p></div></div></section>
-
-<section class="slide" id="slide-3" data-slide="03 / 24" aria-labelledby="title-3"><div><p class="kicker">New requirement</p><h2 id="title-3">짧은 사용이 여러 번 반복된다</h2><div class="question"><p class="big">같은 종류의 객체를 잠깐 쓰고 버리는 일이<br>계속 반복된다면,<br>다 쓴 객체를 다음 요청에 다시 줄 수 있을까?</p></div><div class="callout "><p>먼저 반복 생성이 실제 비용인지 확인한다. 재사용은 보관 메모리와 상태 초기화라는 새 책임을 만든다.</p></div></div></section>
-
-<section class="slide" id="slide-4" data-slide="04 / 24" aria-labelledby="title-4"><div><p class="kicker">First attempt</p><h2 id="title-4">각 사용마다 새 객체를 만든다</h2><pre data-example-kind="design-comparison"><code>for (int i = 0; i &lt; 3; i++)
-{
-    Marker value = CreateMarker();
-    Use(value);
-    DestroyMarker(value);
-}</code></pre><p class="source code-caption">설계 비교용 가상 코드 · 각 Use가 끝난 뒤 파괴까지 완료된다고 가정한 순차 사용 예다.</p><div class="two"><div class="panel teal"><h3>읽기 쉬운 점</h3><p>매번 새로운 객체이므로 앞선 사용자의 상태를 이어받지 않는다.</p></div><div class="panel amber"><h3>반복될 때 볼 점</h3><p>동시에 하나만 필요해도 세 번 생성한다. 생성 횟수와 동시 사용량이 다르다.</p></div></div></div></section>
-
-<section class="slide" id="slide-5" data-slide="05 / 24" aria-labelledby="title-5"><div><p class="kicker">Observe the limit</p><h2 id="title-5">전체 사용 횟수와 생성 횟수를 나눈다</h2><table class="compare"><thead><tr><th>순차로 3번 사용</th><th>새 객체 생성</th><th>사용이 끝난 객체</th></tr></thead><tbody><tr><td>매번 생성·파괴</td><td>3번</td><td>파괴</td></tr><tr><td>빈 풀에서 빌려 쓰고 반납</td><td>처음 1번</td><td>보관 뒤 재사용</td></tr></tbody></table><div class="callout "><p>두 방식 모두 사용은 세 번이다. 바뀌는 것은 객체를 준비하고 사용 뒤 처리하는 방법이다. 이 표는 생성 수의 계산이며 속도 측정값이 아니다.</p></div></div></section>
-
-<section class="slide" id="slide-6" data-slide="06 / 24" aria-labelledby="title-6"><div><p class="kicker">Find the boundary</p><h2 id="title-6">객체의 생존과 한 번의 사용을 분리한다</h2><div class="state-board"><div class="coord">생성·파괴 방식<br><span class="amber">생성 → 사용 → 파괴</span></div><div class="arrow">→</div><div class="coord">재사용 방식<br><span class="green">생성 → 사용 → 보관<br>→ 다시 사용 → 보관</span></div></div><div class="callout "><p>반납은 이번 사용의 끝이다. 객체의 생존 자체가 끝나는 것은 아니므로 필드 값도 남을 수 있다.</p></div></div></section>
-
-<section class="slide" id="slide-7" data-slide="07 / 24" aria-labelledby="title-7"><div><p class="kicker">Object Pool</p><h2 id="title-7">보관과 사용 권한을 풀에서 관리한다</h2><div class="role-map"><div class="role"><b>풀 · TransientPool</b><span>만든 객체와 현재 대여를 관리한다.</span></div><div class="role"><b>보관 중 객체</b><span>비활성 상태로 다음 요청을 기다린다.</span></div><div class="role"><b>대여 · PoolLease</b><span>어느 풀의 몇 번째 사용인지 기억한다.</span></div><div class="role"><b>사용자</b><span>빌린 객체를 사용하고 같은 대여를 반납한다.</span></div></div><div class="callout "><p>이 예제의 사용자는 TransientPresenter다. 풀은 객체의 종류별 표시 방법을 알지 않고 전달받은 reset 작업을 사용한다.</p></div></div></section>
-
-<section class="slide" id="slide-8" data-slide="08 / 24" aria-labelledby="title-8"><div><p class="kicker">Actual code · Ownership</p><h2 id="title-8">보관 목록과 대여 기록은 책임이 다르다</h2><pre data-source-file="MiniTactics_Teacher_Lesson12/Assets/Lesson12/Scripts/TransientPool.cs" data-source-start="12" data-source-end="14" data-source-sha256="7beb33028ac33afc626b8b1cedb36f49fd110872e43cb6bcf401619abbefcf8e"><code>private readonly Stack&lt;T&gt; _available = new Stack&lt;T&gt;();
+    @media print { .deck { container-type:normal; aspect-ratio:auto; background:#fff; } .slide,.slide.is-active { height:auto; overflow:visible; break-inside:avoid; } }
+    @media print { .role span,.role b,.stack-item.top { color:#111; border-color:#777; } }</style></head><body><div class="app"><main class="stage"><div class="deck"><section class="slide is-active" id="slide-1" data-slide="01 / 27" aria-labelledby="title-1"><div><p class="kicker">Mini Tactics · Lesson 12</p><span class="sr-only" id="title-1">Object Pool 패턴</span><h1>Object Pool<br><span class="accent">버리지 않고, 돌려받기</span></h1><p class="subtitle">짧게 나타났다 사라지는 표시를<br>객체와 대여의 수명으로 나누어 읽는다.</p><div class="callout"><p>같은 객체를 다시 쓰더라도, 이번 대여와 이전 대여는 구별해야 한다.</p></div></div></section>
+<section class="slide" id="slide-2" data-slide="02 / 27" aria-labelledby="title-2"><div><p class="kicker">A Small Success</p><h2 id="title-2">짧게 쓰고 없애면 단순하다</h2><div class="two"><div class="panel teal"><h3>표시 한 번</h3><p>숫자나 먼지를 만들고, 잠깐 보여 준 뒤 없앤다. 드문 표시라면 생성과 파괴가 단순하고 충분할 수 있다.</p></div><div class="panel violet"><h3>반복되는 표시</h3><p>짧은 표시가 겹쳐서 계속 생기면 비슷한 객체를 만들고 버리는 일이 반복된다.</p></div></div><div class="callout"><p>Object Pool은 반복되는 객체 수명 관리의 선택지다. 모든 객체를 미리 보관하라는 규칙은 아니다.</p></div></div></section>
+<section class="slide" id="slide-3" data-slide="03 / 27" aria-labelledby="title-3"><div><p class="kicker">A Concrete Problem</p><h2 id="title-3">끝난 표시를 다음 요청에 다시 쓸 수 있을까?</h2><div class="question"><p class="big">한 번에 3개가 나타나고 사라지는 표시를<br>10번 반복하면 매번 새 객체가 필요할까?</p></div><p>표시할 값과 위치는 바뀌어도 구조는 같다. 끝난 객체를 보관했다가 다시 빌려주면 생성을 줄일 여지가 있다.</p><div class="callout"><p>여기서 3개·10번은 설명용 가정이다. 실제 성능 측정 결과가 아니다.</p></div></div></section>
+<section class="slide" id="slide-4" data-slide="04 / 27" aria-labelledby="title-4"><div><p class="kicker">Limited First Attempt</p><h2 id="title-4">객체 하나를 숨겼다가 다시 보여 준다</h2><p class="source">설계 비교용 가상 코드 · 현재 Teacher 구현이 아니다.</p><pre><code>cached.gameObject.SetActive(true);
+// 재생이 끝나면
+cached.gameObject.SetActive(false);</code></pre><div class="two"><div class="panel teal"><h3>성공 범위</h3><p>동시에 하나만 쓰고 상태를 매번 준비하면, 객체 하나를 재사용할 수 있다.</p></div><div class="panel violet"><h3>남은 한계</h3><p>새 표시가 겹치면 같은 객체를 덮는다. 오래된 종료 요청이 새 표시를 숨길 수도 있다.</p></div></div></div></section>
+<section class="slide" id="slide-5" data-slide="05 / 27" aria-labelledby="title-5"><div><p class="kicker">Observe the Boundary</p><h2 id="title-5">객체가 같은 것과 대여가 같은 것은 다르다</h2><table class="compare"><thead><tr><th>시점</th><th>객체 A 하나만 기억한다면</th></tr></thead><tbody><tr><td>첫 표시가 A를 사용</td><td>오래된 종료 요청이 A를 기억</td></tr><tr><td>첫 표시 종료 뒤 A 재사용</td><td>두 번째 표시도 A를 사용</td></tr><tr><td>늦게 도착한 첫 종료 요청</td><td>두 번째 표시까지 숨길 위험</td></tr></tbody></table><div class="callout"><p>A라는 객체 참조만으로는 이번 사용을 구별할 수 없다. 어느 풀에서 몇 번째로 빌렸는지도 함께 기억한다.</p></div></div></section>
+<section class="slide" id="slide-6" data-slide="06 / 27" aria-labelledby="title-6"><div><p class="kicker">Responsibility Boundary</p><h2 id="title-6">대기·대여·소유를 나누어 관리한다</h2><div class="role-map"><div class="role"><b>대기 available</b><span>지금 빌려줄 수 있는 객체</span></div><div class="role"><b>대여 active</b><span>현재 사용 중인 객체와 세대 번호</span></div><div class="role"><b>소유 owned</b><span>풀이 생성해 마지막에 정리할 객체</span></div><div class="role"><b>재생 일정</b><span>표시가 끝났는지 확인하는 쪽의 기록</span></div></div><div class="callout"><p>재생 일정이 두 번째 소유 목록은 아니다. 인스턴스와 대여 상태는 풀이 관리한다.</p></div></div></section>
+<section class="slide" id="slide-7" data-slide="07 / 27" aria-labelledby="title-7"><div><p class="kicker">Name the Pattern</p><h2 id="title-7">Object Pool은 재사용 가능한 객체의 대여소다</h2><p class="quote">필요할 때 빌려주고,<br>끝나면 초기화해 돌려받는다.</p><div class="flow"><div class="node">대기 객체</div><div class="arrow">→</div><div class="node">Rent · 대여</div><div class="arrow">→</div><div class="node">사용과 완료</div><div class="arrow">→</div><div class="node">Return · 반환</div></div><div class="callout"><p>반환은 파괴가 아니다. 객체와 보유 메모리는 다음 대여를 위해 남는다.</p></div></div></section>
+<section class="slide" id="slide-8" data-slide="08 / 27" aria-labelledby="title-8"><div><p class="kicker">Actual Roles</p><h2 id="title-8">실제 클래스의 역할을 대응한다</h2><table class="compare"><thead><tr><th>역할</th><th>현재 Teacher12</th></tr></thead><tbody><tr><td>인스턴스와 대여 상태의 소유자</td><td>TransientPool&lt;T&gt;</td></tr><tr><td>한 번의 대여를 나타내는 값</td><td>PoolLease&lt;T&gt; · Value / Owner / Sequence</td></tr><tr><td>빌리고 재생 완료를 추적하는 소비자</td><td>TransientPresenter</td></tr><tr><td>초기화·표시·진행을 수행하는 객체</td><td>DamageNumber / FrameEffect</td></tr></tbody></table><p>T는 Component 타입이다. 같은 방식의 대여 규칙을 서로 다른 짧은 표시에 적용한다.</p></div></section>
+<section class="slide" id="slide-9" data-slide="09 / 27" aria-labelledby="title-9"><div><p class="kicker">Pool State</p><h2 id="title-9">풀은 세 종류의 기록을 따로 둔다</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"><code data-source="MiniTactics_Teacher_Lesson12/Assets/Lesson12/Scripts/TransientPool.cs" data-lines="12-15" data-sha256="72ce310404af974e69f439a063ab924dec69a9a44312a1b6b2258e9f39cfb13d" data-commit="9c6b5b207e4c2a53e179e30768fefb3f696a32bb">private readonly Stack&lt;T&gt; _available = new Stack&lt;T&gt;();
 private readonly Dictionary&lt;T, long&gt; _active = new Dictionary&lt;T, long&gt;();
-private readonly List&lt;T&gt; _owned = new List&lt;T&gt;();</code></pre><p class="source code-caption">실제 코드 · TransientPool.cs 12–14행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><table class="compare"><thead><tr><th>자료구조</th><th>기억하는 것</th></tr></thead><tbody><tr><td>_available</td><td>다음 요청에 줄 수 있는 보관 객체</td></tr><tr><td>_active</td><td>현재 사용 중 객체와 유효한 대여 번호</td></tr><tr><td>_owned</td><td>이 풀이 생성하여 마지막에 정리할 객체</td></tr></tbody></table><div class="callout "><p>T는 이 풀에서 빌려 줄 컴포넌트의 형식이다. 한 풀에 서로 다른 종류를 섞어 넣지 않는다.</p></div></div></section>
-
-<section class="slide" id="slide-9" data-slide="09 / 24" aria-labelledby="title-9"><div><p class="kicker">Actual code · Rent</p><h2 id="title-9">살아 있는 보관 객체를 꺼내고 없으면 만든다</h2><pre data-source-file="MiniTactics_Teacher_Lesson12/Assets/Lesson12/Scripts/TransientPool.cs" data-source-start="46" data-source-end="53" data-source-sha256="84970b3ed29a817b5188eb8fbaa70f4266d39c4c13fd374ec1cc955c042849b4"><code>T value = null;
+private readonly List&lt;T&gt; _owned = new List&lt;T&gt;();
+private long _sequence;</code></pre><p class="source">실제 코드 발췌 · TransientPool.cs 12–15행 · 주변 코드 생략 · SHA-256 72ce310404af</p><p>_available은 꺼낼 대기 객체의 Stack, _active는 현재 대여와 세대 번호의 Dictionary, _owned는 생성한 객체의 List다.</p><div class="callout"><p>이 내부 자료구조 이름은 공개 개수 조회 API가 아니다. 대기 수와 대여 수는 뒤의 추적 표에서 설명용으로 센다.</p></div></div></section>
+<section class="slide" id="slide-10" data-slide="10 / 27" aria-labelledby="title-10"><div><p class="kicker">Lease Identity</p><h2 id="title-10">대여증은 객체·소유 풀·세대를 묶는다</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"><code data-source="MiniTactics_Teacher_Lesson12/Assets/Lesson12/Scripts/PoolLease.cs" data-lines="5-9" data-sha256="015275b8aaa340790c827f46567e081620616b4ba15671a6d0363a96546f457b" data-commit="9c6b5b207e4c2a53e179e30768fefb3f696a32bb">public readonly struct PoolLease&lt;T&gt; where T : Component
+{
+    public T Value { get; }
+    internal TransientPool&lt;T&gt; Owner { get; }
+    internal long Sequence { get; }</code></pre><p class="source">실제 코드 발췌 · PoolLease.cs 5–9행 · 주변 코드 생략 · SHA-256 015275b8aaa3</p><p>Value는 사용하는 객체다. Owner는 빌려준 풀이고 Sequence는 대여할 때 발급한 번호다. Owner와 Sequence는 internal 멤버다.</p><div class="callout"><p>readonly struct인 대여증을 복사해도 새 대여가 되지 않는다. 같은 대여증의 복사본도 한 번만 유효하게 반환할 수 있다.</p></div></div></section>
+<section class="slide" id="slide-11" data-slide="11 / 27" aria-labelledby="title-11"><div><p class="kicker">Rent and Exhaustion</p><h2 id="title-11">Rent는 남은 객체를 찾고 없으면 만든다</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"><code data-source="MiniTactics_Teacher_Lesson12/Assets/Lesson12/Scripts/TransientPool.cs" data-lines="46-49" data-sha256="72ce310404af974e69f439a063ab924dec69a9a44312a1b6b2258e9f39cfb13d" data-commit="9c6b5b207e4c2a53e179e30768fefb3f696a32bb">T value = null;
 while (_available.Count &gt; 0 &amp;&amp; value == null) value = _available.Pop();
 if (value == null) value = Create();
-Reset(value);
-long sequence = ++_sequence;
+Reset(value);</code></pre><p class="source">실제 코드 발췌 · TransientPool.cs 46–49행 · 주변 코드 생략 · SHA-256 72ce310404af</p><p>파괴되어 사용할 수 없는 대기 참조는 건너뛴다. 유효한 대기 객체가 없으면 Create로 늘린다.</p><div class="callout"><p>이 풀은 고정 상한이나 대기 정책이 없다. 소진되면 생성하므로, 미리 준비한 수보다 동시 사용이 많으면 추가 생성된다.</p></div></div></section>
+<section class="slide" id="slide-12" data-slide="12 / 27" aria-labelledby="title-12"><div><p class="kicker">New Rental Generation</p><h2 id="title-12">같은 객체에도 매번 새 대여 번호를 준다</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"><code data-source="MiniTactics_Teacher_Lesson12/Assets/Lesson12/Scripts/TransientPool.cs" data-lines="50-53" data-sha256="72ce310404af974e69f439a063ab924dec69a9a44312a1b6b2258e9f39cfb13d" data-commit="9c6b5b207e4c2a53e179e30768fefb3f696a32bb">long sequence = ++_sequence;
 _active.Add(value, sequence);
 value.gameObject.SetActive(true);
-return new PoolLease&lt;T&gt;(value, this, sequence);</code></pre><p class="source code-caption">실제 코드 · TransientPool.cs 46–53행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>보관한 객체를 꺼내고, 사용할 객체가 없을 때만 Create한다. 초기화한 뒤 새 번호를 발급하고 활성화한다. 파괴된 Unity 객체는 건너뛴다.</p></div></div></section>
-
-<section class="slide" id="slide-10" data-slide="10 / 24" aria-labelledby="title-10"><div><p class="kicker">Actual code · Return</p><h2 id="title-10">유효한 반납은 한 번만 보관 목록에 넣는다</h2><pre data-source-file="MiniTactics_Teacher_Lesson12/Assets/Lesson12/Scripts/TransientPool.cs" data-source-start="60" data-source-end="65" data-source-sha256="02ad3f076cc7446681ec39bcaac5016d8db4a75469aa279dced0e3764b05a767"><code>_active.Remove(lease.Value);
-if (lease.Value == null) return false;
-Reset(lease.Value);
+return new PoolLease&lt;T&gt;(value, this, sequence);</code></pre><p class="source">실제 코드 발췌 · TransientPool.cs 50–53행 · 주변 코드 생략 · SHA-256 72ce310404af</p><p>_sequence를 증가시키고 현재 대여를 기록한 뒤 객체를 활성화한다. 새 대여증은 이 풀과 새 번호를 함께 갖는다.</p><div class="callout"><p>A를 반환한 뒤 다시 빌리면 Value는 A여도 Sequence는 달라진다. 재사용하는 것은 객체이고 새로 발급하는 것은 대여의 정체성이다.</p></div></div></section>
+<section class="slide" id="slide-13" data-slide="13 / 27" aria-labelledby="title-13"><div><p class="kicker">Reject Invalid Returns</p><h2 id="title-13">Return은 현재 대여인지 먼저 검사한다</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"><code data-source="MiniTactics_Teacher_Lesson12/Assets/Lesson12/Scripts/TransientPool.cs" data-lines="58-61" data-sha256="72ce310404af974e69f439a063ab924dec69a9a44312a1b6b2258e9f39cfb13d" data-commit="9c6b5b207e4c2a53e179e30768fefb3f696a32bb">if (_disposed || lease.Owner != this || ReferenceEquals(lease.Value, null)) return false;
+if (!_active.TryGetValue(lease.Value, out long sequence) || sequence != lease.Sequence) return false;
+_active.Remove(lease.Value);
+if (lease.Value == null) return false;</code></pre><p class="source">실제 코드 발췌 · TransientPool.cs 58–61행 · 주변 코드 생략 · SHA-256 72ce310404af</p><p>폐기된 풀, 다른 풀의 대여증, 기본 대여증은 거절한다. 현재 대여 기록이 없거나 세대 번호가 다르면 false다.</p><div class="callout"><p>현재 대여와 일치하면 먼저 기록에서 제거한다. 외부에서 이미 파괴한 Unity 객체라면 false이고 대기 목록으로 보내지 않는다.</p></div></div></section>
+<section class="slide" id="slide-14" data-slide="14 / 27" aria-labelledby="title-14"><div><p class="kicker">Successful Return</p><h2 id="title-14">정상 반환은 초기화하고 비활성화한다</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"><code data-source="MiniTactics_Teacher_Lesson12/Assets/Lesson12/Scripts/TransientPool.cs" data-lines="62-65" data-sha256="72ce310404af974e69f439a063ab924dec69a9a44312a1b6b2258e9f39cfb13d" data-commit="9c6b5b207e4c2a53e179e30768fefb3f696a32bb">Reset(lease.Value);
 lease.Value.gameObject.SetActive(false);
 _available.Push(lease.Value);
-return true;</code></pre><p class="source code-caption">실제 코드 · TransientPool.cs 60–65행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>이 부분에 오기 전에 소유자와 대여 번호를 검사한다. 현재 대여 기록을 없애고, 살아 있는 객체를 초기화·비활성화한 뒤 보관한다. 다시 반납하면 더 이상 유효한 대여 기록이 없다.</p></div></div></section>
-
-<section class="slide" id="slide-11" data-slide="11 / 24" aria-labelledby="title-11"><div><p class="kicker">Trace · Two objects</p><h2 id="title-11">두 객체를 세 번 빌리는 과정을 센다</h2><table class="compare"><thead><tr><th>작업</th><th>사용 중 객체</th><th>풀에 남은 객체</th><th>누적 생성 수</th></tr></thead><tbody><tr><td>빈 풀로 시작</td><td>없음</td><td>없음</td><td>0</td></tr><tr><td>첫 번째 대여</td><td>객체 1</td><td>없음</td><td>1</td></tr><tr><td>두 번째 대여</td><td>객체 1, 객체 2</td><td>없음</td><td>2</td></tr><tr><td>객체 1 반납</td><td>객체 2</td><td>객체 1</td><td>2</td></tr><tr><td>세 번째 대여</td><td>객체 2, 객체 1</td><td>없음</td><td>2</td></tr></tbody></table><div class="callout "><p>빈 풀에서 시작하고 도중에 객체가 파괴되지 않았다고 가정한다. 세 번째 대여는 새 객체를 만드는 대신 반납했던 객체 1을 다시 받는다.</p></div></div></section>
-
-<section class="slide" id="slide-12" data-slide="12 / 24" aria-labelledby="title-12"><div><p class="kicker">Identity</p><h2 id="title-12">새 사용이 시작되어도 객체는 같을 수 있다</h2><div class="state-board"><div class="coord">첫 대여 A<br>객체 1<br><span class="amber">반납 후 보관</span></div><div class="arrow">→</div><div class="coord">다음 대여 B<br>같은 객체 1<br><span class="green">새 사용 시작</span></div></div><div class="callout "><p>A와 B는 사용 기간의 이름이다. 다른 사용이라고 객체도 새로 만들어진 것은 아니다. 이 때문에 이전 상태를 정리할 책임이 생긴다.</p></div></div></section>
-
-<section class="slide" id="slide-13" data-slide="13 / 24" aria-labelledby="title-13"><div><p class="kicker">Actual code · Reset</p><h2 id="title-13">비활성화만으로 이전 값이 사라지지는 않는다</h2><pre data-source-file="MiniTactics_Teacher_Lesson12/Assets/Lesson12/Scripts/DamageNumber.cs" data-source-start="14" data-source-end="20" data-source-sha256="e20f8391606eaed5a01e9d063ec679471a12b5e0fe52a7bd7f30d28faf87ae95"><code>public void ResetVisual()
+return true;</code></pre><p class="source">실제 코드 발췌 · TransientPool.cs 62–65행 · 주변 코드 생략 · SHA-256 72ce310404af</p><p>유효한 현재 대여만 초기화한 뒤 숨기고 대기 Stack에 넣는다. 성공하면 true다.</p><div class="callout"><p>같은 대여증을 또 반환하면 _active에 해당 대여가 없어 false다. 중복 반환으로 같은 객체가 대기에 두 번 들어가지 않는다.</p></div></div></section>
+<section class="slide" id="slide-15" data-slide="15 / 27" aria-labelledby="title-15"><div><p class="kicker">Worked Generation Trace</p><h2 id="title-15">낡은 대여증은 새 대여를 끝내지 못한다</h2><table class="compare"><thead><tr><th>입력 · 단일 풀 / 객체 A</th><th>결과 · 대기 / 대여</th></tr></thead><tbody><tr><td>Prewarm(1) → Rent: 대여증 L1, 세대 1</td><td>A 활성 · 0 / 1</td></tr><tr><td>Return(L1)</td><td>true · A 비활성 · 1 / 0</td></tr><tr><td>Return(L1) 다시</td><td>false · 1 / 0 그대로</td></tr><tr><td>Rent: 대여증 L2, 세대 2</td><td>같은 A 활성 · 0 / 1</td></tr><tr><td>오래된 L1 반환</td><td>false · L2의 A는 계속 활성</td></tr></tbody></table><p>L1·L2·A는 설명용 이름이다. 다른 풀에 L2를 반환하거나 기본 대여증을 반환해도 false다.</p></div></section>
+<section class="slide" id="slide-16" data-slide="16 / 27" aria-labelledby="title-16"><div><p class="kicker">Prewarm Is Available Capacity</p><h2 id="title-16">Prewarm은 빌려줄 대기 수를 준비한다</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"><code data-source="MiniTactics_Teacher_Lesson12/Assets/Lesson12/Scripts/TransientPool.cs" data-lines="34-39" data-sha256="72ce310404af974e69f439a063ab924dec69a9a44312a1b6b2258e9f39cfb13d" data-commit="9c6b5b207e4c2a53e179e30768fefb3f696a32bb">while (_available.Count &lt; count)
+{
+    T value = Create();
+    Reset(value);
+    value.gameObject.SetActive(false);
+    _available.Push(value);</code></pre><p class="source">실제 코드 발췌 · TransientPool.cs 34–39행 · 주변 코드 생략 · SHA-256 72ce310404af</p><p>이 반복 앞에서 파괴된 대기 참조를 걸러낸다. count는 총 생성 상한이 아니라 유효한 대기 수의 목표다.</p><div class="callout"><p>대기 1개·대여 2개일 때 Prewarm(3)은 대기 2개를 더 만든다. 대여 2개는 그대로이므로 총 소유 객체는 5개가 된다.</p></div></div></section>
+<section class="slide" id="slide-17" data-slide="17 / 27" aria-labelledby="title-17"><div><p class="kicker">Cumulative Creations</p><h2 id="title-17">CreatedCount는 누적 생성 횟수다</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"><code data-source="MiniTactics_Teacher_Lesson12/Assets/Lesson12/Scripts/TransientPool.cs" data-lines="93-96" data-sha256="72ce310404af974e69f439a063ab924dec69a9a44312a1b6b2258e9f39cfb13d" data-commit="9c6b5b207e4c2a53e179e30768fefb3f696a32bb">T value = UnityEngine.Object.Instantiate(_prefab, _root);
+_owned.Add(value);
+CreatedCount++;
+return value;</code></pre><p class="source">실제 코드 발췌 · TransientPool.cs 93–96행 · 주변 코드 생략 · SHA-256 72ce310404af</p><table class="compare"><thead><tr><th>가정 · 새 풀</th><th>대기 / 대여 / CreatedCount</th></tr></thead><tbody><tr><td>Prewarm(2)</td><td>2 / 0 / 2</td></tr><tr><td>연속 Rent 3번</td><td>0 / 3 / 3 · 부족한 1개 생성</td></tr><tr><td>세 대여 모두 정상 반환</td><td>3 / 0 / 3</td></tr></tbody></table><div class="callout"><p>CreatedCount는 성공적으로 만든 횟수의 누적이다. 외부 파괴나 Dispose 뒤에도 줄지 않으므로 살아 있는 객체 수로 읽으면 안 된다.</p></div></div></section>
+<section class="slide" id="slide-18" data-slide="18 / 27" aria-labelledby="title-18"><div><p class="kicker">Reset Transform</p><h2 id="title-18">위치뿐 아니라 표시의 남은 상태도 지운다</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"><code data-source="MiniTactics_Teacher_Lesson12/Assets/Lesson12/Scripts/TransientPool.cs" data-lines="101-105" data-sha256="72ce310404af974e69f439a063ab924dec69a9a44312a1b6b2258e9f39cfb13d" data-commit="9c6b5b207e4c2a53e179e30768fefb3f696a32bb">value.transform.SetParent(_root, false);
+value.transform.localPosition = Vector3.zero;
+value.transform.localRotation = Quaternion.identity;
+value.transform.localScale = Vector3.one;
+_reset(value);</code></pre><p class="source">실제 코드 발췌 · TransientPool.cs 101–105행 · 주변 코드 생략 · SHA-256 72ce310404af</p><p>부모, 로컬 위치·회전·크기를 기본값으로 돌린 뒤 _reset 콜백을 실행한다. Rent와 정상 Return 모두 이 경계를 지난다.</p><div class="callout"><p>풀은 공통 Transform을 정리한다. 숫자·프레임의 구체 상태는 각 표시 객체가 ResetVisual로 지운다.</p></div></div></section>
+<section class="slide" id="slide-19" data-slide="19 / 27" aria-labelledby="title-19"><div><p class="kicker">Reset Visible and Temporal State</p><h2 id="title-19">이전 숫자와 시간도 새 대여로 새면 안 된다</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"><code data-source="MiniTactics_Teacher_Lesson12/Assets/Lesson12/Scripts/DamageNumber.cs" data-lines="14-20" data-sha256="242f6e183878f32b2ac438002721ec8dd7c38a7b63429507e5b2b32c754b360e" data-commit="9c6b5b207e4c2a53e179e30768fefb3f696a32bb">public void ResetVisual()
 {
     _age = 0f;
     _color = Color.white;
     _text.text = string.Empty;
     _text.color = Color.white;
-}</code></pre><p class="source code-caption">실제 코드 · DamageNumber.cs 14–20행 · 해당 메서드 전체다.</p><div class="callout "><p>이 제공 helper는 지난 사용의 시간, 색, 글자를 초기화한다. 풀은 별도로 부모·위치·회전·크기를 초기화한다. 새 사용에서 필요한 상태를 누가 다시 정하는지 구분한다.</p></div></div></section>
-
-<section class="slide" id="slide-14" data-slide="14 / 24" aria-labelledby="title-14"><div><p class="kicker">Actual code · Lease</p><h2 id="title-14">객체 참조에 소유자와 대여 번호를 더한다</h2><pre data-source-file="MiniTactics_Teacher_Lesson12/Assets/Lesson12/Scripts/PoolLease.cs" data-source-start="7" data-source-end="9" data-source-sha256="7645b0cd8a9f18e6c510825bbc8d8bd3f3c5db9b5a7969f5af540a92e89517b9"><code>public T Value { get; }
-internal TransientPool&lt;T&gt; Owner { get; }
-internal long Sequence { get; }</code></pre><p class="source code-caption">실제 코드 · PoolLease.cs 7–9행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>Value만 같아도 같은 대여가 아니다. Owner는 어느 풀인지, Sequence는 어느 사용인지 구분한다. readonly는 이 기록의 값을 바꾸지 못하게 하며 Value 객체 자체를 불변으로 만들지는 않는다.</p></div></div></section>
-
-<section class="slide" id="slide-15" data-slide="15 / 24" aria-labelledby="title-15"><div><p class="kicker">Trace · Stale return</p><h2 id="title-15">오래된 대여가 새 사용을 끝내면 안 된다</h2><table class="compare"><thead><tr><th>작업</th><th>실제 객체</th><th>현재 유효한 대여</th><th>결과</th></tr></thead><tbody><tr><td>A를 빌림</td><td>객체 1</td><td>소유자 P / 번호 1</td><td>A 사용 시작</td></tr><tr><td>A를 반납</td><td>객체 1</td><td>없음</td><td>비활성 보관</td></tr><tr><td>B를 빌림</td><td>같은 객체 1</td><td>소유자 P / 번호 2</td><td>B 사용 시작</td></tr><tr><td>오래된 A를 다시 반납</td><td>같은 객체 1</td><td>여전히 번호 2</td><td>거절, B는 계속 사용</td></tr></tbody></table><div class="callout "><p>번호 1의 반납이 번호 2를 끝내지 못하게 한다. 소유자가 다른 풀의 반납도 거절한다. 반납한 뒤 남은 참조를 계속 사용해도 된다는 뜻은 아니다.</p></div></div></section>
-
-<section class="slide" id="slide-16" data-slide="16 / 24" aria-labelledby="title-16"><div><p class="kicker">Lifetime</p><h2 id="title-16">모두 반납하는 일과 풀을 폐기하는 일을 나눈다</h2><div class="two"><div class="panel teal"><h3>ReturnAll</h3><p>현재 대여를 끝내고 객체를 초기화·비활성화한다.</p><p>보관 객체는 남아 다음 요청에 다시 쓸 수 있다.</p></div><div class="panel violet"><h3>Dispose</h3><p>모든 대여를 끝내고 소유 객체를 파괴한다.</p><p>폐기한 풀에서는 새 대여를 시작할 수 없다.</p></div></div><pre data-source-file="MiniTactics_Teacher_Lesson12/Assets/Lesson12/Scripts/TransientPresenter.cs" data-source-start="60" data-source-end="66" data-source-sha256="0f34645b841d3eb50348a6b7ad96f398db2c55d291b27dabb85807646b3d6f81"><code>public void ReleaseAll()
+}</code></pre><p class="source">실제 코드 발췌 · DamageNumber.cs 14–20행 · 주변 코드 생략 · SHA-256 242f6e183878</p><p>DamageNumber는 나이, 색과 텍스트를 초기화한다. FrameEffect.ResetVisual도 프레임 참조·시간·스프라이트·색·반전·정렬 순서를 초기화한다.</p><div class="callout"><p>SetAutomaticLifetime(false)는 소비자가 매번 설정한다. ResetVisual이 자동 수명 모드까지 초기화한다고 가정하지 않는다.</p></div></div></section>
+<section class="slide" id="slide-20" data-slide="20 / 27" aria-labelledby="title-20"><div><p class="kicker">Short Consumer</p><h2 id="title-20">소비자는 빌린 뒤 표시하고 대여증을 기록한다</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"><code data-source="MiniTactics_Teacher_Lesson12/Assets/Lesson12/Scripts/TransientPresenter.cs" data-lines="28-31" data-sha256="9d4635c0330243910bfc287cfab189cdfcef67f0d9da30791be7deba6338be70" data-commit="9c6b5b207e4c2a53e179e30768fefb3f696a32bb">PoolLease&lt;DamageNumber&gt; lease = _numbers.Rent();
+lease.Value.SetAutomaticLifetime(false);
+lease.Value.Show(amount, healing, position);
+_numberSchedule.Add(lease);</code></pre><p class="source">실제 코드 발췌 · TransientPresenter.cs 28–31행 · 주변 코드 생략 · SHA-256 9d4635c03302</p><p>ShowNumber 내부의 실제 발췌다. 자동 파괴를 끄고 표시한 뒤 대여증을 일정에 넣는다.</p><div class="callout"><p>TransientPresenter가 완료 시점을 관리한다. DamageNumber가 자동으로 Destroy하고 풀도 반환하는 이중 수명 관리를 피한다.</p></div></div></section>
+<section class="slide" id="slide-21" data-slide="21 / 27" aria-labelledby="title-21"><div><p class="kicker">Backward Schedule Iteration</p><h2 id="title-21">완료 일정을 뒤에서부터 제거한다</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"><code data-source="MiniTactics_Teacher_Lesson12/Assets/Lesson12/Scripts/TransientPresenter.cs" data-lines="44-50" data-sha256="9d4635c0330243910bfc287cfab189cdfcef67f0d9da30791be7deba6338be70" data-commit="9c6b5b207e4c2a53e179e30768fefb3f696a32bb">for (int index = _numberSchedule.Count - 1; index &gt;= 0; index--)
+{
+    PoolLease&lt;DamageNumber&gt; lease = _numberSchedule[index];
+    if (!lease.Value.Advance(Time.deltaTime)) continue;
+    _numbers.Return(lease);
+    _numberSchedule.RemoveAt(index);
+}</code></pre><p class="source">실제 코드 발췌 · TransientPresenter.cs 44–50행 · 주변 코드 생략 · SHA-256 9d4635c03302</p><p>Advance가 완료를 알리면 풀에 반환하고 일정에서 제거한다. 뒤에서 앞으로 돌면 RemoveAt 뒤에 앞쪽 인덱스는 바뀌지 않는다.</p><div class="callout"><p>일정은 재생을 위한 기록이다. 풀이 소유한 인스턴스나 대여의 유효성을 별도로 재정의하지 않는다. 효과 일정도 같은 방향으로 처리한다.</p></div></div></section>
+<section class="slide" id="slide-22" data-slide="22 / 27" aria-labelledby="title-22"><div><p class="kicker">Clear Playback Before Release</p><h2 id="title-22">일정을 먼저 비운 뒤 모두 반환한다</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"><code data-source="MiniTactics_Teacher_Lesson12/Assets/Lesson12/Scripts/TransientPresenter.cs" data-lines="60-66" data-sha256="9d4635c0330243910bfc287cfab189cdfcef67f0d9da30791be7deba6338be70" data-commit="9c6b5b207e4c2a53e179e30768fefb3f696a32bb">public void ReleaseAll()
 {
     _numberSchedule.Clear();
     _effectSchedule.Clear();
     _numbers.ReturnAll();
     _effects.ReturnAll();
-}</code></pre><p class="source code-caption">실제 코드 · TransientPresenter.cs 60–66행 · 해당 메서드 전체다.</p><div class="callout "><p>사용자의 진행 목록도 함께 비운다. 이전 사용을 진행시키는 목록이 남으면 다시 빌린 객체를 잘못 조작할 수 있다.</p></div></div></section>
-
-<section class="slide" id="slide-17" data-slide="17 / 24" aria-labelledby="title-17"><div><p class="kicker">Capacity policy</p><h2 id="title-17">미리 만들기와 부족할 때의 정책을 정한다</h2><table class="compare"><thead><tr><th>선택</th><th>현재 구현</th><th>따르는 비용</th></tr></thead><tbody><tr><td>미리 준비</td><td>Prewarm으로 보관 객체를 채움</td><td>시작 시간과 보관 메모리</td></tr><tr><td>보관 객체 부족</td><td>필요한 새 객체를 생성</td><td>사용 중 추가 생성 가능</td></tr><tr><td>큰 사용량이 지나감</td><td>보관 객체를 유지</td><td>쓰지 않는 객체도 메모리 차지</td></tr></tbody></table><div class="callout "><p>현재 구현에는 최대 용량이나 자동 축소가 없다. 풀이라는 이름만으로 이후 생성 횟수가 언제나 0이 되는 것은 아니다.</p></div></div></section>
-
-<section class="slide" id="slide-18" data-slide="18 / 24" aria-labelledby="title-18"><div><p class="kicker">Peak demand</p><h2 id="title-18">필요한 크기는 겹치는 사용량과 관련된다</h2><table class="compare"><thead><tr><th>사용 방법</th><th>전체 대여 횟수</th><th>최대 동시 사용</th><th>새로 필요한 객체</th></tr></thead><tbody><tr><td>하나씩 빌리고 반납, 100회 반복</td><td>100</td><td>1</td><td>1</td></tr><tr><td>10개 대여 후 모두 반납, 10회 반복</td><td>100</td><td>10</td><td>10</td></tr><tr><td>100개 대여한 뒤 한 번에 반납</td><td>100</td><td>100</td><td>100</td></tr></tbody></table><div class="callout "><p>빈 풀에서 시작해 정상 반납하며 파괴되지 않는다고 가정한 계산이다. 실제 필요한 크기는 수명과 발생 간격이 겹치는 순간을 기준으로 판단한다.</p></div></div></section>
-
-<section class="slide" id="slide-19" data-slide="19 / 24" aria-labelledby="title-19"><div><p class="kicker">Existing reuse</p><h2 id="title-19">이전 범위 표시도 객체를 다시 사용했다</h2><pre data-source-file="MiniTactics_Teacher_Lesson12/Assets/Lesson12/Scripts/MovementOverlayPool.cs" data-source-start="47" data-source-end="52" data-source-sha256="a539e869b99e196afd1a3dcbf1a6e74607a381297d4154a998a7dd9bb0ef2b8a"><code>private SpriteRenderer GetOrCreateRenderer(int index)
-{
-    if (index &lt; _renderers.Count)
-    {
-        return _renderers[index];
-    }</code></pre><p class="source code-caption">실제 코드 · MovementOverlayPool.cs 47–52행 · 일부 발췌다. 바깥 선언과 다른 코드는 생략했다.</p><div class="callout "><p>MovementOverlayPool은 이미 만든 표시 객체가 있으면 그 참조를 돌려준다. 재사용의 핵심은 같다. 지금 읽은 풀은 개별 대여의 소유자와 번호, 초기화·정리 정책까지 명시한다.</p></div></div></section>
-
-<section class="slide" id="slide-20" data-slide="20 / 24" aria-labelledby="title-20"><div><p class="kicker">Measurement</p><h2 id="title-20">같은 일을 비교하고 관측값의 뜻을 구분한다</h2><table class="compare"><thead><tr><th>관측</th><th>뜻</th><th>이 값만으로 말할 수 없는 것</th></tr></thead><tbody><tr><td>실제 생성 횟수</td><td>새 객체를 몇 번 만들었는가</td><td>게임이 몇 배 빨라졌는가</td></tr><tr><td>프레임별 관리 메모리 할당</td><td>관측 구간에 할당한 바이트</td><td>게임 전체 GC가 0인가</td></tr><tr><td>프레임 시간 분포</td><td>관측된 간격의 중앙값·상위 지연</td><td>다른 기기의 성능도 같은가</td></tr></tbody></table><div class="callout "><p>같은 프리팹·개수·위치·수명·갱신 순서로 비교한다. 준비와 워밍업을 별도로 기록하고 여러 번 순서를 바꿔 측정한다.</p></div></div></section>
-
-<section class="slide" id="slide-21" data-slide="21 / 24" aria-labelledby="title-21"><div><p class="kicker">Costs</p><h2 id="title-21">보관 메모리와 상태 관리가 대가다</h2><table class="compare"><thead><tr><th>비용</th><th>확인할 책임</th></tr></thead><tbody><tr><td>유휴 객체 보관</td><td>필요한 최대 동시 사용량과 보관 범위</td></tr><tr><td>이전 상태 잔존</td><td>매번 다시 정할 값과 참조</td></tr><tr><td>중복·오래된 반납</td><td>대여 소유자와 유효성</td></tr><tr><td>수명 복잡성</td><td>사용 종료, 전체 반납, 소유자 폐기</td></tr></tbody></table><div class="callout warning"><p>생성 횟수가 줄어도 렌더링·표시 갱신·문자열 처리까지 자동으로 사라지는 것은 아니다.</p></div></div></section>
-
-<section class="slide" id="slide-22" data-slide="22 / 24" aria-labelledby="title-22"><div><p class="kicker">Judgment</p><h2 id="title-22">반복 생성의 비용이 관리 비용보다 큰가</h2><div class="two"><div class="panel teal"><h3>풀을 검토할 때</h3><p>같은 종류를 짧게 반복해 쓰고, 동시 사용량을 예상할 수 있다. 생성 비용을 줄일 근거가 있다.</p></div><div class="panel violet"><h3>일반 생성이 단순할 때</h3><p>드물게 쓰거나 오래 유지한다. 재사용 상태를 정리하는 비용이 크고 측정에서도 이득이 작다.</p></div></div><div class="callout "><p>성능 목표와 실제 측정, 읽고 유지할 코드의 비용을 함께 본다. 모든 GameObject에 풀을 적용할 필요는 없다.</p></div></div></section>
-
-<section class="slide" id="slide-23" data-slide="23 / 24" aria-labelledby="title-23"><div><p class="kicker">Check</p><h2 id="title-23">같은 객체와 같은 대여를 구분한다</h2><div class="two"><div class="panel amber"><h3>질문</h3><p>A를 반납하고 같은 객체를 B로 다시 빌렸다. A의 오래된 기록으로 반납하면 B도 끝나는가?</p><p><strong>답:</strong> 아니다. 현재 대여 번호와 달라 거절한다.</p></div><div class="panel teal"><h3>한 가지 더</h3><p>SetActive(false)를 호출하면 필드 값도 새 객체처럼 초기화되는가?</p><p><strong>답:</strong> 아니다. 초기화 코드가 따로 필요하다.</p></div></div></div></section>
-
-<section class="slide" id="slide-24" data-slide="24 / 24" aria-labelledby="title-24"><div><p class="kicker">Takeaway</p><h2 id="title-24">반복 생성 비용과 재사용 책임을 함께 판단한다</h2><ol><li>사용이 끝난 객체를 보관해 다시 빌린다.</li><li>새 사용 전에 이전 값과 참조를 초기화한다.</li><li>반납 권한과 소유자의 수명을 분명히 한다.</li><li>같은 작업에서 관측한 이득과 관리 비용을 비교한다.</li></ol><p class="quote">객체를 다시 쓸 때는<br>이전 사용이 끝났다는 약속도 지켜야 한다.</p><p class="source">더 읽기: <a href="https://gameprogrammingpatterns.com/object-pool.html">Game Programming Patterns · Object Pool</a></p></div></section>
-</div>
-    </main>
-
-    <nav class="controls" aria-label="슬라이드 탐색">
-      <button class="control-btn" id="prevBtn" type="button" aria-label="이전 슬라이드">←</button>
-      <button class="control-btn" id="tocBtn" type="button">목차</button>
-      <span id="slideCounter" aria-live="polite">1 / 24</span>
-      <button class="control-btn" id="nextBtn" type="button" aria-label="다음 슬라이드">→</button>
-    </nav>
-  </div>
-
-  <dialog id="tocDialog" aria-labelledby="tocTitle">
-    <div class="toc-head"><h2 id="tocTitle">전체 목차</h2><button class="control-btn" id="tocCloseBtn" type="button">닫기</button></div>
-    <div class="toc-grid">
-<a class="toc-link" href="#slide-1"><span>01</span>미니 택틱스로 이해하는 Object Pool 패턴</a>
-<a class="toc-link" href="#slide-2"><span>02</span>필요할 때 만들고 끝나면 파괴한다</a>
-<a class="toc-link" href="#slide-3"><span>03</span>짧은 사용이 여러 번 반복된다</a>
-<a class="toc-link" href="#slide-4"><span>04</span>각 사용마다 새 객체를 만든다</a>
-<a class="toc-link" href="#slide-5"><span>05</span>전체 사용 횟수와 생성 횟수를 나눈다</a>
-<a class="toc-link" href="#slide-6"><span>06</span>객체의 생존과 한 번의 사용을 분리한다</a>
-<a class="toc-link" href="#slide-7"><span>07</span>보관과 사용 권한을 풀에서 관리한다</a>
-<a class="toc-link" href="#slide-8"><span>08</span>보관 목록과 대여 기록은 책임이 다르다</a>
-<a class="toc-link" href="#slide-9"><span>09</span>살아 있는 보관 객체를 꺼내고 없으면 만든다</a>
-<a class="toc-link" href="#slide-10"><span>10</span>유효한 반납은 한 번만 보관 목록에 넣는다</a>
-<a class="toc-link" href="#slide-11"><span>11</span>두 객체를 세 번 빌리는 과정을 센다</a>
-<a class="toc-link" href="#slide-12"><span>12</span>새 사용이 시작되어도 객체는 같을 수 있다</a>
-<a class="toc-link" href="#slide-13"><span>13</span>비활성화만으로 이전 값이 사라지지는 않는다</a>
-<a class="toc-link" href="#slide-14"><span>14</span>객체 참조에 소유자와 대여 번호를 더한다</a>
-<a class="toc-link" href="#slide-15"><span>15</span>오래된 대여가 새 사용을 끝내면 안 된다</a>
-<a class="toc-link" href="#slide-16"><span>16</span>모두 반납하는 일과 풀을 폐기하는 일을 나눈다</a>
-<a class="toc-link" href="#slide-17"><span>17</span>미리 만들기와 부족할 때의 정책을 정한다</a>
-<a class="toc-link" href="#slide-18"><span>18</span>필요한 크기는 겹치는 사용량과 관련된다</a>
-<a class="toc-link" href="#slide-19"><span>19</span>이전 범위 표시도 객체를 다시 사용했다</a>
-<a class="toc-link" href="#slide-20"><span>20</span>같은 일을 비교하고 관측값의 뜻을 구분한다</a>
-<a class="toc-link" href="#slide-21"><span>21</span>보관 메모리와 상태 관리가 대가다</a>
-<a class="toc-link" href="#slide-22"><span>22</span>반복 생성의 비용이 관리 비용보다 큰가</a>
-<a class="toc-link" href="#slide-23"><span>23</span>같은 객체와 같은 대여를 구분한다</a>
-<a class="toc-link" href="#slide-24"><span>24</span>반복 생성 비용과 재사용 책임을 함께 판단한다</a>
-</div>
-  </dialog>
-
-  <script>
+}</code></pre><p class="source">실제 코드 발췌 · TransientPresenter.cs 60–66행 · 주변 코드 생략 · SHA-256 9d4635c03302</p><p>완료 대기 기록을 남긴 채 풀의 객체만 반환하면, 다음 대여 뒤 오래된 일정이 새 재생을 진행시킬 수 있다.</p><div class="callout"><p>세대 검사로 낡은 반환은 거절해도, 오래된 코드가 Value.Advance를 먼저 호출하는 것까지 막지는 못한다. 따라서 일정부터 지운다.</p></div></div></section>
+<section class="slide" id="slide-23" data-slide="23 / 27" aria-labelledby="title-23"><div><p class="kicker">Release Versus Destruction</p><h2 id="title-23">ReturnAll은 재사용, Dispose는 수명 종료다</h2><div class="two"><div class="panel teal"><h3>ReturnAll</h3><p>현재 대여 중 살아 있는 객체를 초기화·비활성화하여 대기로 보낸다. _active를 비운다. 객체와 누적 대여 번호는 유지한다.</p></div><div class="panel violet"><h3>Dispose</h3><p>ReturnAll 뒤 폐기 상태를 기록하고 소유 객체를 Destroy한다. 소유·대기 목록을 비운다. 이후 Rent와 Prewarm은 예외다.</p></div></div><div class="callout"><p>ReturnAll 뒤 새로 빌려도 번호가 되돌아가지 않는다. Dispose는 번호나 CreatedCount를 0으로 만들지 않는다. 파괴와 세대 보존은 다른 문제다.</p></div></div></section>
+<section class="slide" id="slide-24" data-slide="24 / 27" aria-labelledby="title-24"><div><p class="kicker">Current Release Code</p><h2 id="title-24">작은 두 메서드로 해제 경계를 확인한다</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"><code data-source="MiniTactics_Teacher_Lesson12/Assets/Lesson12/Scripts/TransientPool.cs" data-lines="73-77" data-sha256="72ce310404af974e69f439a063ab924dec69a9a44312a1b6b2258e9f39cfb13d" data-commit="9c6b5b207e4c2a53e179e30768fefb3f696a32bb">    Reset(value);
+    value.gameObject.SetActive(false);
+    _available.Push(value);
+}
+_active.Clear();</code></pre><p class="source">실제 코드 발췌 · TransientPool.cs 73–77행 · 주변 코드 생략 · SHA-256 72ce310404af</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere"><code data-source="MiniTactics_Teacher_Lesson12/Assets/Lesson12/Scripts/TransientPool.cs" data-lines="83-88" data-sha256="72ce310404af974e69f439a063ab924dec69a9a44312a1b6b2258e9f39cfb13d" data-commit="9c6b5b207e4c2a53e179e30768fefb3f696a32bb">ReturnAll();
+_disposed = true;
+foreach (T value in _owned)
+    if (value != null) UnityEngine.Object.Destroy(value.gameObject);
+_owned.Clear();
+_available.Clear();</code></pre><p class="source">실제 코드 발췌 · TransientPool.cs 83–88행 · 주변 코드 생략 · SHA-256 72ce310404af</p><p>위는 ReturnAll 반복문의 끝, 아래는 Dispose의 핵심 발췌다. ReturnAll은 재대여를 위해 남기고 Dispose는 소유 객체 파괴를 요청한다.</p></div></section>
+<section class="slide" id="slide-25" data-slide="25 / 27" aria-labelledby="title-25"><div><p class="kicker">Measurement Boundary</p><h2 id="title-25">생성 감소와 성능 보장은 구별한다</h2><div class="two"><div class="panel teal"><h3>확인할 수 있는 것</h3><p>같은 출력·수명·관찰 구간에서 생성 횟수를 비교한다. Prewarm 비용과 준비 뒤 추가 생성을 나누어 센다.</p></div><div class="panel violet"><h3>여전히 측정할 것</h3><p>보유 메모리, 초기 준비 시간, 전체 할당·컬렉션, 프레임 시간은 별도 관찰이 필요하다. 생성 0번만으로 판단할 수 없다.</p></div></div><div class="callout"><p>제공된 계측 기반 위에서 PoolComparisonDriver가 대여·반환 작업을 수행한다. 여기에는 기본 설정의 실측 성능 결과가 없으며 전체 게임 zero GC나 FPS 향상을 보장하지 않는다.</p></div></div></section>
+<section class="slide" id="slide-26" data-slide="26 / 27" aria-labelledby="title-26"><div><p class="kicker">Costs and Application</p><h2 id="title-26">짧고 반복되는 객체에 먼저 검토한다</h2><table class="compare"><thead><tr><th>유용한 조건</th><th>대가와 판단</th></tr></thead><tbody><tr><td>숫자·먼지처럼 구조가 같고 반복됨</td><td>동시 사용량을 추정하고 준비 수를 정한다.</td></tr><tr><td>수명이 짧고 종료 경계가 명확함</td><td>반환 누락·중복·오래된 요청을 관리한다.</td></tr><tr><td>초기화할 상태가 명확함</td><td>재사용 때마다 초기화 비용과 복잡성이 든다.</td></tr><tr><td>드물고 오래 사는 객체</td><td>보유 메모리와 관리 비용이 이득보다 클 수 있다.</td></tr></tbody></table><p>기존 MovementOverlayPool은 이전 차시부터 이어진 별도 작업이다. 새 Object Pool 성과로 합산하지 않는다.</p></div></section>
+<section class="slide" id="slide-27" data-slide="27 / 27" aria-labelledby="title-27"><div><p class="kicker">Visible Review Answers</p><h2 id="title-27">핵심 질문에 현재 코드로 답한다</h2><table class="compare"><thead><tr><th>질문</th><th>답과 이유</th></tr></thead><tbody><tr><td>대기 수가 곧 CreatedCount인가?</td><td>아니다. 대기 수는 지금의 상태, CreatedCount는 누적 생성 횟수다.</td></tr><tr><td>같은 A를 빌리면 같은 대여인가?</td><td>아니다. 새 Sequence를 가진 새 대여다.</td></tr><tr><td>낡은 반환은 새 대여를 끝내나?</td><td>false다. 현재 세대가 다르면 상태를 바꾸지 않는다.</td></tr><tr><td>숨기기만 하면 초기화가 끝났나?</td><td>아니다. 시간·텍스트·Transform 등도 정리해야 한다.</td></tr><tr><td>풀을 쓰면 언제나 더 빠른가?</td><td>아니다. 실제 부하와 보유·초기화 비용을 비교한다.</td></tr></tbody></table></div></section></div></main><nav class="controls" aria-label="슬라이드 탐색"><button class="control-btn" id="prevBtn" type="button" aria-label="이전 슬라이드">←</button><button class="control-btn" id="tocBtn" type="button">목차</button><span id="slideCounter" aria-live="polite">1 / 27</span><button class="control-btn" id="nextBtn" type="button" aria-label="다음 슬라이드">→</button></nav></div><dialog id="tocDialog" aria-labelledby="tocTitle"><div class="toc-head"><h2 id="tocTitle">전체 목차</h2><button class="control-btn" id="tocCloseBtn" type="button">닫기</button></div><div class="toc-grid"><a class="toc-link" href="#slide-1"><span>01</span>Object Pool 패턴</a><a class="toc-link" href="#slide-2"><span>02</span>짧게 쓰고 없애면 단순하다</a><a class="toc-link" href="#slide-3"><span>03</span>끝난 표시를 다음 요청에 다시 쓸 수 있을까?</a><a class="toc-link" href="#slide-4"><span>04</span>객체 하나를 숨겼다가 다시 보여 준다</a><a class="toc-link" href="#slide-5"><span>05</span>객체가 같은 것과 대여가 같은 것은 다르다</a><a class="toc-link" href="#slide-6"><span>06</span>대기·대여·소유를 나누어 관리한다</a><a class="toc-link" href="#slide-7"><span>07</span>Object Pool은 재사용 가능한 객체의 대여소다</a><a class="toc-link" href="#slide-8"><span>08</span>실제 클래스의 역할을 대응한다</a><a class="toc-link" href="#slide-9"><span>09</span>풀은 세 종류의 기록을 따로 둔다</a><a class="toc-link" href="#slide-10"><span>10</span>대여증은 객체·소유 풀·세대를 묶는다</a><a class="toc-link" href="#slide-11"><span>11</span>Rent는 남은 객체를 찾고 없으면 만든다</a><a class="toc-link" href="#slide-12"><span>12</span>같은 객체에도 매번 새 대여 번호를 준다</a><a class="toc-link" href="#slide-13"><span>13</span>Return은 현재 대여인지 먼저 검사한다</a><a class="toc-link" href="#slide-14"><span>14</span>정상 반환은 초기화하고 비활성화한다</a><a class="toc-link" href="#slide-15"><span>15</span>낡은 대여증은 새 대여를 끝내지 못한다</a><a class="toc-link" href="#slide-16"><span>16</span>Prewarm은 빌려줄 대기 수를 준비한다</a><a class="toc-link" href="#slide-17"><span>17</span>CreatedCount는 누적 생성 횟수다</a><a class="toc-link" href="#slide-18"><span>18</span>위치뿐 아니라 표시의 남은 상태도 지운다</a><a class="toc-link" href="#slide-19"><span>19</span>이전 숫자와 시간도 새 대여로 새면 안 된다</a><a class="toc-link" href="#slide-20"><span>20</span>소비자는 빌린 뒤 표시하고 대여증을 기록한다</a><a class="toc-link" href="#slide-21"><span>21</span>완료 일정을 뒤에서부터 제거한다</a><a class="toc-link" href="#slide-22"><span>22</span>일정을 먼저 비운 뒤 모두 반환한다</a><a class="toc-link" href="#slide-23"><span>23</span>ReturnAll은 재사용, Dispose는 수명 종료다</a><a class="toc-link" href="#slide-24"><span>24</span>작은 두 메서드로 해제 경계를 확인한다</a><a class="toc-link" href="#slide-25"><span>25</span>생성 감소와 성능 보장은 구별한다</a><a class="toc-link" href="#slide-26"><span>26</span>짧고 반복되는 객체에 먼저 검토한다</a><a class="toc-link" href="#slide-27"><span>27</span>핵심 질문에 현재 코드로 답한다</a></div></dialog><script>
     const slides = [...document.querySelectorAll('.slide')];
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
@@ -313,9 +259,7 @@ internal long Sequence { get; }</code></pre><p class="source code-caption">실�
 
     const initialIndex = indexFromHash();
     showSlide(initialIndex);
-  </script>
-<noscript><style>
+  </script><noscript><style>
     html,body{height:auto;overflow:visible}.app,.stage,.deck{display:block;width:100%;height:auto;max-height:none;aspect-ratio:auto;overflow:visible;container-type:normal}
     .slide,.slide.is-active{position:relative;display:block;overflow:visible;animation:none;margin-bottom:20px}.controls,dialog{display:none}
-    </style></noscript></body>
-</html>
+    </style></noscript></body></html>
