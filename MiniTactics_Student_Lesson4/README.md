@@ -14,7 +14,7 @@ Undo 버튼, EventSystem, TMP 폰트와 모든 필수 Inspector 참조가 연결
 `InputState`(빈 abstract class), `InputStateMachine`, `IdleState`, `UnitSelectedState`의 본문과
 Idle·Selected의 `: InputState` 상속 표시는 수업에서 입력합니다.
 교사용 진행안의 순서(계약 → 머신 → Controller의 작업 → Idle → Selected → Controller 연결)대로
-한 파일씩 저장할 때마다 Console 오류 0개·경고 0개를 확인합니다.
+블록마다 저장한 뒤 Console 오류 0개·경고 0개를 확인합니다.
 코드가 끝나면 Play를 끈 상태에서 `Unit Spawner`의 Spawn Cells를 세 칸
 (2,2), (5,4), (8,6)으로 바꾸고 씬을 저장합니다. 제공된 `UnitSpawner.cs`는 고치지 않습니다.
 
