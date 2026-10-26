@@ -11,7 +11,6 @@ namespace MiniTactics.Lesson11
         [SerializeField] private UnitSpawner _spawner;
         [SerializeField] private BoardView _board;
         [SerializeField] private EnemyAI _enemyAi;
-        private bool _usingSkill;
         public BattlePhase Phase { get; private set; } = BattlePhase.Player;
 
         public bool CanAct(Unit unit) => unit != null && unit.IsAlive && unit.CanMove &&
@@ -65,6 +64,7 @@ namespace MiniTactics.Lesson11
         public void Attack(Unit attacker, Unit defender)
         {
             if (!CanAttack(attacker, defender)) return;
+            attacker.Present(PresentationEvent.Acted(attacker, defender, false));
             Attack(attacker, defender, 0);
         }
 
@@ -75,17 +75,7 @@ namespace MiniTactics.Lesson11
             Vector2Int cell = _board.WorldToCell(defender.transform.position);
             int damage = CombatCalculator.CalculateDamage(attacker.AttackPower, defender.Defense,
                 _board.GetDefenseBonus(cell)) + bonusDamage;
-            if (!_usingSkill) attacker.Present(PresentationEvent.Acted(attacker, defender, false));
             defender.TakeDamage(damage);
-        }
-
-        public void UseSkill(Unit user, Unit target)
-        {
-            if (!GameManager.Instance.IsPlaying || !user.IsAlive || !target.IsAlive) return;
-            user.Present(PresentationEvent.Acted(user, target, true));
-            _usingSkill = true;
-            try { user.UnitClass.Skill.Use(user, target, this); }
-            finally { _usingSkill = false; }
         }
 
         public void PushAway(Unit user, Unit target)
@@ -131,7 +121,7 @@ namespace MiniTactics.Lesson11
                     if (!GameManager.Instance.IsPlaying) return;
                 }
                 token.ThrowIfCancellationRequested();
-                if (GameManager.Instance.IsPlaying) BeginPlayerPhase();
+                BeginPlayerPhase();
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested) { }
         }

@@ -61,11 +61,12 @@ namespace MiniTactics.Lesson11
                 return false;
             }
 
-            _history.Execute(new MoveUnitCommand(unit, _board, targetCell));
+            MoveUnitCommand command = new MoveUnitCommand(unit, _board, targetCell);
+            _history.Execute(command);
             return true;
         }
 
-        internal bool UndoLast() => CanAcceptInput() && _history.UndoLast();
+        internal bool UndoLast() => _history.UndoLast();
 
         public void OnUndoClicked()
         {
@@ -104,11 +105,7 @@ namespace MiniTactics.Lesson11
                 _stateMachine.ChangeState(new ActionMenuState(this, unit));
                 return;
             }
-            if (afterMove)
-            {
-                ReturnToIdle();
-                CompleteAction(unit);
-            }
+            if (afterMove) CompleteAction(unit);
         }
 
         internal bool HasAttackTargets(Unit unit) =>
@@ -150,7 +147,8 @@ namespace MiniTactics.Lesson11
         internal void UseSkill(Unit user, Unit target)
         {
             if (!CanUseSkill(user, target)) return;
-            GameManager.Instance.Turns.UseSkill(user, target);
+            user.Present(PresentationEvent.Acted(user, target, true));
+            user.UnitClass.Skill.Use(user, target, GameManager.Instance.Turns);
             _history.Clear();
         }
 
