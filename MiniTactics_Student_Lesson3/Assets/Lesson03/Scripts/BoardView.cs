@@ -6,14 +6,6 @@ namespace MiniTactics.Lesson03
 {
     public sealed class BoardView : MonoBehaviour
     {
-        private static readonly Vector2Int[] CardinalDirections =
-        {
-            Vector2Int.up,
-            Vector2Int.right,
-            Vector2Int.down,
-            Vector2Int.left
-        };
-
         [SerializeField] private Tilemap _tilemap;
 
         public Vector3 CellToWorld(Vector2Int cell)
@@ -32,76 +24,48 @@ namespace MiniTactics.Lesson03
             return _tilemap.HasTile(new Vector3Int(cell.x, cell.y, 0));
         }
 
-        public IReadOnlyList<MovementCell> GetMovementRange(Unit selectedUnit)
+        public bool TryGetMovementCost(Vector2Int cell, out int cost)
         {
-            List<MovementCell> result = new List<MovementCell>();
+            cost = 1;
+            return IsInside(cell);
+        }
+
+        public MovementRangeResult CalculateMovementRange(Unit selectedUnit)
+        {
             if (selectedUnit == null)
             {
-                return result;
+                return MovementRangeResult.Empty();
             }
 
             Vector2Int startCell = WorldToCell(selectedUnit.transform.position);
-            if (!IsInside(startCell))
-            {
-                return result;
-            }
-
-            HashSet<Vector2Int> occupiedCells = GetOccupiedCells(selectedUnit);
-            Queue<(Vector2Int Cell, int Distance)> frontier = new Queue<(Vector2Int, int)>();
-            HashSet<Vector2Int> visited = new HashSet<Vector2Int> { startCell };
-            frontier.Enqueue((startCell, 0));
-
-            while (frontier.Count > 0)
-            {
-                (Vector2Int cell, int distance) = frontier.Dequeue();
-                bool isOccupied = cell != startCell && occupiedCells.Contains(cell);
-                result.Add(new MovementCell(cell, isOccupied));
-
-                if (distance >= selectedUnit.MoveDistance)
-                {
-                    continue;
-                }
-
-                foreach (Vector2Int direction in CardinalDirections)
-                {
-                    Vector2Int nextCell = cell + direction;
-                    if (visited.Add(nextCell) && IsInside(nextCell))
-                    {
-                        frontier.Enqueue((nextCell, distance + 1));
-                    }
-                }
-            }
-
-            return result;
+            return MovementRange.Calculate(this, startCell, selectedUnit.MoveBudget, GetOccupiedCells(selectedUnit));
         }
 
         public bool CanMoveTo(Unit selectedUnit, Vector2Int targetCell)
         {
-            foreach (MovementCell movementCell in GetMovementRange(selectedUnit))
-            {
-                if (movementCell.Cell == targetCell)
-                {
-                    return !movementCell.IsOccupied;
-                }
-            }
-
-            return false;
+            return selectedUnit != null &&
+                targetCell != WorldToCell(selectedUnit.transform.position) &&
+                CalculateMovementRange(selectedUnit).TryGetCost(targetCell, out _) &&
+                !IsOccupiedByOther(selectedUnit, targetCell);
         }
 
-        private HashSet<Vector2Int> GetOccupiedCells(Unit selectedUnit)
+        public HashSet<Vector2Int> GetOccupiedCells(Unit selectedUnit)
         {
-            HashSet<Vector2Int> occupiedCells = new HashSet<Vector2Int>();
-            Unit[] units = Object.FindObjectsByType<Unit>(FindObjectsInactive.Exclude);
-
-            foreach (Unit unit in units)
+            HashSet<Vector2Int> cells = new HashSet<Vector2Int>();
+            foreach (Unit unit in Object.FindObjectsByType<Unit>(FindObjectsInactive.Exclude))
             {
                 if (unit != selectedUnit)
                 {
-                    occupiedCells.Add(WorldToCell(unit.transform.position));
+                    cells.Add(WorldToCell(unit.transform.position));
                 }
             }
 
-            return occupiedCells;
+            return cells;
+        }
+
+        public bool IsOccupiedByOther(Unit selectedUnit, Vector2Int cell)
+        {
+            return GetOccupiedCells(selectedUnit).Contains(cell);
         }
     }
 }
