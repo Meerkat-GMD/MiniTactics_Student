@@ -1,11 +1,23 @@
-# Mini Tactics Student — Lesson 05
+# 미니 택틱스 5차시 학생 시작본
 
 Unity 6000.5.3f1에서 `Assets/Lesson05/Scenes/Lesson05.unity`를 엽니다.
+새 Teacher4 완성 코드 21파일(namespace만 Lesson05로 변경), 여섯 개의 빈 선언,
+제공 코드 `PhaseHudView.cs`가 있습니다. 시작본부터 오류 없이 Play할 수 있습니다.
 
-시작은 완성 Teacher4입니다. Play하면 Blue (2,2),(5,4),(8,6)과 고정 Black (6,4), 총 4명이 보입니다. 이전 가중 이동/State/Command/Undo와 현재 포인터 UI 보호, 논리 루트/Visual 보간이 동작합니다. 새 차례 동작은 아직 없습니다.
+Play하면 `Unit Spawner`가 Blue 셋을 (2,2)·(5,4)·(8,6)에 만들고, 고정 Black은 (6,4)에 있습니다.
+4차시 끝과 같은 동작입니다. 지형 비용 범위(Blue (5,4)는 24칸), State 선택·이동·거부,
+여러 단계 Undo가 동작합니다. 아직 차례·진영·적은 없습니다.
 
-`Team`, `BattlePhase`, `GameManager`, `EnemyAI`, `TurnManager`, `PhaseHud`는 빈 선언입니다. `PhaseHudView`만 독립 TMP/Button 표시 제공 코드이며 gameplay API를 호출하지 않습니다. 신규 End Turn/Restart/Phase Text/Instructions는 숨김이고 신규 버튼 listener는 비어 있습니다. 신규 필수 참조는 교사용 진행안의 코드 저장 직후 Inspector에서 직접 연결합니다.
+`Team`, `BattlePhase`(값이 없는 빈 enum), `GameManager`, `TurnManager`, `EnemyAI`, `PhaseHud`의
+본문은 수업에서 입력합니다. 4차시에 제공 코드로 받은 `UnitSpawner.cs`는 오늘부터 수업에서 고칩니다.
+`PhaseHudView.cs`는 글자와 턴 종료 버튼만 표시하는 제공 코드이며 고치지 않습니다.
+`Game Manager`, `Turn Manager`, `Enemy AI`, `Lesson UI`의 새 컴포넌트는 붙어만 있고 참조가 비어 있습니다.
+`Lesson UI` 아래 Phase Text, End Turn Button, Restart Button, Instructions는 꺼져 있고
+새 버튼의 On Click은 비어 있습니다.
 
-제공 준비: 기존 그림/지형/MapData와 UnitLook, Red 그림, TMP 필수 리소스, NotoSansKR 원본/OFL/SDF(내장 glyph/atlas, Clear Dynamic Data On Build=false), UniTask 2.5.11와 runtime asmdef 참조. 지형 ClassroomResources 재임포트는 하지 않습니다. Tests/Editor C#나 완성 Teacher DLL을 배포하지 않습니다.
+교사용 진행안의 순서(값 → GameManager → Unit → UnitSpawner → BoardView → 기록 → EnemyAI →
+TurnManager → Controller → 행동 완료 → HUD)대로 블록마다 저장한 뒤 Console 오류 0개·경고 0개를 확인합니다.
+새 필드는 저장해 컴파일한 직후 Play를 끈 상태에서 Inspector로 연결하고, 고정 Black은 진행안의 단계에서 지웁니다.
 
-수업은 Teacher 저장소 `MiniTactics_Teacher_Lesson5/교사용_5차시_진행안.md`의 25개 독립 저장을 따릅니다. 최종에는 고정 Black을 삭제하고 3 Blue/2 Red만 spawner가 등록합니다. 패턴 HTML은 Singleton 이론 자료이며 구현/Inspector 순서는 진행안에 있습니다. Lesson6에서 공격·HP·전멸 승리를 이어갑니다.
+Tests, Editor 씬 생성 도구, 완성 코드와 DLL은 포함하지 않습니다.
+HTML은 Singleton 패턴 이론 자료이고, 구현 순서와 입력할 코드는 교사용 진행안에 있습니다.
