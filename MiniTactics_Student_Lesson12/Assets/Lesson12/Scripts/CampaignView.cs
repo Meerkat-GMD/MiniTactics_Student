@@ -24,9 +24,9 @@ namespace MiniTactics.Lesson12
         [SerializeField] private GameObject _ending;
         [SerializeField] private GameObject _reset;
         [SerializeField] private GameObject _help;
-        [SerializeField] private UnityEngine.UI.Text _stageName;
-        [SerializeField] private UnityEngine.UI.Text _resultLabel;
-        [SerializeField] private UnityEngine.UI.Text[] _muteLabels;
+        [SerializeField] private TMPro.TMP_Text _stageName;
+        [SerializeField] private TMPro.TMP_Text _resultLabel;
+        [SerializeField] private TMPro.TMP_Text[] _muteLabels;
         [SerializeField] private UnityEngine.UI.Button _continue;
         [SerializeField] private UnityEngine.UI.Button _next;
         [SerializeField] private UnityEngine.UI.Button _retryResult;
@@ -82,7 +82,7 @@ namespace MiniTactics.Lesson12
 
         public void SetMuted(bool muted)
         {
-            foreach (UnityEngine.UI.Text label in _muteLabels)
+            foreach (TMPro.TMP_Text label in _muteLabels)
                 label.text = muted ? "소리 켜기" : "음소거";
         }
 

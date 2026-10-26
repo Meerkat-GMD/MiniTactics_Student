@@ -11,9 +11,10 @@ namespace MiniTactics.Lesson12
         private Unit _user;
         private TurnManager _turns;
 
-        public string DisplayName => _displayName;
         protected Unit User => _user;
         protected TurnManager Turns => _turns;
+
+        public string DisplayName => _displayName;
 
         public List<Unit> GetTargets(Unit user, TurnManager turns)
         {

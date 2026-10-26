@@ -4,6 +4,7 @@
   "references": [
     "Unity.InputSystem",
     "UnityEngine.UI",
+    "Unity.TextMeshPro",
     "UniTask"
   ],
   "autoReferenced": true

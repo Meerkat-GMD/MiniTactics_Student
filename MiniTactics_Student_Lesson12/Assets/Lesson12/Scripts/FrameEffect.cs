@@ -40,13 +40,12 @@ namespace MiniTactics.Lesson12
             SpawnOwned(frames, position, sortingOrder, null);
         }
 
-        public static FrameEffect SpawnOwned(Sprite[] frames, Vector3 position, int sortingOrder, Transform parent)
+        public static void SpawnOwned(Sprite[] frames, Vector3 position, int sortingOrder, Transform parent)
         {
             GameObject effect = new GameObject("Frame Effect", typeof(SpriteRenderer), typeof(FrameEffect));
-            effect.transform.SetParent(parent);
+            effect.transform.SetParent(parent, false);
             FrameEffect player = effect.GetComponent<FrameEffect>();
             player.Show(frames, position, sortingOrder);
-            return player;
         }
 
         public bool Advance(float seconds)

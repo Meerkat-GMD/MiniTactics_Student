@@ -44,8 +44,10 @@ namespace MiniTactics.Lesson12
 
         private void ConnectScene()
         {
+            CampaignView view = Object.FindAnyObjectByType<CampaignView>();
+            if (_view != null && _view == view) return;
             DisconnectScene();
-            _view = Object.FindAnyObjectByType<CampaignView>();
+            _view = view;
             _view.Clicked += OnCommand;
             _activeIndex = _catalog.IndexOf(SceneManager.GetActiveScene().name);
             _resultShown = false;
@@ -193,6 +195,7 @@ namespace MiniTactics.Lesson12
             DisconnectScene();
             SceneManager.sceneLoaded -= OnSceneLoaded;
             Services.Audio = new NullAudioService();
+            Services.Save = new NullSaveService();
             Instance = null;
         }
     }
