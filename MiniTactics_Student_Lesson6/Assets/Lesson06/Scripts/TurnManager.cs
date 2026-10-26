@@ -55,7 +55,10 @@ namespace MiniTactics.Lesson06
 
         private void BeginPlayerPhase()
         {
-            foreach (Unit unit in _spawner.Units) unit.HasMoved = false;
+            foreach (Unit unit in _spawner.Units)
+            {
+                unit.HasMoved = false;
+            }
             Phase = BattlePhase.Player;
         }
 

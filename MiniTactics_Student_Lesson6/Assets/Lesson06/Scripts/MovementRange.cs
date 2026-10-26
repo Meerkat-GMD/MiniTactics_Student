@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,57 +5,23 @@ namespace MiniTactics.Lesson06
 {
     public sealed class MovementRangeResult
     {
-        private readonly Vector2Int _start;
         private readonly Dictionary<Vector2Int, int> _costs;
-        private readonly Dictionary<Vector2Int, Vector2Int> _previous;
 
-        public MovementRangeResult(
-            Vector2Int start,
-            Dictionary<Vector2Int, int> costs,
-            Dictionary<Vector2Int, Vector2Int> previous)
+        public MovementRangeResult(Dictionary<Vector2Int, int> costs)
         {
-            _start = start;
             _costs = costs;
-            _previous = previous;
         }
 
         public IReadOnlyCollection<Vector2Int> ReachableCells => _costs.Keys;
 
-        public static MovementRangeResult Empty(Vector2Int start)
+        public static MovementRangeResult Empty()
         {
-            return new MovementRangeResult(
-                start,
-                new Dictionary<Vector2Int, int>(),
-                new Dictionary<Vector2Int, Vector2Int>());
+            return new MovementRangeResult(new Dictionary<Vector2Int, int>());
         }
 
         public bool TryGetCost(Vector2Int cell, out int cost)
         {
             return _costs.TryGetValue(cell, out cost);
-        }
-
-        public IReadOnlyList<Vector2Int> GetPathTo(Vector2Int destination)
-        {
-            if (!_costs.ContainsKey(destination))
-            {
-                return Array.Empty<Vector2Int>();
-            }
-
-            List<Vector2Int> path = new List<Vector2Int> { destination };
-            Vector2Int current = destination;
-
-            while (current != _start)
-            {
-                if (!_previous.TryGetValue(current, out current))
-                {
-                    return Array.Empty<Vector2Int>();
-                }
-
-                path.Add(current);
-            }
-
-            path.Reverse();
-            return path;
         }
     }
 
@@ -71,28 +36,15 @@ namespace MiniTactics.Lesson06
         };
 
         public static MovementRangeResult Calculate(
-            Board board,
+            BoardView board,
             Vector2Int start,
             int budget,
             ISet<Vector2Int> blockedCells)
         {
-            if (board == null)
-            {
-                throw new ArgumentNullException(nameof(board));
-            }
-
-            if (budget < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(budget));
-            }
-
             Dictionary<Vector2Int, int> costs = new Dictionary<Vector2Int, int>();
-            Dictionary<Vector2Int, Vector2Int> previous =
-                new Dictionary<Vector2Int, Vector2Int>();
-
-            if (!board.Contains(start) || !board.GetTile(start).IsWalkable)
+            if (!board.TryGetMovementCost(start, out _))
             {
-                return new MovementRangeResult(start, costs, previous);
+                return new MovementRangeResult(costs);
             }
 
             HashSet<Vector2Int> frontier = new HashSet<Vector2Int> { start };
@@ -106,18 +58,12 @@ namespace MiniTactics.Lesson06
                 foreach (Vector2Int direction in CardinalDirections)
                 {
                     Vector2Int next = current + direction;
-                    if (!board.Contains(next) || blockedCells.Contains(next))
+                    if (blockedCells.Contains(next) || !board.TryGetMovementCost(next, out int stepCost))
                     {
                         continue;
                     }
 
-                    TileData terrain = board.GetTile(next);
-                    if (!terrain.IsWalkable)
-                    {
-                        continue;
-                    }
-
-                    int candidateCost = costs[current] + terrain.MovementCost;
+                    int candidateCost = costs[current] + stepCost;
                     if (candidateCost > budget)
                     {
                         continue;
@@ -130,28 +76,25 @@ namespace MiniTactics.Lesson06
                     }
 
                     costs[next] = candidateCost;
-                    previous[next] = current;
                     frontier.Add(next);
                 }
             }
 
-            return new MovementRangeResult(start, costs, previous);
+            return new MovementRangeResult(costs);
         }
 
         private static Vector2Int FindLowestCost(
             IEnumerable<Vector2Int> frontier,
             IReadOnlyDictionary<Vector2Int, int> costs)
         {
-            bool found = false;
             Vector2Int best = default;
             int bestCost = int.MaxValue;
 
             foreach (Vector2Int cell in frontier)
             {
                 int cost = costs[cell];
-                if (!found || cost < bestCost)
+                if (cost < bestCost)
                 {
-                    found = true;
                     best = cell;
                     bestCost = cost;
                 }
