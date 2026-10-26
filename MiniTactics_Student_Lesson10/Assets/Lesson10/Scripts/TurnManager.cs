@@ -121,7 +121,7 @@ namespace MiniTactics.Lesson10
                     if (!GameManager.Instance.IsPlaying) return;
                 }
                 token.ThrowIfCancellationRequested();
-                if (GameManager.Instance.IsPlaying) BeginPlayerPhase();
+                BeginPlayerPhase();
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested) { }
         }
