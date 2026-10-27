@@ -24,7 +24,24 @@ Keep later lessons marked pending until their own sequential migration is verifi
 This dated section supersedes older contradictory freeze, typing-cap and temporary
 compiler-error allowances only for the newly authorized course rebuild.
 
-## Presentation HTML: preserve the user's chosen format
+## Presentation decks: PowerPoint based on Game Programming Patterns (user decision, 2026-10-26/27)
+
+The user replaced the presentation HTML with PowerPoint decks: "기존 수업 자료는
+폐기하고 해당 수업은 https://gameprogrammingpatterns.com/contents.html 내용을
+바탕으로 패턴에 대해서 설명하는 것만 만들어주라." and, on 2026-10-27, "규칙도 바꿔."
+The full rule is the first section of
+[docs/presentation-format.md](docs/presentation-format.md).
+
+- Lesson N's presentation is `MiniTactics_Student_LessonN/NN차시_<주제>_수업자료.pptx`
+  and covers the same pattern as course lesson N, following the matching chapter
+  of Game Programming Patterns. Write Korean in your own words, do not copy the
+  book or use untranslated words such as "Bjørn", and rewrite examples in C#.
+- The old `NN차시_*_수업자료.html` / `*_발표자료.html` presentation files are
+  discard targets once the deck exists. Do not revise them. The user decides
+  when to delete them. The lecture HTML (`*_강의자료.html`) is unaffected.
+- The section below is history for the old presentation HTML.
+
+## Presentation HTML: preserve the user's chosen format (2026-09-15, superseded 2026-10-27)
 
 Before creating, revising or reviewing any lesson presentation HTML, read
 [docs/presentation-format.md](docs/presentation-format.md) and open the actual
