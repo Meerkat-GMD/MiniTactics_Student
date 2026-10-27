@@ -74,10 +74,9 @@ namespace MiniTactics.Lesson12
         public void MoveTo(BoardView board, Vector2Int targetCell)
         {
             Vector3 from = transform.position;
-            Vector3 to = board.CellToWorld(targetCell);
-            transform.position = to;
-            _animator.PreservePosition(to - from);
-            Present(PresentationEvent.Moved(this, from, to));
+            transform.position = board.CellToWorld(targetCell);
+            _animator.PreservePosition(transform.position - from);
+            Present(PresentationEvent.Moved(this, from, transform.position));
         }
     }
 }
