@@ -58,8 +58,12 @@ namespace MiniTactics.Lesson11
             switch (item.Kind)
             {
                 case PresentationEvent.EventKind.Move: animator.PlayMove(item.From, item.To); break;
-                case PresentationEvent.EventKind.Attack: animator.PlayAttack(item.From, item.TargetPosition); break;
-                case PresentationEvent.EventKind.Skill: animator.PlaySkill(item.From, item.TargetPosition); break;
+                case PresentationEvent.EventKind.Attack:
+                    animator.PlayAttack(item.From, item.TargetPosition);
+                    break;
+                case PresentationEvent.EventKind.Skill:
+                    animator.PlaySkill(item.From, item.TargetPosition);
+                    break;
                 default: await PlayHealthAsync(item, animator, token); return;
             }
             await UniTask.Delay(TimeSpan.FromSeconds(item.Seconds), cancellationToken: token);

@@ -14,7 +14,12 @@ namespace MiniTactics.Lesson07
         public override void Exit() => _controller.ClearSelection();
         public override void HandleBoardClick(Unit clickedUnit, Vector2Int cell)
         {
-            if (clickedUnit == null || !_controller.CanAttack(_attacker, clickedUnit)) return;
+            if (!_controller.CanAcceptInput()) return;
+            if (!_controller.CanAttack(_attacker, clickedUnit))
+            {
+                _controller.RequestAction(_attacker, false);
+                return;
+            }
             _controller.Attack(_attacker, clickedUnit);
             _controller.Select(null);
             _controller.CompleteAction(_attacker);

@@ -27,7 +27,7 @@ namespace MiniTactics.Lesson06
             if (_controller.ExecuteMove(_unit, cell))
             {
                 _controller.Select(null);
-                _controller.CompletePlayerMove();
+                _controller.RequestAction(_unit, true);
             }
         }
 

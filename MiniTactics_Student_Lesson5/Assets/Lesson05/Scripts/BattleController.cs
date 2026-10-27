@@ -48,12 +48,13 @@ namespace MiniTactics.Lesson05
 
         internal bool ExecuteMove(Unit unit, Vector2Int targetCell)
         {
-            if (unit == null || !_board.CanMoveTo(unit, targetCell))
+            if (!CanSelect(unit) || !_board.CanMoveTo(unit, targetCell))
             {
                 return false;
             }
 
-            _history.Execute(new MoveUnitCommand(unit, _board, targetCell));
+            MoveUnitCommand command = new MoveUnitCommand(unit, _board, targetCell);
+            _history.Execute(command);
             return true;
         }
 

@@ -61,11 +61,16 @@ namespace MiniTactics.Lesson09
         public bool CanAttack(Unit attacker, Unit defender) =>
             GameManager.Instance.IsPlaying && GetAttackTargets(attacker).Contains(defender);
 
-        public void Attack(Unit attacker, Unit defender) => Attack(attacker, defender, 0);
+        public void Attack(Unit attacker, Unit defender)
+        {
+            if (!CanAttack(attacker, defender)) return;
+            Attack(attacker, defender, 0);
+        }
 
         public void Attack(Unit attacker, Unit defender, int bonusDamage)
         {
-            if (!CanAttack(attacker, defender)) return;
+            if (!GameManager.Instance.IsPlaying || !attacker.IsAlive || !defender.IsAlive ||
+                attacker.Team == defender.Team) return;
             Vector2Int cell = _board.WorldToCell(defender.transform.position);
             int damage = CombatCalculator.CalculateDamage(attacker.AttackPower, defender.Defense,
                 _board.GetDefenseBonus(cell)) + bonusDamage;
@@ -100,7 +105,7 @@ namespace MiniTactics.Lesson09
                     if (!GameManager.Instance.IsPlaying) return;
                 }
                 token.ThrowIfCancellationRequested();
-                if (GameManager.Instance.IsPlaying) BeginPlayerPhase();
+                BeginPlayerPhase();
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested) { }
         }

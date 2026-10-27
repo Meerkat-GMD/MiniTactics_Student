@@ -53,7 +53,8 @@ namespace MiniTactics.Lesson06
                 return false;
             }
 
-            _history.Execute(new MoveUnitCommand(unit, _board, targetCell));
+            MoveUnitCommand command = new MoveUnitCommand(unit, _board, targetCell);
+            _history.Execute(command);
             return true;
         }
 
@@ -65,7 +66,7 @@ namespace MiniTactics.Lesson06
             _stateMachine.HandleUndo();
         }
 
-        private bool CanAcceptInput() => GameManager.Instance.Turns.Phase == BattlePhase.Player;
+        internal bool CanAcceptInput() => GameManager.Instance.Turns.Phase == BattlePhase.Player;
 
         public void OnEndTurnClicked()
         {
@@ -75,7 +76,12 @@ namespace MiniTactics.Lesson06
             GameManager.Instance.Turns.EndPlayerPhase();
         }
 
-        internal void CompletePlayerMove()
+        internal void RequestAction(Unit unit, bool afterMove)
+        {
+            if (afterMove) CompleteAction(unit);
+        }
+
+        internal void CompleteAction(Unit unit)
         {
             if (GameManager.Instance.Turns.AreAllPlayersMoved()) OnEndTurnClicked();
         }

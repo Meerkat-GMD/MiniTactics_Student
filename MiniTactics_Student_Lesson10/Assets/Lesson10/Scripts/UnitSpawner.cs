@@ -24,7 +24,8 @@ namespace MiniTactics.Lesson10
             {
                 UnitPlacement placement = placements[i];
                 Unit unit = Instantiate(_unitPrefab, _board.CellToWorld(placement.Cell), Quaternion.identity, transform);
-                unit.name = team + " " + placement.UnitClass.DisplayName;
+                unit.name = team + " " + (i + 1);
+                unit.name += " " + placement.UnitClass.DisplayName;
                 unit.Initialize(team, placement.UnitClass);
                 _units.Add(unit);
             }

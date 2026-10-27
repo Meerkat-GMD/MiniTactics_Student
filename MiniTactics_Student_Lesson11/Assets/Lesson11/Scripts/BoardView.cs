@@ -41,15 +41,28 @@ namespace MiniTactics.Lesson11
             return Board.Contains(cell);
         }
 
+        public bool TryGetMovementCost(Vector2Int cell, out int cost)
+        {
+            cost = 0;
+            if (!Board.Contains(cell))
+            {
+                return false;
+            }
+
+            TileData terrain = Board.GetTile(cell);
+            cost = terrain.MovementCost;
+            return terrain.IsWalkable;
+        }
+
         public MovementRangeResult CalculateMovementRange(Unit selectedUnit)
         {
             if (selectedUnit == null)
             {
-                return MovementRangeResult.Empty(Vector2Int.zero);
+                return MovementRangeResult.Empty();
             }
 
             Vector2Int startCell = WorldToCell(selectedUnit.transform.position);
-            return MovementRange.Calculate(Board, startCell, selectedUnit.MoveBudget, GetOccupiedCells(selectedUnit));
+            return MovementRange.Calculate(this, startCell, selectedUnit.MoveBudget, GetOccupiedCells(selectedUnit));
         }
 
         public bool CanMoveTo(Unit selectedUnit, Vector2Int targetCell)
@@ -65,22 +78,18 @@ namespace MiniTactics.Lesson11
             HashSet<Vector2Int> cells = new HashSet<Vector2Int>();
             foreach (Unit unit in _spawner.Units)
             {
-                if (unit.IsAlive && unit != selectedUnit) cells.Add(WorldToCell(unit.transform.position));
+                if (unit.IsAlive && unit != selectedUnit)
+                {
+                    cells.Add(WorldToCell(unit.transform.position));
+                }
             }
+
             return cells;
         }
 
         public bool IsOccupiedByOther(Unit selectedUnit, Vector2Int cell)
         {
-            foreach (Unit unit in _spawner.Units)
-            {
-                if (unit.IsAlive && unit != selectedUnit && WorldToCell(unit.transform.position) == cell)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return GetOccupiedCells(selectedUnit).Contains(cell);
         }
     }
 }

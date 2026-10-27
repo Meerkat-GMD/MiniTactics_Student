@@ -8,11 +8,14 @@ namespace MiniTactics.Lesson07
 
         private void Update()
         {
-            bool player = GameManager.Instance.Turns.Phase == BattlePhase.Player;
             BattleResult result = GameManager.Instance.Result;
-            string text = result == BattleResult.Playing ? (player ? "아군 차례" : "적군 차례") :
-                (result == BattleResult.PlayerWon ? "승리" : "패배");
-            _view.ShowPhase(text, player && GameManager.Instance.IsPlaying);
+            if (result != BattleResult.Playing)
+            {
+                _view.ShowPhase(result == BattleResult.PlayerWon ? "승리" : "패배", false);
+                return;
+            }
+            bool player = GameManager.Instance.Turns.Phase == BattlePhase.Player;
+            _view.ShowPhase(player ? "아군 차례" : "적군 차례", player);
         }
 
         public void OnRestartClicked() => GameManager.Instance.Restart();

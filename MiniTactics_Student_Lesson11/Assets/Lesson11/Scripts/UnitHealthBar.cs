@@ -17,7 +17,7 @@ namespace MiniTactics.Lesson11
         }
         private void Refresh(Unit unit)
         {
-            if (_automaticRefresh) Show(unit.CurrentHp, unit.MaxHp);
+            if (_automaticRefresh) _view.Show(unit.CurrentHp, unit.MaxHp);
         }
     }
 }
